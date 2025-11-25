@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block title %}Справка и руководство - Alliot{% endblock %}
+{% block page_title %}Справка и руководство пользователя{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <i class="bi bi-book me-2"></i>
+            <strong>Справка:</strong> Полное руководство по использованию системы Alliot с объяснением
+            трех типов расчетов (МСФО 9, МСФО 17, Платежеспособность).
+        </div>
+    </div>
+</div>
+
+<!-- Navigation tabs -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview"
+                type="button" role="tab">
+            <i class="bi bi-compass me-2"></i>Обзор
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ecl-tab" data-bs-toggle="tab" data-bs-target="#ecl"
+                type="button" role="tab">
+            <i class="bi bi-calculator me-2"></i>МСФО 9 (ECL)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ifrs17-tab" data-bs-toggle="tab" data-bs-target="#ifrs17"
+                type="button" role="tab">
+            <i class="bi bi-graph-up me-2"></i>МСФО 17
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="solvency-tab" data-bs-toggle="tab" data-bs-target="#solvency"
+                type="button" role="tab">
+            <i class="bi bi-shield-check me-2"></i>Платежеспособность
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow"
+                type="button" role="tab">
+            <i class="bi bi-diagram-3 me-2"></i>Порядок расчетов
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+
+    <!-- TAB 1: OVERVIEW -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-compass me-2"></i>Три типа расчетов в Alliot</h5>
+            </div>
+            <div class="card-body">
+                <p>Система поддерживает <strong>три независимых расчета</strong> для разных целей:</p>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card h-100 border-primary border-2">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">МСФО 9 (ECL)</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><strong>Финансовые инструменты</strong></p>
+                                <ul class="small">
+                                    <li>Кредиты</li>
+                                    <li>Облигации</li>
+                                    <li>Депозиты</li>
+                                </ul>
+                                <p class="mt-2"><code>ECL = PD × LGD × EAD</code></p>
+                                <p class="small text-muted">Резерв на ожидаемые убытки</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-success border-2">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">МСФО 17</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><strong>Договоры страхования</strong></p>
+                                <ul class="small">
+                                    <li>Авто страхование</li>
+                                    <li>Имущество</li>
+                                    <li>Ответственность</li>
+                                </ul>
+                                <p class="mt-2"><code>BEL + RA + CSM</code></p>
+                                <p class="small text-muted">Обязательства по договорам</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-danger border-2">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Платежеспособность</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><strong>Капитальные требования</strong></p>
+                                <ul class="small">
+                                    <li>Коэффициент Nmp</li>
+                                    <li>Стресс-сценарии</li>
+                                    <li>Минимальный уровень</li>
+                                </ul>
+                                <p class="mt-2"><code>Nmp = Капитал / Требование</code></p>
+                                <p class="small text-muted">Зависит от 9 и 17!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning mt-4">
+                    <strong>⚠️ Важно:</strong> Эти три расчета <strong>независимы</strong> друг от друга,
+                    но платежеспособность <strong>требует результатов</strong> из МСФО 9 и МСФО 17!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: МСФО 9 -->
+    <div class="tab-pane fade" id="ecl" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>МСФО 9: Финансовые инструменты (ECL)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Что считается?</h6>
+                        <ul>
+                            <li>Кредиты и займы</li>
+                            <li>Облигации и ценные бумаги</li>
+                            <li>Депозиты в других банках</li>
+                        </ul>
+
+                        <h6 class="mt-4">Формула</h6>
+                        <div class="bg-light p-3 rounded">
+                            <code>ECL = PD × LGD × EAD</code>
+                            <p class="small mt-2 mb-0">
+                                PD = Вероятность дефолта<br>
+                                LGD = Потеря при дефолте (%)<br>
+                                EAD = Сумма при дефолте
+                            </p>
+                        </div>
+
+                        <h6 class="mt-4">Три стадии модели</h6>
+                        <table class="table table-sm">
+                            <tr class="table-light">
+                                <td><strong>Stage 1</strong></td>
+                                <td>Нет дефолта</td>
+                                <td>12м ECL</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Stage 2</strong></td>
+                                <td>Риск повышен</td>
+                                <td>Lifetime ECL</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><strong>Stage 3</strong></td>
+                                <td>В дефолте</td>
+                                <td>Lifetime ECL</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>Где в системе?</h6>
+                        <div class="list-group small">
+                            <a href="{{ url_for('main.instruments_registry') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-bank me-2"></i>Реестр инструментов
+                            </a>
+                            <a href="{{ url_for('main.main_calculation') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-calculator me-2"></i>Калькулятор ECL
+                            </a>
+                        </div>
+
+                        <h6 class="mt-4">Пример расчета</h6>
+                        <div class="bg-light p-3 rounded small">
+                            Кредит: 100M ₸<br>
+                            PD: 2% (риск 2%)<br>
+                            LGD: 40% (потеря)<br>
+                            <hr class="my-2">
+                            ECL = 0.02 × 0.40 × 100M<br>
+                            <strong>= 800K ₸</strong>
+                        </div>
+
+                        <h6 class="mt-4">Результаты используются для</h6>
+                        <ul class="small">
+                            <li>МСФО 9 отчетность</li>
+                            <li>Отчет в АРФР</li>
+                            <li>Платежеспособность</li>
+                            <li>Стресс-тесты</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: МСФО 17 -->
+    <div class="tab-pane fade" id="ifrs17" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>МСФО 17: Договоры страхования</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Что считается?</h6>
+                        <ul>
+                            <li>Авто страхование</li>
+                            <li>Страхование имущества</li>
+                            <li>Страхование ответственности</li>
+                            <li>Прочие типы</li>
+                        </ul>
+
+                        <h6 class="mt-4">Основные формулы</h6>
+                        <div class="bg-light p-3 rounded small">
+                            <strong>BEL</strong> = PV(Убытки + Расходы)<br>
+                            <strong>RA</strong> = 10% × BEL<br>
+                            <strong>CSM</strong> = Premium - (BEL + RA)<br>
+                            <hr class="my-2">
+                            <strong>Total Liability = Premium</strong>
+                        </div>
+
+                        <h6 class="mt-4">Группирование по когортам</h6>
+                        <p class="small text-muted">Каждая группа считается отдельно:</p>
+                        <ul class="small">
+                            <li>По <strong>портфелю</strong> (тип страхования)</li>
+                            <li>По <strong>году выписки</strong> (2024, 2025)</li>
+                            <li>По <strong>прибыльности</strong> (будет ли прибыльным)</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>Где в системе?</h6>
+                        <div class="list-group small">
+                            <a href="{{ url_for('main.contracts_registry') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-file-earmark me-2"></i>Реестр договоров
+                            </a>
+                            <a href="{{ url_for('main.main_calculation') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up me-2"></i>Расчеты МСФО 17
+                            </a>
+                            <a href="{{ url_for('main.calculation_runs') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-lightning-charge me-2"></i>Пакетные расчеты
+                            </a>
+                            <a href="{{ url_for('main.yield_curves_list') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up me-2"></i>Кривые доходности
+                            </a>
+                        </div>
+
+                        <h6 class="mt-4">⚠️ Дисконтирование обязательно!</h6>
+                        <p class="small text-danger">
+                            МСФО 17 требует дисконтирование по risk-free ставке!<br>
+                            Без кривой доходности расчеты неправильные.
+                        </p>
+
+                        <h6 class="mt-4">Результаты используются для</h6>
+                        <ul class="small">
+                            <li>МСФО 17 финансовая отчетность</li>
+                            <li>Отчет в АРФР</li>
+                            <li><strong>Платежеспособность</strong></li>
+                            <li>Анализ перестрахования</li>
+                            <li>Бухгалтерские проводки</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: ПЛАТЕЖЕСПОСОБНОСТЬ -->
+    <div class="tab-pane fade" id="solvency" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Платежеспособность (Solvency)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Что считается?</h6>
+                        <ul>
+                            <li>Собственный капитал</li>
+                            <li>Минимальный уровень (MCR)</li>
+                            <li>Требуемый уровень (SCR)</li>
+                            <li>Коэффициент Nmp</li>
+                        </ul>
+
+                        <h6 class="mt-4">Основная формула</h6>
+                        <div class="bg-light p-3 rounded">
+                            <code>Nmp = Капитал / Минимум</code>
+                            <p class="small mt-2 mb-0">
+                                <strong>Nmp ≥ 1.5</strong> = Отлично (зеленая зона)<br>
+                                <strong>1.0 ≤ Nmp < 1.5</strong> = Норма (желтая)<br>
+                                <strong>Nmp < 1.0</strong> = Опасно! (красная)
+                            </p>
+                        </div>
+
+                        <h6 class="mt-4">Что входит в расчет?</h6>
+                        <p class="small"><strong>Активы:</strong></p>
+                        <ul class="small">
+                            <li>Кредиты и займы</li>
+                            <li>Облигации и инвестиции</li>
+                            <li>Недвижимость</li>
+                            <li>Денежные средства</li>
+                        </ul>
+                        <p class="small mt-2"><strong>Обязательства:</strong></p>
+                        <ul class="small">
+                            <li><strong>Резерв ECL</strong> (из МСФО 9!)</li>
+                            <li><strong>Обязательства МСФО 17</strong> (BEL+RA+CSM!)</li>
+                            <li>Прочие обязательства</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>Где в системе?</h6>
+                        <div class="list-group small">
+                            <a href="{{ url_for('main.main_calculation') }}" class="list-group-item list-group-item-action">
+                                <i class="bi bi-shield-fill-check me-2"></i>Расчет платежеспособности
+                            </a>
+                        </div>
+
+                        <h6 class="mt-4">Сценарии стресс-тестирования</h6>
+                        <ul class="small">
+                            <li><strong>Базовый:</strong> Текущие показатели</li>
+                            <li><strong>Стресс 1:</strong> Убытки +20%</li>
+                            <li><strong>Стресс 2:</strong> Убытки +50%</li>
+                            <li><strong>Стресс 3:</strong> Убытки +100%</li>
+                        </ul>
+
+                        <h6 class="mt-4">🔗 Связь с другими расчетами</h6>
+                        <div class="alert alert-warning small">
+                            <strong>Важно:</strong><br>
+                            Платежеспособность = Активы - (ECL + МСФО 17)<br>
+                            <br>
+                            Без ECL и МСФО 17 здесь будет 0!<br>
+                            Поэтому сначала считаем 9 и 17,<br>
+                            потом смотрим платежеспособность.
+                        </div>
+
+                        <h6 class="mt-4">Результаты используются для</h6>
+                        <ul class="small">
+                            <li>Отчет в АРФР (Nmp коэффициент)</li>
+                            <li>Управленческие решения</li>
+                            <li>Ограничения на выплаты</li>
+                            <li>Регуляторные требования</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: WORKFLOW -->
+    <div class="tab-pane fade" id="workflow" role="tabpanel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Правильный порядок расчетов</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline-simple">
+                    <div class="timeline-step">
+                        <div class="step-number">1</div>
+                        <h6>Загрузить договоры страхования</h6>
+                        <p class="small text-muted">Реестр → Договоры страхования (МСФО 17)</p>
+                    </div>
+
+                    <div class="timeline-step">
+                        <div class="step-number">2</div>
+                        <h6>Создать кривую доходности</h6>
+                        <p class="small text-muted">Аналитика МСФО 17 → Кривые доходности</p>
+                        <p class="small text-danger">⚠️ Без кривой расчеты МСФО 17 неправильные!</p>
+                    </div>
+
+                    <div class="timeline-step">
+                        <div class="step-number">3</div>
+                        <h6>Запустить Calculation Run</h6>
+                        <p class="small text-muted">Пакетные расчеты → Создать новый Run</p>
+                        <p class="small">Система рассчитает BEL, RA, CSM и создаст проводки</p>
+                    </div>
+
+                    <div class="timeline-step">
+                        <div class="step-number">4</div>
+                        <h6>Загрузить финансовые инструменты</h6>
+                        <p class="small text-muted">Реестр → Финансовые инструменты (МСФО 9)</p>
+                    </div>
+
+                    <div class="timeline-step">
+                        <div class="step-number">5</div>
+                        <h6>Рассчитать ECL</h6>
+                        <p class="small text-muted">МСФО 9 → Калькулятор ECL</p>
+                        <p class="small">Система рассчитает резервы на убытки</p>
+                    </div>
+
+                    <div class="timeline-step">
+                        <div class="step-number">6</div>
+                        <h6>Проверить платежеспособность</h6>
+                        <p class="small text-muted">Расчеты → Платежеспособность</p>
+                        <p class="small">Автоматически учтет МСФО 9 и МСФО 17</p>
+                    </div>
+
+                    <div class="timeline-step">
+                        <div class="step-number">7</div>
+                        <h6>Выгрузить отчет в АРФР</h6>
+                        <p class="small text-muted">Отчетность → Отчеты АРФР</p>
+                        <p class="small">Все цифры согласованы и готовы</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-success mt-4">
+                    <strong>✓ Проверка перед отчетом:</strong><br>
+                    - [ ] Загрузили все договоры<br>
+                    - [ ] Создали yield curve<br>
+                    - [ ] Запустили Calculation Run<br>
+                    - [ ] Загрузили финансовые инструменты<br>
+                    - [ ] Рассчитали ECL<br>
+                    - [ ] Проверили Nmp > 1.0<br>
+                    - [ ] Все три расчета согласованы
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Download button -->
+<div class="mt-4">
+    <a href="/static/CALCULATION_GUIDE.pdf" class="btn btn-primary" style="display: none;">
+        <i class="bi bi-download me-2"></i>Скачать PDF руководство
+    </a>
+    <button class="btn btn-secondary" onclick="window.print()">
+        <i class="bi bi-printer me-2"></i>Печать
+    </button>
+</div>
+
+<style>
+.timeline-simple {
+    padding: 20px 0;
+}
+
+.timeline-step {
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #0066CC;
+    background: #f8f9fa;
+    border-radius: 4px;
+    position: relative;
+    padding-left: 60px;
+}
+
+.timeline-step::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 30px;
+    width: 24px;
+    height: 24px;
+    background: #0066CC;
+    border-radius: 50%;
+    border: 3px solid white;
+}
+
+.timeline-step h6 {
+    margin-bottom: 8px;
+    color: #2C3E50;
+}
+
+.step-number {
+    position: absolute;
+    left: 10px;
+    top: 22px;
+    background: #0066CC;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.nav-tabs .nav-link:hover {
+    border-bottom-color: #0066CC;
+    color: #0066CC;
+}
+
+.nav-tabs .nav-link.active {
+    border-bottom-color: #0066CC;
+    color: #0066CC;
+    background: none;
+}
+</style>
+
+{% endblock %}
