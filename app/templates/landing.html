@@ -496,9 +496,9 @@
                     <li class="nav-item"><a class="nav-link" href="#pricing">Цены</a></li>
                     <li class="nav-item"><a class="nav-link" href="#tech">Требования</a></li>
                     <li class="nav-item ms-3">
-                        <a href="{{ url_for('main.select_role') }}" class="btn btn-light px-4">
-                            Начать работу <i class="bi bi-arrow-right"></i>
-                        </a>
+                        <button type="button" class="btn btn-light px-4" data-bs-toggle="modal" data-bs-target="#demoModal">
+                            Запрос демо <i class="bi bi-arrow-right"></i>
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -511,16 +511,16 @@
         <div class="container hero-content">
             <div class="row align-items-center">
                 <div class="col-lg-7">
-                    <h1 class="hero-title fade-in">RB Partners IT Audit</h1>
+                    <h1 class="hero-title fade-in">Alliot</h1>
                     <p class="hero-subtitle fade-in">Комплексная Регуляторная Система для Страхового Рынка Казахстана</p>
                     <p class="text-white-50 mb-4 fade-in" style="font-size: 1.1rem;">
                         Единая платформа для страховых компаний, АРФР и ФГСВ. <br>
                         Автоматизация расчетов МСФО 17, МСФО 9, платежеспособности и регуляторной отчетности.
                     </p>
                     <div class="d-flex gap-3 mb-4 fade-in">
-                        <a href="{{ url_for('main.select_role') }}" class="btn btn-light btn-lg px-5">
-                            <i class="bi bi-play-circle"></i> Демо-версия
-                        </a>
+                        <button class="btn btn-light btn-lg px-5" data-bs-toggle="modal" data-bs-target="#demoModal">
+                            <i class="bi bi-play-circle"></i> Запрос демо версии
+                        </button>
                         <a href="#pricing" class="btn btn-outline-light btn-lg px-5">
                             <i class="bi bi-tag"></i> Цены
                         </a>
@@ -535,8 +535,12 @@
                             <div class="stat-label">Соответствие АРФР</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-number">3 недели</div>
-                            <div class="stat-label">Внедрение</div>
+                            <div class="stat-number">6 месяцев</div>
+                            <div class="stat-label">Полное внедрение</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">2-3 мес</div>
+                            <div class="stat-label">Пилот</div>
                         </div>
                     </div>
                 </div>
@@ -709,7 +713,7 @@
                     <div class="text-center p-4 bg-light rounded-4">
                         <i class="bi bi-lightning-charge-fill display-3 text-warning mb-3"></i>
                         <h4 class="fw-bold">Быстрое внедрение</h4>
-                        <p class="text-muted">3 недели vs 6-12 месяцев у конкурентов</p>
+                        <p class="text-muted">Пилот 2-3 месяца, полное внедрение 6 месяцев</p>
                     </div>
                 </div>
                 <div class="col-lg-3 fade-in">
@@ -1216,14 +1220,54 @@
         <div class="container fade-in">
             <h2 class="cta-title">Готовы начать?</h2>
             <p class="cta-subtitle">Присоединяйтесь к страховым компаниям, которые уже автоматизировали свою отчетность</p>
-            <a href="{{ url_for('main.select_role') }}" class="btn btn-cta">
-                <i class="bi bi-rocket-takeoff"></i> Попробовать бесплатно
-            </a>
+            <button class="btn btn-cta" data-bs-toggle="modal" data-bs-target="#demoModal">
+                <i class="bi bi-rocket-takeoff"></i> Запросить демо версию
+            </button>
             <p class="mt-4" style="opacity: 0.8;">
-                Демо-версия доступна сразу • Внедрение за 3 недели • Поддержка 24/7
+                Персонализированная демо • Пилот за 2-3 месяца • Поддержка 24/7
             </p>
         </div>
     </section>
+
+    <!-- Demo Request Modal -->
+    <div class="modal fade" id="demoModal" tabindex="-1" aria-labelledby="demoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="demoModalLabel">Запросить демо версию Alliot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted mb-4">Заполните форму и мы свяжемся с вами в течение 24 часов для персонализированной демонстрации</p>
+                    <form id="demoForm">
+                        <div class="mb-3">
+                            <label for="demoEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="demoEmail" name="email" required placeholder="your@company.com">
+                            <small class="text-muted">Мы отправим вам доступ к демо версии</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="demoName" class="form-label">Имя</label>
+                            <input type="text" class="form-control" id="demoName" name="name" placeholder="Ваше имя">
+                        </div>
+                        <div class="mb-3">
+                            <label for="demoPhone" class="form-label">Номер телефона</label>
+                            <input type="tel" class="form-control" id="demoPhone" name="phone" placeholder="+7 (XXX) XXX-XX-XX">
+                        </div>
+                        <div class="mb-4">
+                            <label for="demoCompany" class="form-label">Компания</label>
+                            <input type="text" class="form-control" id="demoCompany" name="company" placeholder="Название вашей компании">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="bi bi-send"></i> Отправить запрос
+                        </button>
+                    </form>
+                    <p class="text-center text-muted small mt-3">
+                        Мы уважаем вашу конфиденциальность. Ваши данные не будут переданы третьим лицам.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="py-5 bg-dark text-white">
@@ -1300,6 +1344,30 @@
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
+        });
+
+        // Demo form submission
+        document.getElementById('demoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                email: document.getElementById('demoEmail').value,
+                name: document.getElementById('demoName').value || 'Not provided',
+                phone: document.getElementById('demoPhone').value || 'Not provided',
+                company: document.getElementById('demoCompany').value || 'Not provided',
+                timestamp: new Date().toISOString()
+            };
+
+            // Log to console (in production, would send to server)
+            console.log('Demo request submitted:', formData);
+
+            // Show success message
+            alert('Спасибо за запрос! Мы свяжемся с вами в течение 24 часов на адрес: ' + formData.email);
+
+            // Reset form and close modal
+            this.reset();
+            const demoModal = bootstrap.Modal.getInstance(document.getElementById('demoModal'));
+            demoModal.hide();
         });
     </script>
 </body>

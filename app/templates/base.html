@@ -1272,6 +1272,36 @@
                             <span>МСФО 17</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.solvency2_page' %}active{% endif %}" href="{{ url_for('main.solvency2_page') }}">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Solvency 2</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Отчеты</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.afr_report' %}active{% endif %}" href="{{ url_for('main.afr_report') }}">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                            <span>АФР</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv' %}active{% endif %}" href="{{ url_for('main.fgsv') }}">
+                            <i class="bi bi-cash-stack"></i>
+                            <span>ФГСВ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Отчеты</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 

@@ -7,13 +7,15 @@ KZ-InsurePro - Главные маршруты Flask
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
 from decimal import Decimal
 from datetime import date, datetime
-import json
+from sqlalchemy import func
 
-# ВАЖНО: Используем только calculation_service для всех расчетов!
+# ВАЖНО: Используем только unified_calculation_service для всех расчетов!
 # Это гарантирует что цифры везде одинаковые
-from app.services.calculation_service import calculation_service
+from app.services.unified_calculation_service import unified_calculation_service
+from app import db
+from app.enterprise_models import JournalEntry, MeasurementModel
 from config import (
-    APP_CONFIG, DEMO_CONFIG, TRANSLATIONS, MACRO_INDICATORS_2025,
+    APP_CONFIG, MACRO_INDICATORS_2025,
     format_currency, format_percent
 )
 
@@ -222,52 +224,6 @@ def main_calculation():
             error = f"Ошибка расчета: {str(e)}"
 
     return render_template('main_calculation.html',
-                          result=result,
-                          error=error,
-                          macro=MACRO_INDICATORS_2025,
-                          APP_CONFIG=APP_CONFIG)
-
-
-@main_bp.route('/fgsv', methods=['GET', 'POST'])
-def fgsv():
-    """Страница ФГСВ - Взносы (для страховой компании)"""
-    result = None
-    error = None
-
-    if request.method == 'POST':
-        try:
-            calc = FGSVCalculator()
-
-            # Получение параметров
-            premiums = Decimal(request.form.get('premiums', '5000000000'))
-            solvency_ratio = Decimal(request.form.get('solvency', '2.50'))
-            loss_ratio = Decimal(request.form.get('loss_ratio', '0.55'))
-            combined_ratio = Decimal(request.form.get('combined', '0.85'))
-
-            # Расчет взноса
-            contribution_result = calc.calculate_contribution(
-                gross_premiums=premiums,
-                solvency_ratio=solvency_ratio,
-                loss_ratio=loss_ratio,
-                combined_ratio=combined_ratio,
-            )
-
-            result = {
-                'contribution': format_currency(contribution_result.contribution_amount),
-                'rate': format_percent(float(contribution_result.rate * 100)),
-                'risk_class': {
-                    'low_risk': 'Низкий',
-                    'medium_risk': 'Средний',
-                    'high_risk': 'Высокий'
-                }.get(contribution_result.risk_class, contribution_result.risk_class),
-                'formula_display': contribution_result.formula_display,
-                'justification': contribution_result.justification,
-            }
-
-        except Exception as e:
-            error = f"Ошибка расчета: {str(e)}"
-
-    return render_template('fgsv.html',
                           result=result,
                           error=error,
                           macro=MACRO_INDICATORS_2025,
