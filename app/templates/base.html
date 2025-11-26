@@ -1245,121 +1245,43 @@
             {% if session.get('role') == 'insurer' or not session.get('role') %}
             <!-- Меню для страховой компании -->
             <div class="nav-section">
-                <div class="nav-section-title">Расчеты</div>
+                <div class="nav-section-title">Главное</div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
                             <i class="bi bi-speedometer2"></i>
-                            <span>Панель управления</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.main_calculation' %}active{% endif %}" href="{{ url_for('main.main_calculation') }}">
-                            <i class="bi bi-calculator-lg"></i>
-                            <span>Главный расчет</span>
-                            <span class="badge bg-danger">Unified</span>
+                            <span>Dashboard</span>
+                            <span class="badge bg-success">Solvency 2</span>
                         </a>
                     </li>
                 </ul>
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">Пакетные расчеты</div>
+                <div class="nav-section-title">Стандарты</div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint in ['main.calculation_runs', 'main.new_calculation_run', 'main.calculation_run_detail'] %}active{% endif %}" href="{{ url_for('main.calculation_runs') }}">
-                            <i class="bi bi-lightning-charge"></i>
-                            <span>Calculation Runs</span>
-                            <span class="badge bg-success">Enterprise</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Accounting Engine</div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint in ['main.accounting_mapping_rules', 'main.new_accounting_rule'] %}active{% endif %}" href="{{ url_for('main.accounting_mapping_rules') }}">
-                            <i class="bi bi-diagram-3"></i>
-                            <span>Правила маппинга</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.chart_of_accounts' %}active{% endif %}" href="{{ url_for('main.chart_of_accounts') }}">
-                            <i class="bi bi-list-ul"></i>
-                            <span>План счетов</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.journal_entries' %}active{% endif %}" href="{{ url_for('main.journal_entries') }}">
-                            <i class="bi bi-journal-text"></i>
-                            <span>Журнал проводок</span>
-                            <span class="badge bg-primary">Sub-ledger</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Аналитика МСФО 17</div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.yield_curves_list' %}active{% endif %}" href="{{ url_for('main.yield_curves_list') }}">
-                            <i class="bi bi-graph-up"></i>
-                            <span>Кривые доходности</span>
-                            <span class="badge bg-warning">Discount</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.reinsurance_analysis' %}active{% endif %}" href="{{ url_for('main.reinsurance_analysis') }}">
-                            <i class="bi bi-shield-check"></i>
-                            <span>Перестрахование</span>
-                            <span class="badge bg-info">Net/Gross</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Реестры и портфели</div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.contracts_registry' %}active{% endif %}" href="{{ url_for('main.contracts_registry') }}">
-                            <i class="bi bi-file-earmark-text"></i>
-                            <span>Договоры страхования</span>
-                            <span class="badge bg-primary">МСФО 17</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.instruments_registry' %}active{% endif %}" href="{{ url_for('main.instruments_registry') }}">
+                        <a class="nav-link {% if request.endpoint == 'main.ifrs9_page' %}active{% endif %}" href="{{ url_for('main.ifrs9_page') }}">
                             <i class="bi bi-bank"></i>
-                            <span>Фин. инструменты</span>
-                            <span class="badge bg-info">МСФО 9</span>
+                            <span>МСФО 9</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.ifrs17_page' %}active{% endif %}" href="{{ url_for('main.ifrs17_page') }}">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>МСФО 17</span>
                         </a>
                     </li>
                 </ul>
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">Отчетность</div>
+                <div class="nav-section-title">Настройки</div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">
-                            <i class="bi bi-file-earmark-text"></i>
-                            <span>Отчеты АРФР</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.fgsv' %}active{% endif %}" href="{{ url_for('main.fgsv') }}">
-                            <i class="bi bi-bank"></i>
-                            <span>Взносы ФГСВ</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.audit' %}active{% endif %}" href="{{ url_for('main.audit') }}">
-                            <i class="bi bi-journal-text"></i>
-                            <span>Аудиторский след</span>
+                        <a class="nav-link {% if request.endpoint == 'main.settings' %}active{% endif %}" href="{{ url_for('main.settings') }}">
+                            <i class="bi bi-gear"></i>
+                            <span>Настройки</span>
                         </a>
                     </li>
                 </ul>

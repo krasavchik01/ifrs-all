@@ -1,0 +1,1016 @@
+{% extends "base.html" %}
+
+{% block title %}МСФО 9 - Детальный анализ финансовых инструментов{% endblock %}
+
+{% block extra_css %}
+<style>
+.instrument-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid #667eea;
+    background: white;
+}
+
+.instrument-card:hover {
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+    transform: translateX(5px);
+}
+
+.ecl-indicator {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.ecl-safe { background: #d4edda; color: #155724; }
+.ecl-warning { background: #fff3cd; color: #856404; }
+.ecl-critical { background: #f8d7da; color: #721c24; }
+
+.stage-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.stage-1 { background: #d4edda; color: #155724; }
+.stage-2 { background: #fff3cd; color: #856404; }
+.stage-3 { background: #f8d7da; color: #721c24; }
+
+.calculation-table {
+    font-size: 0.9rem;
+    margin: 1rem 0;
+}
+
+.calculation-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    align-items: center;
+}
+
+.calculation-row:hover {
+    background: #f7fafc;
+}
+
+.calculation-header {
+    background: #f7fafc;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.formula-box {
+    background: #2d3748;
+    color: #68d391;
+    padding: 1.5rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    border-left: 4px solid #48bb78;
+}
+
+.modal-header-detail {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.tabs-detail {
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.tabs-detail .nav-link {
+    color: #4a5568;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 500;
+}
+
+.tabs-detail .nav-link.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: none;
+}
+
+.amortization-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.amortization-table thead {
+    background: #f7fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.amortization-table th {
+    padding: 0.75rem;
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.amortization-table td {
+    padding: 0.75rem;
+    text-align: right;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.amortization-table td:first-child {
+    text-align: left;
+}
+
+.amortization-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+.risk-heatmap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.risk-cell {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.risk-high { background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; }
+.risk-medium { background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); color: #856404; }
+.risk-low { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; }
+
+.timeline-item {
+    display: flex;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    background: #667eea;
+    border-radius: 50%;
+    margin-right: 1rem;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.timeline-content {
+    flex-grow: 1;
+}
+
+.metric-mini {
+    background: #f7fafc;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ecl-breakdown {
+    background: white;
+    border-left: 4px solid #667eea;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.quick-jump {
+    position: sticky;
+    top: 100px;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.stage-distribution {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.stage-cell {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border-left: 4px solid #667eea;
+}
+
+.stage-cell.stage-2 {
+    border-left-color: #f5a623;
+}
+
+.stage-cell.stage-3 {
+    border-left-color: #e74c3c;
+}
+
+.stage-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0.5rem 0;
+}
+
+.stage-percent {
+    font-size: 0.85rem;
+    color: #718096;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px;">
+                <h1 class="mb-2">
+                    <i class="bi bi-bank"></i> МСФО 9 - Финансовые инструменты
+                </h1>
+                <p class="mb-0 opacity-90">Детальный анализ Expected Credit Loss (ECL), классификации и управления кредитным риском</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Всего инструментов</h6>
+                    <h3 class="text-primary">1,247</h3>
+                    <small class="text-muted">Портфель финансовых инструментов</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Балансовая стоимость</h6>
+                    <h3 class="text-info">₸ 156.2 млрд</h3>
+                    <small class="text-muted">Gross Carrying Amount (GCA)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Общий ECL</h6>
+                    <h3 class="text-danger">₸ 2.8 млрд</h3>
+                    <small class="text-muted">Provision for credit losses</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Coverage Ratio</h6>
+                    <h3 class="text-warning">1.79%</h3>
+                    <small class="text-muted">ECL / GCA</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage Distribution -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-3"><i class="bi bi-diagram-3"></i> Распределение по Stage (IFRS 9.5.1)</h4>
+            <div class="stage-distribution">
+                <div class="stage-cell">
+                    <h6 class="text-muted">Stage 1</h6>
+                    <div class="stage-value">₸ 1.2 млрд</div>
+                    <div class="stage-percent">12-месячный ECL</div>
+                    <div class="metric-mini">
+                        <span>847 инструментов</span>
+                        <span class="badge bg-success">43%</span>
+                    </div>
+                </div>
+                <div class="stage-cell stage-2">
+                    <h6 class="text-muted">Stage 2</h6>
+                    <div class="stage-value">₸ 980 млн</div>
+                    <div class="stage-percent">Lifetime ECL (SICR)</div>
+                    <div class="metric-mini">
+                        <span>312 инструментов</span>
+                        <span class="badge bg-warning text-dark">35%</span>
+                    </div>
+                </div>
+                <div class="stage-cell stage-3">
+                    <h6 class="text-muted">Stage 3</h6>
+                    <div class="stage-value">₸ 620 млн</div>
+                    <div class="stage-percent">Lifetime ECL (Impaired)</div>
+                    <div class="metric-mini">
+                        <span>88 инструментов</span>
+                        <span class="badge bg-danger">22%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs tabs-detail mb-4" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#portfolio-overview">
+                <i class="bi bi-collection"></i> Обзор портфеля
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#stage-analysis">
+                <i class="bi bi-layers"></i> Анализ Stage
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#ecl-methodology">
+                <i class="bi bi-calculator"></i> ECL Методология
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#classification">
+                <i class="bi bi-diagram-2"></i> Классификация
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Portfolio Overview Tab -->
+        <div id="portfolio-overview" class="tab-pane fade show active">
+            <h4 class="mb-3">Реестр финансовых инструментов</h4>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Инструменты (кликни для подробностей)</h6>
+                                <div>
+                                    <input type="search" class="form-control form-control-sm" placeholder="Поиск..." style="width: 200px; display: inline-block;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Instrument Cards - Clickable -->
+                            <div class="instrument-card p-3 border-bottom" onclick="openInstrumentModal('FI-2024-001')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>FI-2024-001</code></h6>
+                                        <small class="text-muted">Облигации МФ РК (фиксированная ставка)</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Тип:</small><br>
+                                        <span class="badge bg-info">Государственные облигации</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Классификация:</small><br>
+                                        <span class="badge bg-success">FVOCI</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Балансовая стоимость:</small><br>
+                                        <strong>₸ 15.2 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">ECL / Stage:</small><br>
+                                        <span class="ecl-indicator ecl-safe">₸ 125 млн (S1)</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="instrument-card p-3 border-bottom" onclick="openInstrumentModal('FI-2024-002')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>FI-2024-002</code></h6>
+                                        <small class="text-muted">Депозит в банке "Halyk Bank"</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Тип:</small><br>
+                                        <span class="badge bg-primary">Депозит</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Классификация:</small><br>
+                                        <span class="badge bg-warning text-dark">AC</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Балансовая стоимость:</small><br>
+                                        <strong>₸ 8.5 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">ECL / Stage:</small><br>
+                                        <span class="ecl-indicator ecl-safe">₸ 42 млн (S1)</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="instrument-card p-3 border-bottom" onclick="openInstrumentModal('FI-2024-003')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>FI-2024-003</code></h6>
+                                        <small class="text-muted">Корпоративные облигации ТОО "BTA"</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Тип:</small><br>
+                                        <span class="badge bg-warning text-dark">Корпоративные</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Классификация:</small><br>
+                                        <span class="badge bg-danger">FVTPL</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Балансовая стоимость:</small><br>
+                                        <strong>₸ 3.2 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">ECL / Stage:</small><br>
+                                        <span class="ecl-indicator ecl-critical">₸ 280 млн (S2)</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage Analysis Tab -->
+        <div id="stage-analysis" class="tab-pane fade">
+            <h4 class="mb-3">Анализ переходов между Stage</h4>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Критерии SICR (Significant Increase in Credit Risk)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Количественные критерии:</h6>
+                            <ul class="small">
+                                <li>✓ Увеличение PD на 30% от исходного уровня</li>
+                                <li>✓ Просрочка &gt; 30 дней</li>
+                                <li>✓ Снижение рейтинга на 2+ ступени</li>
+                                <li>✓ Изменение спреда на &gt; 150 bp</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Качественные критерии:</h6>
+                            <ul class="small">
+                                <li>✓ Финансовые затруднения заемщика</li>
+                                <li>✓ Нарушение условий договора</li>
+                                <li>✓ Ухудшение макроэкономических условий</li>
+                                <li>✓ Потеря ключевого клиента или рынка</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Матрица переходов (Transition Matrix)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Из Stage</th>
+                                    <th>Stage 1</th>
+                                    <th>Stage 2</th>
+                                    <th>Stage 3</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Stage 1</strong></td>
+                                    <td class="bg-success bg-opacity-10"><strong>95.2%</strong><br><small>847 инструментов</small></td>
+                                    <td class="bg-warning bg-opacity-10"><strong>4.5%</strong><br><small>38 инструментов</small></td>
+                                    <td class="bg-danger bg-opacity-10"><strong>0.3%</strong><br><small>2 инструмента</small></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Stage 2</strong></td>
+                                    <td class="bg-success bg-opacity-10"><strong>15.4%</strong><br><small>48 инструментов</small></td>
+                                    <td class="bg-warning bg-opacity-10"><strong>80.1%</strong><br><small>250 инструментов</small></td>
+                                    <td class="bg-danger bg-opacity-10"><strong>4.5%</strong><br><small>14 инструментов</small></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Stage 3</strong></td>
+                                    <td class="bg-success bg-opacity-10"><strong>2.3%</strong><br><small>2 инструмента</small></td>
+                                    <td class="bg-warning bg-opacity-10"><strong>18.2%</strong><br><small>16 инструментов</small></td>
+                                    <td class="bg-danger bg-opacity-10"><strong>79.5%</strong><br><small>70 инструментов</small></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ECL Methodology Tab -->
+        <div id="ecl-methodology" class="tab-pane fade">
+            <h4 class="mb-3">Методология расчета ECL</h4>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Трехмерный подход (Three-dimension approach)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <h6 class="mb-2">1️⃣ PD (Probability of Default)</h6>
+                                <p class="small mb-0">Вероятность того, что контрагент не сможет выполнить обязательства в течение определенного периода (12 месяцев для S1, lifetime для S2/S3)</p>
+                            </div>
+                            <div class="formula-box">
+PD = f(Rating, Macro indicators, Company metrics)
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <h6 class="mb-2">2️⃣ LGD (Loss Given Default)</h6>
+                                <p class="small mb-0">Доля от суммы под риском, которая будет потеряна в случае дефолта контрагента</p>
+                            </div>
+                            <div class="formula-box">
+LGD = 1 - Recovery Rate
+Recovery = (Collateral + Senior recovery) / EAD
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <h6 class="mb-2">3️⃣ EAD (Exposure at Default)</h6>
+                                <p class="small mb-0">Сумма под риском на момент дефолта контрагента (обычно = Gross Carrying Amount)</p>
+                            </div>
+                            <div class="formula-box">
+EAD = GCA + Interest accrued
+    + Future drawdowns (for credit lines)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Формулы расчета ECL</h6>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-3">Stage 1: 12-месячный ECL</h6>
+                    <div class="formula-box">
+ECL(S1) = Σ PD(t) × LGD × EAD × DF(t)   где t ∈ [0, 12 месяцев]
+
+Пример: Облигации МФ РК (FI-2024-001)
+EAD = ₸ 15,240,000,000
+PD (12m) = 0.02% (из рейтинга AAA)
+LGD = 45% (стандартное значение)
+DF = 1.0 (дисконтирование на 12 месяцев ≈ 1.0)
+
+ECL(S1) = 0.0002 × 0.45 × 15,240,000,000 × 1.0
+        = ₸ 1,371,600
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3">Stage 2 & 3: Lifetime ECL</h6>
+                    <div class="formula-box">
+ECL(S2/S3) = Σ PD(t) × LGD × EAD × DF(t)   где t ∈ [0, Матurity]
+
+Пример: Корпоративные облигации (FI-2024-003) - Stage 2
+EAD = ₸ 3,200,000,000
+Rating: BB (дефолт в течение lifetime)
+PD(1y) = 1.20%, PD(2y) = 2.15%, ... PD(5y) = 8.75%
+LGD = 45%
+Дисконтирование по ставкам доходности
+
+ECL(S2) = [1.20% × 0.45 × 3.2B × DF(1)]
+        + [2.15% × 0.45 × 3.2B × DF(2)]
+        + ... + [8.75% × 0.45 × 3.2B × DF(5)]
+        = ₸ 280,000,000
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3">Дополнительные корректировки</h6>
+                    <div class="formula-box">
+ECL(итоговый) = ECL(базовый) × Macro weights
+
+Macro weights применяются на основе сценариев:
+- Baseline scenario: 50% (базовый прогноз)
+- Upside scenario: 25% (улучшение условий)
+- Downside scenario: 25% (ухудшение условий)
+
+Итоговый ECL = ECL(base) × 0.50
+             + ECL(upside) × 0.25
+             + ECL(downside) × 0.25
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classification Tab -->
+        <div id="classification" class="tab-pane fade">
+            <h4 class="mb-3">Классификация инструментов (IFRS 9.4)</h4>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Критерии классификации</h6>
+                </div>
+                <div class="card-body">
+                    <div class="formula-box">
+Шаг 1: SPPI Test (Solely Payments of Principal and Interest)
+├─ YES: идти на Шаг 2
+└─ NO: → FVTPL (автоматически)
+
+Шаг 2: Business Model Test
+├─ Held to Collect (HTC)  → FVOCI или AC
+├─ Held to Collect & Sell (HTC&S) → FVOCI
+└─ Other → FVTPL
+
+Шаг 3: Финальная классификация
+├─ HTC + SPPI YES → AC (Amortized Cost)
+├─ HTC&S + SPPI YES → FVOCI (Fair Value OCI)
+└─ Прочие → FVTPL (Fair Value P&L)
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Классификация портфеля</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Классификация</th>
+                                    <th>Кол-во</th>
+                                    <th>Сумма (₸)</th>
+                                    <th>% Портфеля</th>
+                                    <th>Учет ECL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-success">AC - Amortized Cost</span></td>
+                                    <td>447</td>
+                                    <td>₸ 39.1 млрд</td>
+                                    <td>25%</td>
+                                    <td>Allowance for ECL</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">FVOCI - Fair Value OCI</span></td>
+                                    <td>658</td>
+                                    <td>₸ 106.2 млрд</td>
+                                    <td>68%</td>
+                                    <td>Allowance for ECL</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-danger">FVTPL - Fair Value P&L</span></td>
+                                    <td>142</td>
+                                    <td>₸ 10.9 млрд</td>
+                                    <td>7%</td>
+                                    <td>Mark-to-market</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals for Detailed Instrument Analysis -->
+<div class="modal fade" id="instrumentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header modal-header-detail">
+                <div>
+                    <h5 class="modal-title" id="instrumentTitle">Инструмент</h5>
+                    <small id="instrumentSubtitle" class="text-white-50">Детальный анализ</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs tabs-detail mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#modal-overview">
+                            <i class="bi bi-info-circle"></i> Обзор
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#modal-ecl-calc">
+                            <i class="bi bi-calculator"></i> ECL Расчет
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#modal-amortization">
+                            <i class="bi bi-list-columns"></i> Амортизация
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#modal-risk">
+                            <i class="bi bi-exclamation-diamond"></i> Risk Analysis
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Overview Tab -->
+                    <div id="modal-overview" class="tab-pane fade show active">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Основная информация</h6>
+                                <div class="metric-mini">
+                                    <span>Инструмент ID:</span>
+                                    <strong id="m-id"></strong>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Наименование:</span>
+                                    <strong id="m-name"></strong>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Тип:</span>
+                                    <span id="m-type"></span>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Классификация IFRS 9:</span>
+                                    <span id="m-classification"></span>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Stage:</span>
+                                    <span id="m-stage"></span>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Рейтинг:</span>
+                                    <span id="m-rating"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Стоимостные показатели</h6>
+                                <div class="metric-mini">
+                                    <span>GCA (Балансовая стоимость):</span>
+                                    <strong id="m-gca"></strong>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Fair Value:</span>
+                                    <strong id="m-fv"></strong>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>ECL (Provision):</span>
+                                    <strong id="m-ecl" class="text-danger"></strong>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Net Carrying Amount:</span>
+                                    <strong id="m-nca"></strong>
+                                </div>
+                                <div class="metric-mini">
+                                    <span>Coverage (ECL/GCA):</span>
+                                    <strong id="m-coverage"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ECL Calculation Tab -->
+                    <div id="modal-ecl-calc" class="tab-pane fade">
+                        <h6 class="mb-3">Пошаговый расчет ECL</h6>
+                        <div id="ecl-calculation-steps"></div>
+                        <div class="formula-box mt-3" id="ecl-formula"></div>
+                    </div>
+
+                    <!-- Amortization Schedule Tab -->
+                    <div id="modal-amortization" class="tab-pane fade">
+                        <h6 class="mb-3">График амортизации</h6>
+                        <div class="table-responsive">
+                            <table class="amortization-table">
+                                <thead>
+                                    <tr>
+                                        <th>Период</th>
+                                        <th>Начисленные проценты (₸)</th>
+                                        <th>Поступления (₸)</th>
+                                        <th>Остаток (₸)</th>
+                                        <th>Effective Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="amortization-body">
+                                    <!-- Will be filled dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Risk Analysis Tab -->
+                    <div id="modal-risk" class="tab-pane fade">
+                        <h6 class="mb-3">Анализ рисков</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Компоненты ECL</h6>
+                                <div id="risk-components"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted">Sensitivity Analysis</h6>
+                                <div id="risk-sensitivity"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="exportInstrumentDetail()">
+                    <i class="bi bi-download"></i> Экспорт PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Instrument data
+const instruments = {
+    'FI-2024-001': {
+        id: 'FI-2024-001',
+        name: 'Облигации МФ РК',
+        type: 'Государственные облигации',
+        classification: '<span class="badge bg-success">FVOCI</span>',
+        stage: '<span class="stage-badge stage-1">Stage 1</span>',
+        rating: '<span class="badge bg-success">AAA</span>',
+        gca: '₸ 15,240,000,000',
+        fv: '₸ 15,380,500,000',
+        ecl: '₸ 125,000,000',
+        nca: '₸ 15,255,500,000',
+        coverage: '0.82%',
+        pd: '0.02%',
+        lgd: '45%',
+        ead: '₸ 15,240,000,000'
+    },
+    'FI-2024-002': {
+        id: 'FI-2024-002',
+        name: 'Депозит в банке "Halyk"',
+        type: 'Депозит',
+        classification: '<span class="badge bg-warning text-dark">AC</span>',
+        stage: '<span class="stage-badge stage-1">Stage 1</span>',
+        rating: '<span class="badge bg-success">A+</span>',
+        gca: '₸ 8,500,000,000',
+        fv: '₸ 8,545,000,000',
+        ecl: '₸ 42,000,000',
+        nca: '₸ 8,503,000,000',
+        coverage: '0.49%',
+        pd: '0.05%',
+        lgd: '45%',
+        ead: '₸ 8,500,000,000'
+    },
+    'FI-2024-003': {
+        id: 'FI-2024-003',
+        name: 'Корпоративные облигации "BTA"',
+        type: 'Корпоративные облигации',
+        classification: '<span class="badge bg-danger">FVTPL</span>',
+        stage: '<span class="stage-badge stage-2">Stage 2</span>',
+        rating: '<span class="badge bg-warning">BB</span>',
+        gca: '₸ 3,200,000,000',
+        fv: '₸ 2,950,400,000',
+        ecl: '₸ 280,000,000',
+        nca: '₸ 2,920,400,000',
+        coverage: '8.75%',
+        pd: '1.20%',
+        lgd: '45%',
+        ead: '₸ 3,200,000,000'
+    }
+};
+
+function openInstrumentModal(id) {
+    const data = instruments[id];
+
+    // Fill overview tab
+    document.getElementById('m-id').textContent = data.id;
+    document.getElementById('m-name').textContent = data.name;
+    document.getElementById('m-type').innerHTML = `<span class="badge bg-secondary">${data.type}</span>`;
+    document.getElementById('m-classification').innerHTML = data.classification;
+    document.getElementById('m-stage').innerHTML = data.stage;
+    document.getElementById('m-rating').innerHTML = data.rating;
+    document.getElementById('m-gca').textContent = data.gca;
+    document.getElementById('m-fv').textContent = data.fv;
+    document.getElementById('m-ecl').textContent = data.ecl;
+    document.getElementById('m-nca').textContent = data.nca;
+    document.getElementById('m-coverage').textContent = data.coverage;
+
+    document.getElementById('instrumentTitle').textContent = data.name;
+    document.getElementById('instrumentSubtitle').textContent = `ID: ${data.id} | ${data.type}`;
+
+    // Fill ECL calculation
+    const eclHtml = `
+        <h6 class="mb-2">Параметры расчета:</h6>
+        <div class="metric-mini">
+            <span>EAD (Exposure at Default):</span>
+            <strong>${data.ead}</strong>
+        </div>
+        <div class="metric-mini">
+            <span>PD (Probability of Default):</span>
+            <strong>${data.pd}</strong>
+        </div>
+        <div class="metric-mini">
+            <span>LGD (Loss Given Default):</span>
+            <strong>${data.lgd}</strong>
+        </div>
+        <div class="metric-mini">
+            <span>DF (Discount Factor):</span>
+            <strong>1.0</strong>
+        </div>
+        <h6 class="mt-3 mb-2">Формула:</h6>
+        <div class="formula-box">
+ECL = EAD × PD × LGD × DF
+    = ${data.ead.replace(/[₸ ,]/g, '')} × ${data.pd.replace('%', '')} × ${data.lgd.replace('%', '')}
+    = ${data.ecl}
+        </div>
+    `;
+    document.getElementById('ecl-calculation-steps').innerHTML = eclHtml;
+
+    // Fill amortization schedule
+    const amortBody = `
+        <tr>
+            <td>Year 1</td>
+            <td class="text-end">₸ 762,000,000</td>
+            <td class="text-end">₸ 800,000,000</td>
+            <td class="text-end">₸ 14,702,000,000</td>
+            <td class="text-end">5.00%</td>
+        </tr>
+        <tr>
+            <td>Year 2</td>
+            <td class="text-end">₸ 735,100,000</td>
+            <td class="text-end">₸ 800,000,000</td>
+            <td class="text-end">₸ 14,637,100,000</td>
+            <td class="text-end">5.00%</td>
+        </tr>
+        <tr>
+            <td>Year 3</td>
+            <td class="text-end">₸ 731,855,000</td>
+            <td class="text-end">₸ 800,000,000</td>
+            <td class="text-end">₸ 14,568,955,000</td>
+            <td class="text-end">5.00%</td>
+        </tr>
+    `;
+    document.getElementById('amortization-body').innerHTML = amortBody;
+
+    // Fill risk analysis
+    const riskHtml = `
+        <div class="metric-mini">
+            <span>Base ECL:</span>
+            <strong>${data.ecl}</strong>
+        </div>
+        <div class="metric-mini">
+            <span>Macro-weighting (50% base):</span>
+            <strong>${data.ecl}</strong>
+        </div>
+        <div class="metric-mini">
+            <span>Final ECL:</span>
+            <strong>${data.ecl}</strong>
+        </div>
+    `;
+    document.getElementById('risk-components').innerHTML = riskHtml;
+
+    const sensHtml = `
+        <div class="metric-mini">
+            <span>+100bp rating impact:</span>
+            <strong>+ ₸ 25 млн</strong>
+        </div>
+        <div class="metric-mini">
+            <span>+50% macro downside:</span>
+            <strong>+ ₸ 45 млн</strong>
+        </div>
+        <div class="metric-mini">
+            <span>+10% recovery decrease:</span>
+            <strong>+ ₸ 30 млн</strong>
+        </div>
+    `;
+    document.getElementById('risk-sensitivity').innerHTML = sensHtml;
+
+    new bootstrap.Modal(document.getElementById('instrumentModal')).show();
+}
+
+function exportInstrumentDetail() {
+    alert('Экспорт PDF инструмента...');
+}
+</script>
+{% endblock %}

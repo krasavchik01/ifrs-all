@@ -1,177 +1,1806 @@
 {% extends "base.html" %}
 
-{% block title %}Панель управления - Alliot{% endblock %}
-{% block page_title %}Панель управления{% endblock %}
+{% block title %}Enterprise Dashboard - Solvency 2 Real-Time Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ==================== ULTRA-DETAILED ENTERPRISE DASHBOARD ==================== */
+
+/* Enterprise-level styling */
+.enterprise-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.enterprise-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    color: #1a202c;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.metric-trend {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.icon-success { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.icon-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+.icon-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+.icon-primary { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+
+.progress-container {
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.realtime-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #48bb78;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.drill-down-section {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 4px;
+}
+
+.log-entry {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    background: #2d3748;
+    color: #68d391;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.alert-box {
+    border-left: 4px solid;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.alert-critical { border-color: #f56565; background: #fff5f5; }
+.alert-warning { border-color: #ed8936; background: #fffaf0; }
+.alert-success { border-color: #48bb78; background: #f0fff4; }
+.alert-info { border-color: #4299e1; background: #ebf8ff; }
+
+.data-sync-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.data-sync-button.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    to { left: 100%; }
+}
+
+.contract-mini-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+}
+
+.contract-mini-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.calculation-breakdown {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.formula-display {
+    background: #2d3748;
+    color: #68d391;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+}
+
+.interactive-chart {
+    min-height: 300px;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-green { background: #48bb78; box-shadow: 0 0 8px #48bb78; }
+.status-yellow { background: #ed8936; box-shadow: 0 0 8px #ed8936; }
+.status-red { background: #f56565; box-shadow: 0 0 8px #f56565; }
+
+.data-table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.data-table-modern thead {
+    background: #f7fafc;
+}
+
+.data-table-modern th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #4a5568;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.data-table-modern td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.data-table-modern tbody tr:hover {
+    background: #f7fafc;
+}
+
+/* ==================== ADVANCED ANALYTICS SECTIONS ==================== */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detailed-metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-top: 4px solid;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.detailed-metric-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+}
+
+.detailed-metric-card.solvency {
+    border-top-color: #667eea;
+}
+
+.detailed-metric-card.ifrs9 {
+    border-top-color: #f093fb;
+}
+
+.detailed-metric-card.ifrs17 {
+    border-top-color: #4facfe;
+}
+
+.detailed-metric-card.assets {
+    border-top-color: #fa709a;
+}
+
+.metric-sparkline {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 60px;
+    opacity: 0.1;
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.metric-icon-large {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.icon-solvency {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.icon-ifrs9 {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.icon-ifrs17 {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.icon-assets {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.metric-main-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin: 0.5rem 0;
+    font-family: 'Courier New', monospace;
+}
+
+.metric-description {
+    font-size: 0.8rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+.metric-components {
+    margin-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+.component-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.component-label {
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.component-value {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.status-badge-advanced {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 0.75rem;
+}
+
+.status-compliant {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-critical {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* ==================== DETAILED BREAKDOWN SECTIONS ==================== */
+
+.detailed-breakdown {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-left: 5px solid #667eea;
+}
+
+.breakdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f7fafc;
+}
+
+.breakdown-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.breakdown-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.breakdown-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0;
+}
+
+.breakdown-tab {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #718096;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.breakdown-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.breakdown-tab:hover {
+    color: #4a5568;
+}
+
+.breakdown-content {
+    display: none;
+}
+
+.breakdown-content.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    border: 1px solid #e2e8f0;
+}
+
+.detail-card h6 {
+    color: #718096;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.detail-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    font-family: 'Courier New', monospace;
+}
+
+.detail-meta {
+    font-size: 0.75rem;
+    color: #a0aec0;
+    margin-top: 0.5rem;
+}
+
+/* ==================== HEATMAPS & CHARTS ==================== */
+
+.risk-matrix {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.risk-box {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.risk-box:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.risk-critical {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+.risk-high {
+    background: linear-gradient(135deg, #fcf8e3 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+.risk-medium {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+}
+
+.risk-low {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.risk-minimal {
+    background: linear-gradient(135deg, #e8f4f8 0%, #d4f1f4 100%);
+    color: #0a3f51;
+}
+
+/* ==================== COMPREHENSIVE TABLES ==================== */
+
+.comprehensive-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.comprehensive-table thead {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.comprehensive-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 700;
+    color: #2d3748;
+    border-right: 1px solid #e2e8f0;
+}
+
+.comprehensive-table th:last-child {
+    border-right: none;
+}
+
+.comprehensive-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+}
+
+.comprehensive-table td:last-child {
+    border-right: none;
+}
+
+.comprehensive-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+.comprehensive-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==================== COMPARISON INDICATORS ==================== */
+
+.comparison-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.trend-up {
+    color: #48bb78;
+    font-weight: 700;
+}
+
+.trend-down {
+    color: #f56565;
+    font-weight: 700;
+}
+
+.trend-neutral {
+    color: #ed8936;
+    font-weight: 700;
+}
+
+/* ==================== COMPLIANCE CHECKLIST ==================== */
+
+.compliance-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.compliance-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.compliance-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.compliance-pass {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.compliance-warning {
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+.compliance-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-grow: 1;
+}
+
+.compliance-name {
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.compliance-status {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+/* ==================== PORTFOLIO COMPOSITION ==================== */
+
+.portfolio-composition {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.composition-bars {
+    display: flex;
+    gap: 0.5rem;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.composition-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+}
+
+.composition-bar:hover {
+    filter: brightness(1.1);
+}
+
+.composition-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Статистика компании -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="bi bi-cash-stack"></i>
+<!-- Enterprise Header with Real-Time Status -->
+<div class="enterprise-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="mb-2">
+                <i class="bi bi-speedometer2"></i>
+                Solvency 2 Real-Time Dashboard
+            </h1>
+            <p class="mb-0 opacity-90">
+                Enterprise Financial Risk Management & Regulatory Compliance Platform
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="realtime-badge">
+                <span class="status-indicator status-green"></span>
+                LIVE
             </div>
-            <div class="stat-label">Активы</div>
-            <div class="stat-value">50.0 млрд</div>
-            <div class="stat-change positive">
-                <i class="bi bi-arrow-up"></i> +8.2% за год
+            <div class="mt-2 small">
+                Last Update: <span id="last-update-time">{{ macro.reporting_date }} 15:34:22</span>
+            </div>
+            <button class="btn btn-light btn-sm mt-2 data-sync-button" onclick="syncWith1C()">
+                <i class="bi bi-arrow-repeat"></i> Sync with 1C
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Critical Alerts Section -->
+<div id="alerts-section">
+    <div class="alert-box alert-warning">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-exclamation-triangle fs-3 me-3"></i>
+            <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1">Solvency Ratio близок к минимуму</h6>
+                <p class="mb-2 small">Текущий коэффициент 157% при минимуме 150%. Рекомендуется увеличение капитала.</p>
+                <small class="text-muted">2 часа назад • Модуль: Solvency 2</small>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" onclick="dismissAlert(this)">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="alert-box alert-info">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-info-circle fs-3 me-3"></i>
+            <div class="flex-grow-1">
+                <h6 class="fw-bold mb-1">Успешная синхронизация с 1C</h6>
+                <p class="mb-2 small">Загружено 8,547 договоров, 1,247 финансовых инструментов. Все проверки пройдены.</p>
+                <small class="text-muted">15 минут назад • 1C Integration</small>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" onclick="dismissAlert(this)">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ULTRA-DETAILED KPI GRID -->
+<div class="kpi-grid">
+    <!-- Solvency II Ratio Card -->
+    <div class="detailed-metric-card solvency" onclick="drillDownSolvency()">
+        <div class="metric-header">
+            <div>
+                <div class="metric-description">Solvency II Ratio</div>
+                <div class="metric-main-value">157%</div>
+            </div>
+            <div class="metric-icon-large icon-solvency">
+                <i class="bi bi-shield-fill-check"></i>
+            </div>
+        </div>
+
+        <div class="metric-components">
+            <div class="component-row">
+                <span class="component-label">Own Funds (Tier 1)</span>
+                <span class="component-value">₸ 15.2 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Own Funds (Tier 2)</span>
+                <span class="component-value">₸ 3.4 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Own Funds (Tier 3)</span>
+                <span class="component-value">₸ 1.5 млрд</span>
+            </div>
+            <div class="component-row" style="border-top: 1px solid #e2e8f0; margin-top: 0.75rem; padding-top: 0.75rem;">
+                <span class="component-label"><strong>Total Own Funds</strong></span>
+                <span class="component-value"><strong>₸ 20.1 млрд</strong></span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">SCR (Market)</span>
+                <span class="component-value">₸ 4.8 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">SCR (Credit)</span>
+                <span class="component-value">₸ 3.2 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">SCR (Life)</span>
+                <span class="component-value">₸ 2.9 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">SCR (Non-Life)</span>
+                <span class="component-value">₸ 1.8 млрд</span>
+            </div>
+            <div class="component-row" style="border-top: 1px solid #e2e8f0; margin-top: 0.75rem; padding-top: 0.75rem;">
+                <span class="component-label"><strong>Total SCR</strong></span>
+                <span class="component-value"><strong>₸ 12.8 млрд</strong></span>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+            <div class="comparison-indicator mb-2">
+                <span class="trend-up"><i class="bi bi-arrow-up-right"></i> +5.2%</span>
+                <span style="color: #718096; font-size: 0.85rem;">QoQ</span>
+            </div>
+            <span class="status-badge-advanced status-compliant">
+                <i class="bi bi-check-circle"></i> В норме (Min: 150%)
+            </span>
+        </div>
+    </div>
+
+    <!-- МСФО 9 ECL Card -->
+    <div class="detailed-metric-card ifrs9" onclick="drillDownIFRS9()">
+        <div class="metric-header">
+            <div>
+                <div class="metric-description">МСФО 9 • Expected Credit Loss</div>
+                <div class="metric-main-value">₸ 2.8 млрд</div>
+            </div>
+            <div class="metric-icon-large icon-ifrs9">
+                <i class="bi bi-bank"></i>
+            </div>
+        </div>
+
+        <div class="metric-components">
+            <div class="component-row">
+                <span class="component-label">Stage 1 (12-month ECL)</span>
+                <span class="component-value">₸ 1.2 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Stage 2 (SICR)</span>
+                <span class="component-value">₸ 980 млн</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Stage 3 (Impaired)</span>
+                <span class="component-value">₸ 620 млн</span>
+            </div>
+            <div class="component-row" style="border-top: 1px solid #e2e8f0; margin-top: 0.75rem; padding-top: 0.75rem;">
+                <span class="component-label"><strong>Portfolio</strong></span>
+                <span class="component-value"><strong>1,247 инструментов</strong></span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">GCA (Gross)</span>
+                <span class="component-value">₸ 156.2 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Coverage Ratio</span>
+                <span class="component-value">1.79%</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+            <div class="comparison-indicator mb-2">
+                <span class="trend-up"><i class="bi bi-arrow-up-right"></i> +12.3%</span>
+                <span style="color: #718096; font-size: 0.85rem;">MoM</span>
+            </div>
+            <span class="status-badge-advanced status-warning">
+                <i class="bi bi-exclamation-triangle"></i> Требует внимания
+            </span>
+        </div>
+    </div>
+
+    <!-- МСФО 17 CSM Card -->
+    <div class="detailed-metric-card ifrs17" onclick="drillDownIFRS17()">
+        <div class="metric-header">
+            <div>
+                <div class="metric-description">МСФО 17 • Contractual Service Margin</div>
+                <div class="metric-main-value">₸ 42.8 млрд</div>
+            </div>
+            <div class="metric-icon-large icon-ifrs17">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+        </div>
+
+        <div class="metric-components">
+            <div class="component-row">
+                <span class="component-label">BEL (Best Estimate)</span>
+                <span class="component-value">₸ 78.4 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Risk Adjustment</span>
+                <span class="component-value">₸ 12.1 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Life (BBA)</span>
+                <span class="component-value">₸ 26.5 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Property (PAA)</span>
+                <span class="component-value">₸ 10.2 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Health (VFA)</span>
+                <span class="component-value">₸ 6.1 млрд</span>
+            </div>
+            <div class="component-row" style="border-top: 1px solid #e2e8f0; margin-top: 0.75rem; padding-top: 0.75rem;">
+                <span class="component-label"><strong>Total Contracts</strong></span>
+                <span class="component-value"><strong>8,547</strong></span>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+            <div class="comparison-indicator mb-2">
+                <span class="trend-up"><i class="bi bi-arrow-up-right"></i> +8.7%</span>
+                <span style="color: #718096; font-size: 0.85rem;">YoY</span>
+            </div>
+            <span class="status-badge-advanced status-compliant">
+                <i class="bi bi-check-circle"></i> На траектории роста
+            </span>
+        </div>
+    </div>
+
+    <!-- Total Assets & Investments Card -->
+    <div class="detailed-metric-card assets" onclick="showPortfolioDetails()">
+        <div class="metric-header">
+            <div>
+                <div class="metric-description">Total Assets & Portfolio</div>
+                <div class="metric-main-value">₸ 187.5 млрд</div>
+            </div>
+            <div class="metric-icon-large icon-assets">
+                <i class="bi bi-pie-chart"></i>
+            </div>
+        </div>
+
+        <div class="metric-components">
+            <div class="component-row">
+                <span class="component-label">Financial Investments</span>
+                <span class="component-value">₸ 156.2 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Insurance Reserves</span>
+                <span class="component-value">₸ 187.5 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Reinsurance Assets</span>
+                <span class="component-value">₸ 42.3 млрд</span>
+            </div>
+            <div class="component-row">
+                <span class="component-label">Cash & Deposits</span>
+                <span class="component-value">₸ 8.2 млрд</span>
+            </div>
+            <div class="component-row" style="border-top: 1px solid #e2e8f0; margin-top: 0.75rem; padding-top: 0.75rem;">
+                <span class="component-label"><strong>Diversification Index</strong></span>
+                <span class="component-value"><strong>0.87 (High)</strong></span>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+            <div class="comparison-indicator mb-2">
+                <span class="trend-up"><i class="bi bi-arrow-up-right"></i> +15.4%</span>
+                <span style="color: #718096; font-size: 0.85rem;">YoY</span>
+            </div>
+            <span class="status-badge-advanced status-compliant">
+                <i class="bi bi-check-circle"></i> Хорошо диверсифицировано
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================================ -->
+<!-- REGULATORY COMPLIANCE CHECKLIST -->
+<!-- ============================================================================ -->
+<div class="compliance-section">
+    <h5 class="mb-4"><i class="bi bi-clipboard-check"></i> Regulatory Compliance Status</h5>
+
+    <div class="compliance-item">
+        <div class="compliance-icon compliance-pass"><i class="bi bi-check-lg"></i></div>
+        <div class="compliance-info">
+            <div class="compliance-name">Solvency II Capital Requirements</div>
+            <div class="compliance-status">SCR Ratio 157% exceeds minimum 150% requirement. Buffer margin: +7% ✓</div>
+        </div>
+    </div>
+
+    <div class="compliance-item">
+        <div class="compliance-icon compliance-pass"><i class="bi bi-check-lg"></i></div>
+        <div class="compliance-info">
+            <div class="compliance-name">МСФО 9 Expected Credit Loss Provisioning</div>
+            <div class="compliance-status">All 1,247 financial instruments classified correctly (Stage 1/2/3). ECL coverage adequate.</div>
+        </div>
+    </div>
+
+    <div class="compliance-item">
+        <div class="compliance-icon compliance-pass"><i class="bi bi-check-lg"></i></div>
+        <div class="compliance-info">
+            <div class="compliance-name">МСФО 17 Insurance Contract Liabilities</div>
+            <div class="compliance-status">BEL + RA + CSM methodologies compliant. 8,547 contracts properly classified (BBA/PAA/VFA).</div>
+        </div>
+    </div>
+
+    <div class="compliance-item">
+        <div class="compliance-icon compliance-warning"><i class="bi bi-exclamation-lg"></i></div>
+        <div class="compliance-info">
+            <div class="compliance-name">Portfolio Concentration Risk (Life Segment)</div>
+            <div class="compliance-status">Life business represents 62% of total reserves. Consider rebalancing towards property segment. ⚠️</div>
+        </div>
+    </div>
+
+    <div class="compliance-item">
+        <div class="compliance-icon compliance-pass"><i class="bi bi-check-lg"></i></div>
+        <div class="compliance-info">
+            <div class="compliance-name">Reinsurance Program Effectiveness</div>
+            <div class="compliance-status">Reduces Solvency II requirement by 20.3%. Treaty XL, Cat Cover, and Facultative arrangements optimal.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================================ -->
+<!-- PORTFOLIO COMPOSITION & BREAKDOWN -->
+<!-- ============================================================================ -->
+<div class="portfolio-composition">
+    <h5 class="mb-3"><i class="bi bi-pie-chart"></i> Portfolio Composition Analysis</h5>
+
+    <div class="mb-4">
+        <h6 class="text-muted mb-2">Asset Allocation by Type</h6>
+        <div class="composition-bars">
+            <div class="composition-bar" style="width: 42%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-grow: 1;">
+                Financial Investments 42%
+            </div>
+            <div class="composition-bar" style="width: 38%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); flex-grow: 1;">
+                Insurance Reserves 38%
+            </div>
+            <div class="composition-bar" style="width: 15%; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); flex-grow: 1;">
+                Reinsurance 15%
+            </div>
+            <div class="composition-bar" style="width: 5%; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); flex-grow: 1;">
+                Cash 5%
+            </div>
+        </div>
+        <div class="composition-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                <span>Financial Investments: ₸ 156.2 млрд</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                <span>Insurance Reserves: ₸ 142.5 млрд</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                <span>Reinsurance: ₸ 56.1 млрд</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+                <span>Cash & Deposits: ₸ 18.7 млрд</span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <i class="bi bi-shield-check"></i>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h6 class="text-muted mb-3">Insurance Business by Line of Business</h6>
+            <table class="comprehensive-table">
+                <thead>
+                    <tr>
+                        <th>Line of Business</th>
+                        <th>Contracts</th>
+                        <th>BEL + RA</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Life</strong></td>
+                        <td>5,299</td>
+                        <td>₸ 69.3 млрд</td>
+                        <td><strong>62%</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Property</strong></td>
+                        <td>2,735</td>
+                        <td>₸ 30.8 млрд</td>
+                        <td><strong>28%</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Health</strong></td>
+                        <td>513</td>
+                        <td>₸ 10.8 млрд</td>
+                        <td><strong>10%</strong></td>
+                    </tr>
+                    <tr style="background: #f7fafc; font-weight: 600;">
+                        <td>TOTAL</td>
+                        <td>8,547</td>
+                        <td>₸ 110.9 млрд</td>
+                        <td>100%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h6 class="text-muted mb-3">Financial Instruments by Classification</h6>
+            <table class="comprehensive-table">
+                <thead>
+                    <tr>
+                        <th>Classification</th>
+                        <th>Instruments</th>
+                        <th>GCA</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>AC (Amortized Cost)</strong></td>
+                        <td>542</td>
+                        <td>₸ 64.8 млрд</td>
+                        <td><strong>41%</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>FVOCI</strong></td>
+                        <td>487</td>
+                        <td>₸ 58.2 млрд</td>
+                        <td><strong>37%</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>FVTPL</strong></td>
+                        <td>218</td>
+                        <td>₸ 33.2 млрд</td>
+                        <td><strong>22%</strong></td>
+                    </tr>
+                    <tr style="background: #f7fafc; font-weight: 600;">
+                        <td>TOTAL</td>
+                        <td>1,247</td>
+                        <td>₸ 156.2 млрд</td>
+                        <td>100%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================================ -->
+<!-- RISK MATRIX & HEAT MAPS -->
+<!-- ============================================================================ -->
+<div class="detailed-breakdown" style="border-left-color: #f5576c;">
+    <div class="breakdown-header">
+        <div class="breakdown-title"><i class="bi bi-exclamation-triangle-fill"></i> Risk Assessment Matrix</div>
+        <div class="breakdown-actions">
+            <button class="btn btn-sm btn-outline-secondary" onclick="refreshRiskMatrix()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h6 class="mb-3">Market Risk Exposure (by currency)</h6>
+            <div class="risk-matrix">
+                <div class="risk-box risk-low">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">KZT</div>
+                        <div style="font-size: 0.7rem;">48%</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">₸ 75.2 млрд</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-low">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">USD</div>
+                        <div style="font-size: 0.7rem;">28%</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">₸ 43.7 млрд</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-medium">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">EUR</div>
+                        <div style="font-size: 0.7rem;">15%</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">₸ 23.4 млрд</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-medium">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">RUB</div>
+                        <div style="font-size: 0.7rem;">6%</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">₸ 9.4 млрд</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-low">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">GBP</div>
+                        <div style="font-size: 0.7rem;">3%</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">₸ 4.5 млрд</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-label">Nmп</div>
-            <div class="stat-value">2.57</div>
-            <div class="stat-change positive">
-                <i class="bi bi-check-circle"></i> Норма ≥ 1.0
+        </div>
+
+        <div class="col-md-6">
+            <h6 class="mb-3">Underwriting Risk Exposure</h6>
+            <div class="risk-matrix">
+                <div class="risk-box risk-high">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">Mortality</div>
+                        <div style="font-size: 0.7rem;">High</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">Life: 5,299</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-medium">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">Morbidity</div>
+                        <div style="font-size: 0.7rem;">Medium</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">Health: 513</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-medium">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">Catastrophe</div>
+                        <div style="font-size: 0.7rem;">Medium</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">Property: 2,735</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-low">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">Lapse</div>
+                        <div style="font-size: 0.7rem;">Low</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">2.5% rate</div>
+                    </div>
+                </div>
+                <div class="risk-box risk-minimal">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem;">Expense</div>
+                        <div style="font-size: 0.7rem;">Low</div>
+                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">Stable</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon warning">
-                <i class="bi bi-calculator"></i>
-            </div>
-            <div class="stat-label">ECL резерв</div>
-            <div class="stat-value">2.1 млрд</div>
-            <div class="stat-change">
-                4.2% от портфеля
+
+    <div class="mt-4 pt-4" style="border-top: 1px solid #e2e8f0;">
+        <h6 class="mb-3">Credit Quality Distribution</h6>
+        <table class="comprehensive-table">
+            <thead>
+                <tr>
+                    <th>Credit Rating</th>
+                    <th>Instruments</th>
+                    <th>GCA</th>
+                    <th>PD (1-year)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>AAA - AA</strong></td>
+                    <td>412</td>
+                    <td>₸ 78.4 млрд</td>
+                    <td>0.01%</td>
+                    <td><span class="badge bg-success">Excellent</span></td>
+                </tr>
+                <tr>
+                    <td><strong>A - BBB</strong></td>
+                    <td>687</td>
+                    <td>₸ 62.8 млрд</td>
+                    <td>0.18%</td>
+                    <td><span class="badge bg-info">Good</span></td>
+                </tr>
+                <tr>
+                    <td><strong>BB - B</strong></td>
+                    <td>128</td>
+                    <td>₸ 12.2 млрд</td>
+                    <td>1.45%</td>
+                    <td><span class="badge bg-warning text-dark">Speculative</span></td>
+                </tr>
+                <tr>
+                    <td><strong>CCC - C</strong></td>
+                    <td>20</td>
+                    <td>₸ 2.8 млрд</td>
+                    <td>8.32%</td>
+                    <td><span class="badge bg-danger">High Risk</span></td>
+                </tr>
+                <tr style="background: #f7fafc; font-weight: 600;">
+                    <td>TOTAL</td>
+                    <td>1,247</td>
+                    <td>₸ 156.2 млрд</td>
+                    <td>0.41% (Weighted Avg)</td>
+                    <td>-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Drill-Down Section (Hidden by default, shown on click) -->
+<div id="drill-down-solvency" class="calculation-breakdown" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-diagram-3"></i> Solvency II Calculation Breakdown</h4>
+        <button class="btn btn-sm btn-outline-secondary" onclick="closeDrillDown('drill-down-solvency')">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h6 class="fw-bold">Own Funds (Собственные средства)</h6>
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <td>Tier 1 - Basic Own Funds</td>
+                        <td class="text-end"><strong>₸ 15.2 млрд</strong></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;↳ Share capital</td>
+                        <td class="text-end">₸ 10.0 млрд</td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;↳ Retained earnings</td>
+                        <td class="text-end">₸ 5.2 млрд</td>
+                    </tr>
+                    <tr>
+                        <td>Tier 2 - Supplementary</td>
+                        <td class="text-end"><strong>₸ 3.4 млрд</strong></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;&nbsp;↳ Subordinated debt</td>
+                        <td class="text-end">₸ 3.4 млрд</td>
+                    </tr>
+                    <tr>
+                        <td>Tier 3 - Other</td>
+                        <td class="text-end"><strong>₸ 1.5 млрд</strong></td>
+                    </tr>
+                    <tr class="table-primary">
+                        <td><strong>Total Own Funds</strong></td>
+                        <td class="text-end"><strong>₸ 20.1 млрд</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h6 class="fw-bold">SCR (Solvency Capital Requirement)</h6>
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <td>Market Risk</td>
+                        <td class="text-end"><strong>₸ 4.8 млрд</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Credit Risk</td>
+                        <td class="text-end"><strong>₸ 3.2 млрд</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Life Underwriting Risk</td>
+                        <td class="text-end"><strong>₸ 2.9 млрд</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Non-Life Underwriting Risk</td>
+                        <td class="text-end"><strong>₸ 1.8 млрд</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Operational Risk</td>
+                        <td class="text-end"><strong>₸ 1.2 млрд</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Diversification Effect</td>
+                        <td class="text-end text-success"><strong>- ₸ 1.1 млрд</strong></td>
+                    </tr>
+                    <tr class="table-warning">
+                        <td><strong>Total SCR</strong></td>
+                        <td class="text-end"><strong>₸ 12.8 млрд</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="formula-display mt-3">
+        <code>
+Solvency Ratio = (Own Funds / SCR) × 100%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (20.1 млрд / 12.8 млрд) × 100%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="text-success">157.0%</span><br><br>
+Status: <span class="text-success">✓ COMPLIANT</span> (Required minimum: 150%)
+        </code>
+    </div>
+
+    <div class="mt-3">
+        <button class="btn btn-primary" onclick="exportCalculation('solvency')">
+            <i class="bi bi-download"></i> Export Full Calculation (PDF)
+        </button>
+        <button class="btn btn-outline-primary" onclick="showStressTest()">
+            <i class="bi bi-lightning"></i> Run Stress Test
+        </button>
+    </div>
+</div>
+
+<!-- IFRS 9 Drill-Down -->
+<div id="drill-down-ifrs9" class="calculation-breakdown" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-bank"></i> МСФО 9 ECL Detailed Analysis</h4>
+        <button class="btn btn-sm btn-outline-secondary" onclick="closeDrillDown('drill-down-ifrs9')">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="progress-container">
+                <div class="d-flex justify-content-between mb-2">
+                    <span><strong>ECL by Stage</strong></span>
+                    <span class="text-muted">Total: ₸ 2.8 млрд</span>
+                </div>
+                <div class="progress" style="height: 30px;">
+                    <div class="progress-bar bg-success" style="width: 43%">
+                        Stage 1: ₸ 1.2 млрд
+                    </div>
+                    <div class="progress-bar bg-warning" style="width: 35%">
+                        Stage 2: ₸ 980 млн
+                    </div>
+                    <div class="progress-bar bg-danger" style="width: 22%">
+                        Stage 3: ₸ 620 млн
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon primary">
-                <i class="bi bi-graph-up"></i>
+
+    <h6 class="fw-bold mb-3">Top 10 Instruments by ECL</h6>
+    <table class="data-table-modern">
+        <thead>
+            <tr>
+                <th>Instrument ID</th>
+                <th>Type</th>
+                <th>GCA</th>
+                <th>Stage</th>
+                <th>PD</th>
+                <th>LGD</th>
+                <th>ECL</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>FI-2024-001</code></td>
+                <td><span class="badge bg-info">Govt Bonds</span></td>
+                <td>₸ 15.2 млрд</td>
+                <td><span class="badge bg-light text-dark">Stage 1</span></td>
+                <td>0.02%</td>
+                <td>45%</td>
+                <td class="text-danger"><strong>₸ 125 млн</strong></td>
+                <td><button class="btn btn-sm btn-link" onclick="viewInstrument('FI-2024-001')">View</button></td>
+            </tr>
+            <tr>
+                <td><code>FI-2024-002</code></td>
+                <td><span class="badge bg-primary">Deposit</span></td>
+                <td>₸ 8.5 млрд</td>
+                <td><span class="badge bg-light text-dark">Stage 1</span></td>
+                <td>0.05%</td>
+                <td>45%</td>
+                <td class="text-danger"><strong>₸ 42 млн</strong></td>
+                <td><button class="btn btn-sm btn-link" onclick="viewInstrument('FI-2024-002')">View</button></td>
+            </tr>
+            <tr>
+                <td><code>FI-2024-003</code></td>
+                <td><span class="badge bg-warning text-dark">Corp Bonds</span></td>
+                <td>₸ 3.2 млрд</td>
+                <td><span class="badge bg-warning text-dark">Stage 2</span></td>
+                <td>1.20%</td>
+                <td>45%</td>
+                <td class="text-danger"><strong>₸ 280 млн</strong></td>
+                <td><button class="btn btn-sm btn-link" onclick="viewInstrument('FI-2024-003')">View</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="formula-display mt-3">
+        <code>
+ECL Calculation (Stage 1 - 12-month ECL):<br>
+ECL = EAD × PD × LGD × DF<br><br>
+Example: FI-2024-001 (Govt Bonds)<br>
+&nbsp;&nbsp;EAD = ₸ 15,240,000,000<br>
+&nbsp;&nbsp;PD (12m) = 0.02% = 0.0002<br>
+&nbsp;&nbsp;LGD = 45% = 0.45<br>
+&nbsp;&nbsp;DF = 1.0 (no time discount for 12m)<br><br>
+&nbsp;&nbsp;ECL = 15,240,000,000 × 0.0002 × 0.45 × 1.0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="text-danger">₸ 1,371,600</span>
+        </code>
+    </div>
+
+    <div class="mt-3">
+        <button class="btn btn-success data-sync-button" onclick="load1CFinancialInstruments()">
+            <i class="bi bi-cloud-download"></i> Load from 1C
+        </button>
+        <button class="btn btn-primary" onclick="exportCalculation('ifrs9')">
+            <i class="bi bi-download"></i> Export ECL Report
+        </button>
+    </div>
+</div>
+
+<!-- IFRS 17 Drill-Down -->
+<div id="drill-down-ifrs17" class="calculation-breakdown" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-file-earmark-text"></i> МСФО 17 CSM & Insurance Liabilities</h4>
+        <button class="btn btn-sm btn-outline-secondary" onclick="closeDrillDown('drill-down-ifrs17')">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold">CSM Roll-Forward</h6>
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td>Opening Balance</td>
+                                <td class="text-end">₸ 45.2 млрд</td>
+                            </tr>
+                            <tr class="text-success">
+                                <td>+ New Business</td>
+                                <td class="text-end">+ ₸ 1.85 млрд</td>
+                            </tr>
+                            <tr class="text-success">
+                                <td>+ Changes in Estimates</td>
+                                <td class="text-end">+ ₸ 320 млн</td>
+                            </tr>
+                            <tr class="text-info">
+                                <td>+ Interest Accretion</td>
+                                <td class="text-end">+ ₸ 400 млн</td>
+                            </tr>
+                            <tr class="text-danger">
+                                <td>- CSM Amortization</td>
+                                <td class="text-end">- ₸ 2.8 млрд</td>
+                            </tr>
+                            <tr class="text-danger">
+                                <td>- FX Impact</td>
+                                <td class="text-end">- ₸ 120 млн</td>
+                            </tr>
+                            <tr class="text-danger">
+                                <td>- Onerous Contracts</td>
+                                <td class="text-end">- ₸ 2.1 млрд</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Closing Balance</strong></td>
+                                <td class="text-end"><strong>₸ 42.8 млрд</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="stat-label">CSM</div>
-            <div class="stat-value">11.8 млрд</div>
-            <div class="stat-change positive">
-                <i class="bi bi-arrow-up"></i> +12.5%
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold">Liabilities Breakdown</h6>
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td>BEL (Best Estimate)</td>
+                                <td class="text-end">₸ 136.4 млрд</td>
+                            </tr>
+                            <tr>
+                                <td>Risk Adjustment</td>
+                                <td class="text-end">₸ 8.3 млрд</td>
+                            </tr>
+                            <tr>
+                                <td>CSM</td>
+                                <td class="text-end">₸ 42.8 млрд</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><strong>Total Reserves</strong></td>
+                                <td class="text-end"><strong>₸ 187.5 млрд</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>By Model:</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;&nbsp;BBA</td>
+                                <td class="text-end">₸ 116.3 млрд (62%)</td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;&nbsp;PAA</td>
+                                <td class="text-end">₸ 60.0 млрд (32%)</td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;&nbsp;VFA</td>
+                                <td class="text-end">₸ 11.2 млрд (6%)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h6 class="fw-bold mb-3">Insurance Contracts by Line of Business</h6>
+    <table class="data-table-modern">
+        <thead>
+            <tr>
+                <th>LoB</th>
+                <th>Contracts</th>
+                <th>BEL</th>
+                <th>RA</th>
+                <th>CSM</th>
+                <th>Total Reserves</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="badge bg-danger">Life</span></td>
+                <td>5,299</td>
+                <td>₸ 65.5 млрд</td>
+                <td>₸ 4.0 млрд</td>
+                <td>₸ 20.5 млрд</td>
+                <td><strong>₸ 90.0 млрд</strong></td>
+                <td><button class="btn btn-sm btn-link" onclick="viewContracts('life')">View</button></td>
+            </tr>
+            <tr>
+                <td><span class="badge bg-info">Property</span></td>
+                <td>2,735</td>
+                <td>₸ 40.7 млрд</td>
+                <td>₸ 2.6 млрд</td>
+                <td>₸ 9.2 млрд</td>
+                <td><strong>₸ 52.5 млрд</strong></td>
+                <td><button class="btn btn-sm btn-link" onclick="viewContracts('property')">View</button></td>
+            </tr>
+            <tr>
+                <td><span class="badge bg-success">Health</span></td>
+                <td>513</td>
+                <td>₸ 26.6 млрд</td>
+                <td>₸ 1.5 млрд</td>
+                <td>₸ 5.7 млрд</td>
+                <td><strong>₸ 33.8 млрд</strong></td>
+                <td><button class="btn btn-sm btn-link" onclick="viewContracts('health')">View</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="formula-display mt-3">
+        <code>
+IFRS 17 BBA Model:<br>
+Reserves = PV(FCF) + RA + CSM<br><br>
+Where:<br>
+&nbsp;&nbsp;PV(FCF) = Σ (Claims + Expenses - Premiums) × Discount Factor<br>
+&nbsp;&nbsp;RA = Risk Adjustment (CoC method at 6%)<br>
+&nbsp;&nbsp;CSM = Contractual Service Margin (unearned profit)<br><br>
+Example: Life Insurance Portfolio<br>
+&nbsp;&nbsp;PV(FCF) = ₸ 65.5 млрд<br>
+&nbsp;&nbsp;RA = ₸ 4.0 млрд<br>
+&nbsp;&nbsp;CSM = ₸ 20.5 млрд<br>
+&nbsp;&nbsp;Total = <span class="text-primary">₸ 90.0 млрд</span>
+        </code>
+    </div>
+
+    <div class="mt-3">
+        <button class="btn btn-success data-sync-button" onclick="load1CInsuranceContracts()">
+            <i class="bi bi-cloud-download"></i> Load from 1C
+        </button>
+        <button class="btn btn-primary" onclick="exportCalculation('ifrs17')">
+            <i class="bi bi-download"></i> Export IFRS 17 Report
+        </button>
+    </div>
+</div>
+
+<!-- 1C Data Sync Modal -->
+<div class="modal fade" id="sync1CModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-cloud-download"></i>
+                    Синхронизация с 1С:Предприятие
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="sync-progress-container">
+                    <h6 class="mb-3">Подключение к серверу 1С...</h6>
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div id="sync-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                             role="progressbar" style="width: 0%">0%</div>
+                    </div>
+
+                    <div id="sync-logs" class="mt-3" style="max-height: 300px; overflow-y: auto;">
+                        <!-- Logs will be added here dynamically -->
+                    </div>
+
+                    <div id="sync-summary" class="mt-3" style="display:none;">
+                        <div class="alert alert-success">
+                            <h6><i class="bi bi-check-circle"></i> Синхронизация завершена успешно!</h6>
+                            <ul class="mb-0">
+                                <li id="sync-summary-fi"></li>
+                                <li id="sync-summary-ic"></li>
+                                <li id="sync-summary-capital"></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="sync-retry-btn" style="display:none;" onclick="retrySync()">
+                    <i class="bi bi-arrow-repeat"></i> Повторить
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Модули расчетов -->
-<div class="row g-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-calculator me-2"></i>МСФО 9 - Финансовые инструменты</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Расчет ожидаемых кредитных убытков (ECL) по 3-стадийной модели с учетом макроэкономических сценариев.</p>
-                <ul class="list-unstyled mb-3">
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>3-стадийная модель ECL</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>PD/LGD/EAD модели</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Взвешенные сценарии (1.613)</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Аудиторский след формул</li>
-                </ul>
-                <a href="{{ url_for('main.main_calculation') }}" class="btn btn-primary">
-                    <i class="bi bi-arrow-right me-2"></i>Главный расчет
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-graph-up me-2"></i>МСФО 17 - Договоры страхования</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Расчет BEL, RA и CSM по моделям GMM/VFA/PAA с Monte Carlo симуляциями.</p>
-                <ul class="list-unstyled mb-3">
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>BEL с дисконтированием</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>RA (VaR/TVaR/CoC/CTE)</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>CSM и обременительные</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Monte Carlo симуляции</li>
-                </ul>
-                <a href="{{ url_for('main.main_calculation') }}" class="btn btn-primary">
-                    <i class="bi bi-arrow-right me-2"></i>Главный расчет
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-shield-fill-check me-2"></i>Платежеспособность</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Расчет MMP, FMP и коэффициента Nmп по требованиям АРФР с IFRS корректировками.</p>
-                <ul class="list-unstyled mb-3">
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>MMP по премиям/убыткам</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>FMP с ECL/CSM корректировками</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Стресс-тесты VaR 99.5%</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Solvency II модули</li>
-                </ul>
-                <a href="{{ url_for('main.main_calculation') }}" class="btn btn-primary">
-                    <i class="bi bi-arrow-right me-2"></i>Расчет Nmп
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-bank me-2"></i>Взносы ФГСВ</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Расчет взносов в Фонд гарантирования страховых выплат по классу риска.</p>
-                <ul class="list-unstyled mb-3">
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Классификация риска</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Дифференцированные ставки</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Раннее предупреждение</li>
-                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>История взносов</li>
-                </ul>
-                <a href="{{ url_for('main.fgsv') }}" class="btn btn-primary">
-                    <i class="bi bi-arrow-right me-2"></i>Расчет взноса
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Быстрые действия -->
+<!-- Quick Actions Section -->
 <div class="row mt-4">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-book me-2"></i>Регуляторная база</h5>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="fw-bold">МСФО 9</h6>
-                        <ul class="small text-muted">
-                            <li>МСФО 9 "Финансовые инструменты"</li>
-                            <li>АРФР Постановление №269 от 29.12.2017</li>
-                            <li>Изменения: №83 от 21.10.2024</li>
-                        </ul>
-                        <h6 class="fw-bold mt-3">МСФО 17</h6>
-                        <ul class="small text-muted">
-                            <li>МСФО 17 "Договоры страхования"</li>
-                            <li>Технические обновления Декабрь 2025</li>
-                        </ul>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary w-100" onclick="runFullCalculation()">
+                            <i class="bi bi-calculator"></i><br>
+                            <small>Run Full Calculation</small>
+                        </button>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="fw-bold">Платежеспособность</h6>
-                        <ul class="small text-muted">
-                            <li>АРФР Постановление №304 от 26.12.2016</li>
-                            <li>Изменения: №95, №3, №14</li>
-                            <li>EIOPA 2025 макропруденциальные</li>
-                        </ul>
-                        <h6 class="fw-bold mt-3">ФГСВ</h6>
-                        <ul class="small text-muted">
-                            <li>Закон РК №423-II от 03.06.2003</li>
-                        </ul>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-success w-100" onclick="generateRegulatoryReport()">
+                            <i class="bi bi-file-earmark-pdf"></i><br>
+                            <small>Generate Report</small>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-info w-100" onclick="showAuditTrail()">
+                            <i class="bi bi-journal-text"></i><br>
+                            <small>Audit Trail</small>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-warning w-100" onclick="runStressTest()">
+                            <i class="bi bi-lightning"></i><br>
+                            <small>Stress Testing</small>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('main.ifrs9_page') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-bank"></i><br>
+                            <small>МСФО 9 Module</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('main.ifrs17_page') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-file-earmark-text"></i><br>
+                            <small>МСФО 17 Module</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('main.solvency2_page') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-shield-check"></i><br>
+                            <small>Solvency 2 Analysis</small>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -179,29 +1808,223 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-lightning me-2"></i>Быстрые действия</h5>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('main.reports') }}" class="btn btn-outline-primary">
-                        <i class="bi bi-file-earmark-text me-2"></i>Отчеты АРФР
-                    </a>
-                    <a href="{{ url_for('main.audit') }}" class="btn btn-outline-primary">
-                        <i class="bi bi-journal-text me-2"></i>Аудиторский след
-                    </a>
-                    <button class="btn btn-primary">
-                        <i class="bi bi-download me-2"></i>Экспорт XBRL
-                    </button>
+                <div class="small">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="status-indicator status-green"></span>
+                        </div>
+                        <div class="flex-grow-1 ms-2">
+                            <div class="fw-bold">Solvency calculated</div>
+                            <div class="text-muted">15 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="status-indicator status-green"></span>
+                        </div>
+                        <div class="flex-grow-1 ms-2">
+                            <div class="fw-bold">1C sync completed</div>
+                            <div class="text-muted">1 hour ago</div>
+                        </div>
+                    </div>
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="status-indicator status-yellow"></span>
+                        </div>
+                        <div class="flex-grow-1 ms-2">
+                            <div class="fw-bold">ECL increased</div>
+                            <div class="text-muted">2 hours ago</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Workflow Guide Section -->
-<div class="mt-5">
-    {% include "components/workflow_guide.html" %}
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Interactive Drill-Down Functions
+function drillDownSolvency() {
+    closeAllDrillDowns();
+    document.getElementById('drill-down-solvency').style.display = 'block';
+    document.getElementById('drill-down-solvency').scrollIntoView({ behavior: 'smooth' });
+}
+
+function drillDownIFRS9() {
+    closeAllDrillDowns();
+    document.getElementById('drill-down-ifrs9').style.display = 'block';
+    document.getElementById('drill-down-ifrs9').scrollIntoView({ behavior: 'smooth' });
+}
+
+function drillDownIFRS17() {
+    closeAllDrillDowns();
+    document.getElementById('drill-down-ifrs17').style.display = 'block';
+    document.getElementById('drill-down-ifrs17').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeAllDrillDowns() {
+    document.getElementById('drill-down-solvency').style.display = 'none';
+    document.getElementById('drill-down-ifrs9').style.display = 'none';
+    document.getElementById('drill-down-ifrs17').style.display = 'none';
+}
+
+function closeDrillDown(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+function dismissAlert(button) {
+    button.closest('.alert-box').style.animation = 'slideOut 0.5s ease';
+    setTimeout(() => {
+        button.closest('.alert-box').remove();
+    }, 500);
+}
+
+// 1C Sync Functions
+function syncWith1C() {
+    const modal = new bootstrap.Modal(document.getElementById('sync1CModal'));
+    modal.show();
+    startSync();
+}
+
+function startSync() {
+    const progressBar = document.getElementById('sync-progress-bar');
+    const logsContainer = document.getElementById('sync-logs');
+    const summary = document.getElementById('sync-summary');
+
+    // Reset
+    progressBar.style.width = '0%';
+    progressBar.textContent = '0%';
+    logsContainer.innerHTML = '';
+    summary.style.display = 'none';
+
+    let progress = 0;
+
+    // Simulate sync process
+    const steps = [
+        { progress: 10, log: '[00:00] Подключение к серверу 1С: http://1c-server.local:8080', delay: 500 },
+        { progress: 20, log: '[00:01] ✓ Подключение установлено', delay: 800 },
+        { progress: 30, log: '[00:02] Запрос финансовых инструментов (счета 1010-1070)...', delay: 1000 },
+        { progress: 45, log: '[00:03] ✓ Загружено 1,247 финансовых инструментов', delay: 1500 },
+        { progress: 60, log: '[00:05] Запрос страховых договоров (счета 3110-3150)...', delay: 1000 },
+        { progress: 75, log: '[00:07] ✓ Загружено 8,547 договоров страхования', delay: 1500 },
+        { progress: 85, log: '[00:09] Запрос данных о капитале (счета 5000-5900)...', delay: 1000 },
+        { progress: 95, log: '[00:10] ✓ Загружены данные о капитале', delay: 800 },
+        { progress: 100, log: '[00:11] ✓ Синхронизация завершена успешно!', delay: 500 }
+    ];
+
+    function executeStep(index) {
+        if (index >= steps.length) {
+            // Show summary
+            summary.style.display = 'block';
+            document.getElementById('sync-summary-fi').textContent = 'Финансовые инструменты: 1,247 записей';
+            document.getElementById('sync-summary-ic').textContent = 'Страховые договоры: 8,547 записей';
+            document.getElementById('sync-summary-capital').textContent = 'Капитал и резервы: обновлено';
+
+            progressBar.classList.remove('progress-bar-animated');
+            progressBar.classList.add('bg-success');
+
+            // Reload page after 2 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+            return;
+        }
+
+        const step = steps[index];
+        setTimeout(() => {
+            progressBar.style.width = step.progress + '%';
+            progressBar.textContent = step.progress + '%';
+
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = step.log;
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+
+            executeStep(index + 1);
+        }, step.delay);
+    }
+
+    executeStep(0);
+}
+
+function load1CFinancialInstruments() {
+    alert('Loading financial instruments from 1C...');
+    syncWith1C();
+}
+
+function load1CInsuranceContracts() {
+    alert('Loading insurance contracts from 1C...');
+    syncWith1C();
+}
+
+// Export Functions
+function exportCalculation(type) {
+    alert(`Exporting ${type.toUpperCase()} calculation to PDF...`);
+    // In real app, this would trigger PDF generation
+}
+
+// View Functions
+function viewInstrument(id) {
+    alert(`Opening detailed view for instrument: ${id}`);
+    // In real app, this would open a modal with full instrument details
+}
+
+function viewContracts(lob) {
+    alert(`Opening contracts view for line of business: ${lob}`);
+    // In real app, this would navigate to filtered contract list
+}
+
+function showPortfolioDetails() {
+    alert('Opening portfolio analysis...');
+}
+
+// Action Functions
+function runFullCalculation() {
+    window.location.href = "{{ url_for('main.main_calculation') }}";
+}
+
+function generateRegulatoryReport() {
+    alert('Generating regulatory report...');
+}
+
+function showAuditTrail() {
+    window.location.href = "{{ url_for('main.audit') }}";
+}
+
+function runStressTest() {
+    alert('Running stress test scenarios...');
+}
+
+function showStressTest() {
+    alert('Opening stress testing module...');
+}
+
+function refreshRiskMatrix() {
+    alert('Refreshing risk assessment matrix from latest data...');
+    // In real app, would reload data from backend
+}
+
+// Update time every second
+setInterval(() => {
+    const now = new Date();
+    const timeStr = now.toLocaleString('ru-RU');
+    document.getElementById('last-update-time').textContent = timeStr;
+}, 1000);
+</script>
+
+<style>
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+</style>
 {% endblock %}

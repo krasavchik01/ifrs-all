@@ -1,0 +1,1015 @@
+{% extends "base.html" %}
+
+{% block title %}МСФО Solvency 2 - Детальная аналитика платежеспособности{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ==================== SOLVENCY 2 DETAILED PAGE STYLING ==================== */
+
+.solvency-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.solvency-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+}
+
+.solvency-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.realtime-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #48bb78;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.kpi-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.kpi-label {
+    font-size: 0.875rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-trend {
+    font-size: 0.875rem;
+    color: #48bb78;
+    font-weight: 600;
+}
+
+.tab-nav {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    margin: 2rem 0;
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: 1rem 1.5rem;
+    border: none;
+    background: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #718096;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.tab-button.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.tab-button:hover {
+    color: #667eea;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.calculation-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-left: 4px solid #667eea;
+}
+
+.formula-box {
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid #667eea;
+    font-family: 'Monaco', monospace;
+    font-size: 0.95rem;
+    overflow-x: auto;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.table-responsive table {
+    font-size: 0.95rem;
+}
+
+.table-responsive thead {
+    background: #f7fafc;
+}
+
+.badge-own-funds {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-scr {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-tier1 {
+    background: #10b981;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-tier2 {
+    background: #f59e0b;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.badge-tier3 {
+    background: #ef4444;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.risk-heatmap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.risk-cell {
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.risk-cell:hover {
+    transform: scale(1.05);
+}
+
+.risk-low { background: #d1fae5; color: #065f46; }
+.risk-medium { background: #fef3c7; color: #92400e; }
+.risk-high { background: #fee2e2; color: #991b1b; }
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.sensitivity-table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+}
+
+.stress-scenario {
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid #667eea;
+}
+
+.stress-scenario h6 {
+    color: #667eea;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.export-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.export-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.info-box {
+    background: #eff6ff;
+    border-left: 4px solid #667eea;
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.info-box i {
+    color: #667eea;
+    margin-right: 0.5rem;
+}
+
+.drill-down-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: none;
+}
+
+.drill-down-section.active {
+    display: block;
+}
+
+.scr-component-bar {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    color: white;
+    font-weight: 600;
+    padding: 0 1rem;
+    margin: 0.5rem 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="solvency-header">
+        <h1>
+            <i class="bi bi-shield-check"></i> МСФО Solvency 2
+        </h1>
+        <p class="mb-2">Детальная аналитика платежеспособности и капитальных требований</p>
+        <span class="realtime-badge">
+            <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+            Real-time Data • {{ macro.reporting_date }}
+        </span>
+    </div>
+
+    <!-- Summary KPI Section -->
+    <div class="kpi-summary">
+        <div class="kpi-card">
+            <div class="kpi-label">Коэффициент платежеспособности</div>
+            <div class="kpi-value">157%</div>
+            <div class="kpi-trend"><i class="bi bi-arrow-up-right"></i> +12% от 01.10.2025</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Собственные средства (Own Funds)</div>
+            <div class="kpi-value">₸ 20.1 млрд</div>
+            <div class="kpi-trend">Tier 1: ₸15.2млрд | Tier 2: ₸3.4млрд | Tier 3: ₸1.5млрд</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Требуемый капитал (SCR)</div>
+            <div class="kpi-value">₸ 12.8 млрд</div>
+            <div class="kpi-trend">Буфер безопасности: ₸ 7.3 млрд (+57%)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Минимальный капитал (MCR)</div>
+            <div class="kpi-value">₸ 6.4 млрд</div>
+            <div class="kpi-trend">Запас: 215% от минимума</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tab-nav">
+        <button class="tab-button active" onclick="switchTab('own-funds')">
+            <i class="bi bi-briefcase"></i> Собственные средства
+        </button>
+        <button class="tab-button" onclick="switchTab('scr-analysis')">
+            <i class="bi bi-graph-up"></i> Анализ SCR
+        </button>
+        <button class="tab-button" onclick="switchTab('risk-breakdown')">
+            <i class="bi bi-exclamation-triangle"></i> Риски
+        </button>
+        <button class="tab-button" onclick="switchTab('stress-testing')">
+            <i class="bi bi-lightning"></i> Стресс-тесты
+        </button>
+        <button class="tab-button" onclick="switchTab('regulation')">
+            <i class="bi bi-file-earmark-check"></i> Регуляция
+        </button>
+    </div>
+
+    <!-- TAB 1: Own Funds Analysis -->
+    <div id="own-funds" class="tab-content active">
+        <div class="calculation-card">
+            <h4><i class="bi bi-briefcase-fill"></i> Структура собственных средств (Own Funds)</h4>
+            <p class="text-muted">Детальный анализ компонентов и ограничений по уровням</p>
+
+            <div class="info-box">
+                <i class="bi bi-info-circle"></i>
+                <strong>Собственные средства</strong> — это стоимость активов за вычетом всех пассивов, определяемая в соответствии с МСФО.
+                Они делятся на 3 уровня (Tier 1/2/3) в зависимости от качества и ограничений использования.
+            </div>
+
+            <h6 class="mt-4 mb-3">Уровень 1 (Tier 1) - ₸15.2 млрд | 75.6% от всего</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Компонент</th>
+                            <th>Сумма (млрд ₸)</th>
+                            <th>% от Own Funds</th>
+                            <th>Примечание</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Уставный капитал</strong></td>
+                            <td>₸ 8.5</td>
+                            <td>42.3%</td>
+                            <td>Полностью без ограничений</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Прибыль прошлых периодов</strong></td>
+                            <td>₸ 4.2</td>
+                            <td>20.9%</td>
+                            <td>После вычета дивидендов</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Резервы переоценки</strong></td>
+                            <td>₸ 2.5</td>
+                            <td>12.4%</td>
+                            <td>Переоценка активов по МСФО</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="formula-box">
+                <strong>Tier 1 = Уставный капитал + Прибыль + Резервы</strong><br>
+                = ₸8.5млрд + ₸4.2млрд + ₸2.5млрд = <strong>₸15.2млрд</strong>
+            </div>
+
+            <h6 class="mt-4 mb-3">Уровень 2 (Tier 2) - ₸3.4 млрд | 16.9% от всего</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Компонент</th>
+                            <th>Сумма (млрд ₸)</th>
+                            <th>Ограничение</th>
+                            <th>Допустимо</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Подчиненные займы</strong></td>
+                            <td>₸ 2.2</td>
+                            <td>Max 50% от Tier 1</td>
+                            <td><span class="badge bg-success">✓</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Гибридные инструменты</strong></td>
+                            <td>₸ 1.2</td>
+                            <td>Max 15% от OF</td>
+                            <td><span class="badge bg-success">✓</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="formula-box">
+                <strong>Tier 2 = Подчиненные займы + Гибридные инструменты</strong><br>
+                = ₸2.2млрд + ₸1.2млрд = <strong>₸3.4млрд</strong>
+            </div>
+
+            <h6 class="mt-4 mb-3">Уровень 3 (Tier 3) - ₸1.5 млрд | 7.5% от всего</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Компонент</th>
+                            <th>Сумма (млрд ₸)</th>
+                            <th>Ограничение</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Отсроченный налоговый актив</strong></td>
+                            <td>₸ 1.5</td>
+                            <td>Max 10% от OF</td>
+                            <td><span class="badge bg-warning text-dark">Предупр.</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h6 class="mt-4">Диаграмма структуры Own Funds</h6>
+            <div class="chart-container">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                    <div class="scr-component-bar" style="width: 100%; background: linear-gradient(90deg, #10b981 0%, #059669 100%);">
+                        <div style="width: 75.6%;"></div> Tier 1: 75.6%
+                    </div>
+                    <div class="scr-component-bar" style="width: 100%; background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);">
+                        <div style="width: 16.9%;"></div> Tier 2: 16.9%
+                    </div>
+                    <div class="scr-component-bar" style="width: 100%; background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);">
+                        <div style="width: 7.5%;"></div> Tier 3: 7.5%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: SCR Analysis -->
+    <div id="scr-analysis" class="tab-content">
+        <div class="calculation-card">
+            <h4><i class="bi bi-graph-up-arrow"></i> Анализ требуемого капитала (SCR)</h4>
+            <p class="text-muted">Детальная иерархия рисков и компонентов SCR</p>
+
+            <div class="info-box">
+                <i class="bi bi-info-circle"></i>
+                <strong>SCR (Solvency Capital Requirement)</strong> — минимальный размер собственных средств, необходимый
+                для защиты от потерь вероятностью 1 раз в 200 лет (99.5% доверительный уровень).
+            </div>
+
+            <h6 class="mt-4 mb-3">Структура SCR - ₸12.8 млрд</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Риск</th>
+                            <th>Сумма (млрд ₸)</th>
+                            <th>% от SCR</th>
+                            <th>Диверсификация</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Рыночный риск (Market)</strong></td>
+                            <td>₸ 5.8</td>
+                            <td>45.3%</td>
+                            <td>-15% (корреляция)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Кредитный риск (Credit)</strong></td>
+                            <td>₸ 2.1</td>
+                            <td>16.4%</td>
+                            <td>-8% (корреляция)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Страховой риск - Life</strong></td>
+                            <td>₸ 1.8</td>
+                            <td>14.1%</td>
+                            <td>-5% (корреляция)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Страховой риск - Non-Life</strong></td>
+                            <td>₸ 1.5</td>
+                            <td>11.7%</td>
+                            <td>-4% (корреляция)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Операционный риск</strong></td>
+                            <td>₸ 0.9</td>
+                            <td>7.0%</td>
+                            <td>Не диверс.</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><strong>ИТОГО (с диверсификацией)</strong></td>
+                            <td><strong>₸ 12.8</strong></td>
+                            <td><strong>100%</strong></td>
+                            <td><strong>-7.2%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="formula-box">
+                <strong>SCR = √(Σ Cov(Ri, Rj) × σi × σj)</strong><br><br>
+                <strong>Упрощенная формула:</strong><br>
+                SCR ≈ Market + Credit + Life + Non-Life + Operational - Diversification Effect<br>
+                = ₸5.8 + ₸2.1 + ₸1.8 + ₸1.5 + ₸0.9 - ₸0.32 = <strong>₸12.8 млрд</strong>
+            </div>
+
+            <h6 class="mt-4 mb-3">Компонент 1: Рыночный риск (Market Risk) - ₸5.8 млрд</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <tbody>
+                        <tr>
+                            <td><strong>Риск акций</strong></td>
+                            <td>₸ 2.1 млрд</td>
+                            <td><small>Волатильность фондовых рынков</small></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Процентный риск</strong></td>
+                            <td>₸ 1.9 млрд</td>
+                            <td><small>Изменение кривой доходности</small></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Риск недвижимости</strong></td>
+                            <td>₸ 1.2 млрд</td>
+                            <td><small>Падение цен на недвижимость</small></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Валютный риск</strong></td>
+                            <td>₸ 0.6 млрд</td>
+                            <td><small>Волатильность обменных курсов</small></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h6 class="mt-4 mb-3">Сравнение Own Funds с требованиями</h6>
+            <div class="chart-container">
+                <div style="display: flex; gap: 2rem; align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <div style="background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); height: 250px; border-radius: 8px; display: flex; align-items: flex-end; justify-content: center; color: white; font-weight: bold; font-size: 1.5rem;">
+                            Own Funds<br>₸20.1млрд
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%); height: 160px; border-radius: 8px; display: flex; align-items: flex-end; justify-content: center; color: white; font-weight: bold; font-size: 1.5rem;">
+                            SCR<br>₸12.8млрд
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="background: linear-gradient(180deg, #10b981 0%, #059669 100%); height: 100px; border-radius: 8px; display: flex; align-items: flex-end; justify-content: center; color: white; font-weight: bold; font-size: 1.5rem;">
+                            MCR<br>₸6.4млрд
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center mt-3 text-muted">
+                    <strong>Коэффициент платежеспособности (SCR):</strong> ₸20.1млрд / ₸12.8млрд = <strong>157%</strong> ✓ Превышает требуемые 100%
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: Risk Breakdown -->
+    <div id="risk-breakdown" class="tab-content">
+        <div class="calculation-card">
+            <h4><i class="bi bi-exclamation-triangle-fill"></i> Анализ рисков</h4>
+            <p class="text-muted">Детальное распределение рисков по типам и направлениям</p>
+
+            <h6 class="mt-4 mb-3">Оценка рисков по категориям</h6>
+            <div class="risk-heatmap">
+                <div class="risk-cell risk-low" onclick="showRiskDetails('market')">
+                    <div><i class="bi bi-graph-up"></i></div>
+                    <div class="mt-2"><strong>Рыночный</strong></div>
+                    <div style="font-size: 0.875rem;">Средний</div>
+                </div>
+                <div class="risk-cell risk-medium" onclick="showRiskDetails('credit')">
+                    <div><i class="bi bi-bank"></i></div>
+                    <div class="mt-2"><strong>Кредитный</strong></div>
+                    <div style="font-size: 0.875rem;">Средний</div>
+                </div>
+                <div class="risk-cell risk-low" onclick="showRiskDetails('life')">
+                    <div><i class="bi bi-heart"></i></div>
+                    <div class="mt-2"><strong>Страховой Life</strong></div>
+                    <div style="font-size: 0.875rem;">Низкий</div>
+                </div>
+                <div class="risk-cell risk-medium" onclick="showRiskDetails('nonlife')">
+                    <div><i class="bi bi-shield"></i></div>
+                    <div class="mt-2"><strong>Страховой Non-Life</strong></div>
+                    <div style="font-size: 0.875rem;">Средний</div>
+                </div>
+                <div class="risk-cell risk-low" onclick="showRiskDetails('operational')">
+                    <div><i class="bi bi-gear"></i></div>
+                    <div class="mt-2"><strong>Операционный</strong></div>
+                    <div style="font-size: 0.875rem;">Низкий</div>
+                </div>
+                <div class="risk-cell risk-medium" onclick="showRiskDetails('liquidity')">
+                    <div><i class="bi bi-droplet"></i></div>
+                    <div class="mt-2"><strong>Ликвидности</strong></div>
+                    <div style="font-size: 0.875rem;">Средний</div>
+                </div>
+            </div>
+
+            <h6 class="mt-4 mb-3">Валютная экспозиция</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Валюта</th>
+                            <th>Активы</th>
+                            <th>Пассивы</th>
+                            <th>Чистая позиция</th>
+                            <th>% портфеля</th>
+                            <th>Риск</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>KZT</strong></td>
+                            <td>₸ 9.2 млрд</td>
+                            <td>₸ 4.5 млрд</td>
+                            <td>₸ 4.7 млрд</td>
+                            <td>48%</td>
+                            <td><span class="badge bg-success">Низкий</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>USD</strong></td>
+                            <td>₸ 5.8 млрд</td>
+                            <td>₸ 0.2 млрд</td>
+                            <td>₸ 5.6 млрд</td>
+                            <td>28%</td>
+                            <td><span class="badge bg-warning text-dark">Средний</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>EUR</strong></td>
+                            <td>₸ 3.2 млрд</td>
+                            <td>₸ 0.1 млрд</td>
+                            <td>₸ 3.1 млрд</td>
+                            <td>15%</td>
+                            <td><span class="badge bg-warning text-dark">Средний</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>RUB</strong></td>
+                            <td>₸ 1.9 млрд</td>
+                            <td>₸ 0.0 млрд</td>
+                            <td>₸ 1.9 млрд</td>
+                            <td>9%</td>
+                            <td><span class="badge bg-danger">Высокий</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h6 class="mt-4 mb-3">Анализ чувствительности (Sensitivity Analysis)</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Сценарий</th>
+                            <th>Параметр</th>
+                            <th>Изменение</th>
+                            <th>Влияние на SCR</th>
+                            <th>Новый коэффициент</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>1. Рост ставок</strong></td>
+                            <td>+100 bps</td>
+                            <td>-₸820 млн</td>
+                            <td>-6.4%</td>
+                            <td>147%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>2. Падение акций</strong></td>
+                            <td>-20%</td>
+                            <td>-₸1.2 млрд</td>
+                            <td>-9.4%</td>
+                            <td>135%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>3. Девальвация KZT</strong></td>
+                            <td>-15%</td>
+                            <td>-₸580 млн</td>
+                            <td>-4.5%</td>
+                            <td>150%</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><strong>4. Комбинированный шок</strong></td>
+                            <td>Все вместе</td>
+                            <td>-₸2.8 млрд</td>
+                            <td>-21.9%</td>
+                            <td>100% (критичный)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: Stress Testing -->
+    <div id="stress-testing" class="tab-content">
+        <div class="calculation-card">
+            <h4><i class="bi bi-lightning-fill"></i> Стресс-тестирование</h4>
+            <p class="text-muted">Анализ устойчивости к экстремальным сценариям</p>
+
+            <h6 class="mt-4 mb-3">Стандартные сценарии стресса</h6>
+
+            <div class="stress-scenario">
+                <h6><i class="bi bi-graph-down"></i> Сценарий 1: Кризис на фондовом рынке</h6>
+                <p><strong>Описание:</strong> Глобальное падение фондовых индексов на 40%</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Потеря стоимости портфеля акций:</strong></td>
+                            <td>-₸2.1 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новые собственные средства:</strong></td>
+                            <td>₸18.0 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новый коэффициент SCR:</strong></td>
+                            <td>141% (остается выше 100%)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Вывод:</strong></td>
+                            <td><span class="badge bg-warning">Управляемо, но требует внимания</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stress-scenario">
+                <h6><i class="bi bi-percent"></i> Сценарий 2: Всплеск процентных ставок</h6>
+                <p><strong>Описание:</strong> Рост ставок рефинансирования на 250 bps</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Падение стоимости облигаций:</strong></td>
+                            <td>-₸1.5 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новые собственные средства:</strong></td>
+                            <td>₸18.6 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новый коэффициент SCR:</strong></td>
+                            <td>145% (остается стабилен)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Вывод:</strong></td>
+                            <td><span class="badge bg-success">Хорошо защищено</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stress-scenario">
+                <h6><i class="bi bi-droplet"></i> Сценарий 3: Кризис ликвидности</h6>
+                <p><strong>Описание:</strong> Невозможность быстрого размещения 30% портфеля</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Скидка на ликвидность:</strong></td>
+                            <td>-₸3.2 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новые собственные средства:</strong></td>
+                            <td>₸16.9 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новый коэффициент SCR:</strong></td>
+                            <td>132% (ниже комфортного уровня)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Вывод:</strong></td>
+                            <td><span class="badge bg-warning text-dark">Требует мер по ликвидности</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stress-scenario">
+                <h6><i class="bi bi-exclamation-octagon"></i> Сценарий 4: Экстремальный шок</h6>
+                <p><strong>Описание:</strong> Одновременное падение акций (-35%), рост ставок (+200bps), девальвация KZT (-20%)</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Общие потери:</strong></td>
+                            <td>-₸5.8 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новые собственные средства:</strong></td>
+                            <td>₸14.3 млрд</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Новый коэффициент SCR:</strong></td>
+                            <td>112% (критично)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Вывод:</strong></td>
+                            <td><span class="badge bg-danger">Высокий риск нарушения требований</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <h6 class="mt-4 mb-3">Оценка устойчивости</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Базовый сценарий (текущее состояние):</strong></td>
+                        <td><strong>157%</strong></td>
+                        <td><span class="badge bg-success">Отличное</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Средний стресс (1-2 сценария):</strong></td>
+                        <td><strong>140%</strong></td>
+                        <td><span class="badge bg-success">Хорошее</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Высокий стресс (комбинированный):</strong></td>
+                        <td><strong>112%</strong></td>
+                        <td><span class="badge bg-warning text-dark">Критично</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Минимум для compliance:</strong></td>
+                        <td><strong>100%</strong></td>
+                        <td><span class="badge bg-secondary">Порог</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: Regulation -->
+    <div id="regulation" class="tab-content">
+        <div class="calculation-card">
+            <h4><i class="bi bi-file-earmark-check-fill"></i> Регуляторные требования</h4>
+            <p class="text-muted">Соответствие требованиям Solvency 2</p>
+
+            <h6 class="mt-4 mb-3">Контрольный чек-лист Solvency 2</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>1. SCR Ratio ≥ 100%</strong></td>
+                        <td><strong>157%</strong></td>
+                        <td><span class="badge bg-success">✓ PASSED</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>2. MCR Ratio ≥ 100%</strong></td>
+                        <td><strong>215%</strong></td>
+                        <td><span class="badge bg-success">✓ PASSED</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>3. Own Funds Quality (Tier 1 ≥ 50%)</strong></td>
+                        <td><strong>75.6%</strong></td>
+                        <td><span class="badge bg-success">✓ PASSED</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4. Tier 2 ≤ 50% SCR</strong></td>
+                        <td><strong>26.6%</strong></td>
+                        <td><span class="badge bg-success">✓ PASSED</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>5. Валютный риск контролируется</strong></td>
+                        <td>KZT: 48%, USD: 28%</td>
+                        <td><span class="badge bg-success">✓ PASSED</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>6. Страховой риск интегрирован</strong></td>
+                        <td>Life+NonLife в SCR</td>
+                        <td><span class="badge bg-success">✓ PASSED</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>7. QRT (Quantitative Reporting Template) ready</strong></td>
+                        <td>Все данные собраны</td>
+                        <td><span class="badge bg-success">✓ READY</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="info-box mt-4">
+                <i class="bi bi-info-circle"></i>
+                <strong>ИТОГОВЫЙ ВЫВОД:</strong> Компания находится в отличной позиции соответствия Solvency 2.
+                Все ключевые метрики превышают требуемые пороги. Рекомендуется продолжить мониторинг валютного риска и ликвидности.
+            </div>
+
+            <h6 class="mt-4 mb-3">Рекомендации</h6>
+            <ul>
+                <li><strong>Краткосрочные:</strong> Увеличить ликвидные активы на 5% для дополнительного буфера</li>
+                <li><strong>Среднесрочные:</strong> Переоценить валютную стратегию с учетом волатильности KZT/RUB</li>
+                <li><strong>Долгосрочные:</strong> Оптимизировать структуру Own Funds для повышения доли Tier 1</li>
+            </ul>
+
+            <h6 class="mt-4 mb-3">Дата последнего обновления: {{ macro.reporting_date }} 15:30</h6>
+            <button class="export-button" onclick="exportSolvency2Data()">
+                <i class="bi bi-download"></i> Экспортировать отчет
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Tab switching functionality
+function switchTab(tabName) {
+    // Hide all tabs
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    // Remove active class from all buttons
+    const buttons = document.querySelectorAll('.tab-button');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    // Show selected tab
+    document.getElementById(tabName).classList.add('active');
+
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+
+function showRiskDetails(riskType) {
+    alert(`Детали риска: ${riskType}`);
+}
+
+function exportSolvency2Data() {
+    alert('Экспорт отчета Solvency 2 в PDF формате...');
+}
+</script>
+{% endblock %}

@@ -87,6 +87,58 @@ def help_guide():
 
 
 # =============================================================================
+# НОВЫЕ УПРОЩЕННЫЕ РОУТЫ
+# =============================================================================
+
+@main_bp.route('/ifrs9')
+def ifrs9_page():
+    """
+    Страница МСФО 9 - Детальная подробная аналитика финансовых инструментов
+    Все расчеты ECL, кликабельные инструменты с модальными окнами
+    """
+    return render_template('ifrs9_detailed.html',
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
+@main_bp.route('/ifrs17')
+def ifrs17_page():
+    """
+    Страница МСФО 17 - Детальная подробная аналитика страховых договоров
+    Все расчеты CSM, BEL, Risk Adjustment с модальными окнами договоров
+    """
+    return render_template('ifrs17_detailed.html',
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
+@main_bp.route('/settings')
+def settings():
+    """
+    Настройки системы
+
+    Включает:
+    - Интеграция с 1С
+    - План счетов
+    - Пользователи
+    """
+    return render_template('settings.html',
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
+@main_bp.route('/solvency2')
+def solvency2_page():
+    """
+    Страница Solvency 2 - Детальная подробная аналитика платежеспособности
+    Все расчеты SCR, Own Funds, Risk Analysis с полными формулами и диаграммами
+    """
+    return render_template('solvency2_detailed.html',
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
+# =============================================================================
 # ГЛАВНЫЙ РАСЧЕТ - UNIFIED CALCULATION (ECL + IFRS 17 + Solvency)
 # =============================================================================
 

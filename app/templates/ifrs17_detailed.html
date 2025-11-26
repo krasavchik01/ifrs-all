@@ -1,0 +1,1477 @@
+{% extends "base.html" %}
+
+{% block title %}МСФО 17 - Детальный анализ страховых договоров{% endblock %}
+
+{% block extra_css %}
+<style>
+.contract-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid #f093fb;
+    background: white;
+}
+
+.contract-card:hover {
+    box-shadow: 0 12px 30px rgba(240, 147, 251, 0.3);
+    transform: translateX(5px);
+}
+
+.csm-indicator {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.csm-positive { background: #d4edda; color: #155724; }
+.csm-neutral { background: #fff3cd; color: #856404; }
+.csm-negative { background: #f8d7da; color: #721c24; }
+
+.lob-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.lob-life { background: #e7f3ff; color: #004085; }
+.lob-property { background: #fff3cd; color: #856404; }
+.lob-health { background: #d1ecf1; color: #0c5460; }
+
+.calculation-table {
+    font-size: 0.9rem;
+    margin: 1rem 0;
+}
+
+.calculation-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    align-items: center;
+}
+
+.calculation-row:hover {
+    background: #f7fafc;
+}
+
+.calculation-header {
+    background: #f7fafc;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.formula-box {
+    background: #2d3748;
+    color: #68d391;
+    padding: 1.5rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    border-left: 4px solid #48bb78;
+}
+
+.modal-header-detail {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.tabs-detail {
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.tabs-detail .nav-link {
+    color: #4a5568;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 500;
+}
+
+.tabs-detail .nav-link.active {
+    color: #f093fb;
+    border-bottom-color: #f093fb;
+    background: none;
+}
+
+.csm-rollforward {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.csm-rollforward thead {
+    background: #f7fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.csm-rollforward th {
+    padding: 0.75rem;
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.csm-rollforward td {
+    padding: 0.75rem;
+    text-align: right;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.csm-rollforward td:first-child {
+    text-align: left;
+}
+
+.csm-rollforward tbody tr:hover {
+    background: #f7fafc;
+}
+
+.risk-heatmap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.risk-cell {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.risk-high { background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; }
+.risk-medium { background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); color: #856404; }
+.risk-low { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; }
+
+.timeline-item {
+    display: flex;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    background: #f093fb;
+    border-radius: 50%;
+    margin-right: 1rem;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.timeline-content {
+    flex-grow: 1;
+}
+
+.metric-mini {
+    background: #f7fafc;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.portfolio-summary {
+    background: white;
+    border-left: 4px solid #f093fb;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.quick-jump {
+    position: sticky;
+    top: 100px;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.lob-distribution {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.lob-cell {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border-left: 4px solid #f093fb;
+}
+
+.lob-cell.property {
+    border-left-color: #ffc107;
+}
+
+.lob-cell.health {
+    border-left-color: #17a2b8;
+}
+
+.lob-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0.5rem 0;
+}
+
+.lob-percent {
+    font-size: 0.85rem;
+    color: #718096;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 2rem; border-radius: 12px;">
+                <h1 class="mb-2">
+                    <i class="bi bi-shield-check"></i> МСФО 17 - Страховые договоры
+                </h1>
+                <p class="mb-0 opacity-90">Детальный анализ Contractual Service Margin (CSM), Best Estimate Liability (BEL) и управления страховым риском</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Всего договоров</h6>
+                    <h3 class="text-primary">8,547</h3>
+                    <small class="text-muted">Портфель страховых договоров</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Резервы (BEL)</h6>
+                    <h3 class="text-info">₸ 78.4 млрд</h3>
+                    <small class="text-muted">Best Estimate Liability</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">CSM (Будущая прибыль)</h6>
+                    <h3 class="text-success">₸ 42.8 млрд</h3>
+                    <small class="text-muted">Contractual Service Margin</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Risk Adjustment</h6>
+                    <h3 class="text-warning">₸ 12.1 млрд</h3>
+                    <small class="text-muted">CoC 6.0%, уровень доверия 90%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LoB Distribution -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-3"><i class="bi bi-pie-chart"></i> Распределение по видам страхования (Line of Business)</h4>
+            <div class="lob-distribution">
+                <div class="lob-cell">
+                    <h6 class="text-muted">Страхование жизни (Life)</h6>
+                    <div class="lob-value">₸ 52.3 млрд</div>
+                    <div class="lob-percent">BEL + RA</div>
+                    <div class="metric-mini">
+                        <span>3,247 договоров</span>
+                        <span class="badge bg-primary">38%</span>
+                    </div>
+                </div>
+                <div class="lob-cell property">
+                    <h6 class="text-muted">Общее страхование (General)</h6>
+                    <div class="lob-value">₸ 38.2 млрд</div>
+                    <div class="lob-percent">BEL + RA</div>
+                    <div class="metric-mini">
+                        <span>4,156 договоров</span>
+                        <span class="badge bg-warning text-dark">49%</span>
+                    </div>
+                </div>
+                <div class="lob-cell health">
+                    <h6 class="text-muted">Страхование здоровья (Health)</h6>
+                    <div class="lob-value">₸ 2.8 млрд</div>
+                    <div class="lob-percent">BEL + RA</div>
+                    <div class="metric-mini">
+                        <span>1,144 договора</span>
+                        <span class="badge bg-info">13%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs tabs-detail mb-4" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#portfolio-overview">
+                <i class="bi bi-collection"></i> Реестр договоров
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#csm-analysis">
+                <i class="bi bi-graph-up"></i> Анализ CSM
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#bel-methodology">
+                <i class="bi bi-calculator"></i> BEL методология
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#risk-adjustment">
+                <i class="bi bi-exclamation-triangle"></i> Risk Adjustment
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#reinsurance">
+                <i class="bi bi-arrow-left-right"></i> Перестрахование
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Portfolio Overview Tab -->
+        <div id="portfolio-overview" class="tab-pane fade show active">
+            <h4 class="mb-3">Реестр страховых договоров (кликни для подробностей)</h4>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Договоры страхования жизни (Life)</h6>
+                                <div>
+                                    <input type="search" class="form-control form-control-sm" placeholder="Поиск..." style="width: 200px; display: inline-block;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Contract Cards - Clickable (Life) -->
+                            <div class="contract-card p-3 border-bottom" onclick="openContractModal('INS-LIFE-2024-001')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>INS-LIFE-2024-001</code></h6>
+                                        <small class="text-muted">Пакет "Будущее" (10-летний контракт)</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Вид:</small><br>
+                                        <span class="lob-badge lob-life">Life</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">BEL / RA:</small><br>
+                                        <strong>₸ 18.5 млрд / 2.1 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">CSM:</small><br>
+                                        <span class="csm-indicator csm-positive">₸ 3.8 млрд</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Статус:</small><br>
+                                        <span class="badge bg-success">Активен</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contract-card p-3 border-bottom" onclick="openContractModal('INS-LIFE-2024-002')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>INS-LIFE-2024-002</code></h6>
+                                        <small class="text-muted">Пакет "Защита семьи" (20-летний контракт)</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Вид:</small><br>
+                                        <span class="lob-badge lob-life">Life</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">BEL / RA:</small><br>
+                                        <strong>₸ 22.6 млрд / 1.9 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">CSM:</small><br>
+                                        <span class="csm-indicator csm-positive">₸ 5.2 млрд</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">Статус:</small><br>
+                                        <span class="badge bg-success">Активен</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contract-card p-3 border-bottom" onclick="openContractModal('INS-LIFE-2024-003')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>INS-LIFE-2024-003</code></h6>
+                                        <small class="text-muted">Пакет "Инвестиционный" (15-летний контракт)</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Вид:</small><br>
+                                        <span class="lob-badge lob-life">Life</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">BEL / RA:</small><br>
+                                        <strong>₸ 11.2 млрд / 0.8 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">CSM:</small><br>
+                                        <span class="csm-indicator csm-positive">₸ 2.1 млрд</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">Статус:</small><br>
+                                        <span class="badge bg-success">Активен</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Договоры общего страхования (General)</h6>
+                                <div>
+                                    <input type="search" class="form-control form-control-sm" placeholder="Поиск..." style="width: 200px; display: inline-block;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <!-- Contract Cards - Clickable (General) -->
+                            <div class="contract-card p-3 border-bottom" onclick="openContractModal('INS-GEN-2024-001')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>INS-GEN-2024-001</code></h6>
+                                        <small class="text-muted">КАСКО "Полная защита" (годовой полис)</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Вид:</small><br>
+                                        <span class="lob-badge lob-property">Property</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">BEL / RA:</small><br>
+                                        <strong>₸ 12.3 млрд / 0.9 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">CSM:</small><br>
+                                        <span class="csm-indicator csm-positive">₸ 1.2 млрд</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">Статус:</small><br>
+                                        <span class="badge bg-success">Активен</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contract-card p-3 border-bottom" onclick="openContractModal('INS-GEN-2024-002')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>INS-GEN-2024-002</code></h6>
+                                        <small class="text-muted">ОМС "Семейный" (годовой полис)</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Вид:</small><br>
+                                        <span class="lob-badge lob-property">Property</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">BEL / RA:</small><br>
+                                        <strong>₸ 15.8 млрд / 1.2 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">CSM:</small><br>
+                                        <span class="csm-indicator csm-positive">₸ 1.8 млрд</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">Статус:</small><br>
+                                        <span class="badge bg-success">Активен</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="contract-card p-3 border-bottom" onclick="openContractModal('INS-GEN-2024-003')">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h6 class="mb-1"><code>INS-GEN-2024-003</code></h6>
+                                        <small class="text-muted">Страхование имущества юридических лиц</small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">Вид:</small><br>
+                                        <span class="lob-badge lob-property">Property</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">BEL / RA:</small><br>
+                                        <strong>₸ 10.1 млрд / 0.7 млрд</strong>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">CSM:</small><br>
+                                        <span class="csm-indicator csm-positive">₸ 0.9 млрд</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-мuted">Статус:</small><br>
+                                        <span class="badge bg-success">Активен</span>
+                                    </div>
+                                    <div class="col-md-1 text-end">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSM Analysis Tab -->
+        <div id="csm-analysis" class="tab-pane fade">
+            <h4 class="mb-3">Анализ Contractual Service Margin (CSM)</h4>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">Раскрытие информации о CSM (МСФО 17.118)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="formula-box">
+Closing CSM = Opening CSM + New Business CSM - CSM Amortization + Investment Return + Experience Adjustments
+
+Пример расчета для пакета "Будущее":
+Opening CSM (1.1.2024):           ₸ 3,200 млн
++ New Business CSM:                ₸ 150 млн  (новые договоры за период)
+- CSM Amortization:               (₸ 180 млн) (амортизация за период)
++ Investment Return:               ₸ 85 млн   (доходность 2.5% на базе ₸3,400 млн)
++ Experience Adjustments:          ₸ 45 млн   (благоприятные корректировки)
+─────────────────────────────────────────────
+Closing CSM (31.12.2024):         ₸ 3,800 млн
+
+Coverage Period: 10 лет (до 31.12.2034)
+Remaining Coverage Units: 8.5 (условные юниты)
+            </div>
+
+                            <h6 class="mt-4">Раскрытие CSM по видам страхования</h6>
+                            <div class="table-responsive">
+                                <table class="csm-rollforward">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align: left;">Параметр</th>
+                                            <th>Life</th>
+                                            <th>General</th>
+                                            <th>Health</th>
+                                            <th>Всего</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Opening CSM (1.1.2024)</strong></td>
+                                            <td>₸ 28.4 млрд</td>
+                                            <td>₸ 9.2 млрд</td>
+                                            <td>₸ 1.1 млрд</td>
+                                            <td><strong>₸ 38.7 млрд</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>+ New Business CSM</td>
+                                            <td>₸ 1.2 млрд</td>
+                                            <td>₸ 0.4 млрд</td>
+                                            <td>₸ 0.1 млрд</td>
+                                            <td><strong>₸ 1.7 млрд</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>- CSM Amortization</td>
+                                            <td>(₸ 1.8 млрд)</td>
+                                            <td>(₸ 0.6 млрд)</td>
+                                            <td>(₸ 0.1 млрд)</td>
+                                            <td><strong>(₸ 2.5 млрд)</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>+ Investment Return</td>
+                                            <td>₸ 0.9 млрд</td>
+                                            <td>₸ 0.2 млрд</td>
+                                            <td>₸ 0.05 млрд</td>
+                                            <td><strong>₸ 1.15 млрд</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>+ Experience Adjustments</td>
+                                            <td>₸ 0.3 млрд</td>
+                                            <td>₸ 0.1 млрд</td>
+                                            <td>₸ 0.02 млрд</td>
+                                            <td><strong>₸ 0.42 млрд</strong></td>
+                                        </tr>
+                                        <tr style="background: #f7fafc; font-weight: 600;">
+                                            <td><strong>Closing CSM (31.12.2024)</strong></td>
+                                            <td><strong>₸ 29.6 млрд</strong></td>
+                                            <td><strong>₸ 9.3 млрд</strong></td>
+                                            <td><strong>₸ 1.1 млрд</strong></td>
+                                            <td><strong>₸ 40.0 млрд</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h6 class="mt-4">Анализ CSM Амортизации</h6>
+                            <p class="text-muted">CSM амортизируется по мере предоставления услуг на протяжении периода покрытия каждой группы договоров:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Группа договоров</th>
+                                            <th>Период покрытия</th>
+                                            <th>Открытое CSM</th>
+                                            <th>Амортизация</th>
+                                            <th>% амортизации</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Пакет "Будущее" (10L)</td>
+                                            <td>10 лет</td>
+                                            <td>₸ 3,200 млн</td>
+                                            <td>₸ 180 млн</td>
+                                            <td>5.6%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Пакет "Защита семьи" (20L)</td>
+                                            <td>20 лет</td>
+                                            <td>₸ 4,800 млн</td>
+                                            <td>₸ 192 млн</td>
+                                            <td>4.0%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Портфель КАСКО</td>
+                                            <td>1 год</td>
+                                            <td>₸ 1,200 млн</td>
+                                            <td>₸ 180 млн</td>
+                                            <td>15.0%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BEL Methodology Tab -->
+        <div id="bel-methodology" class="tab-pane fade">
+            <h4 class="mb-3">Best Estimate Liability (BEL) - Методология расчета</h4>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">Расчет Best Estimate Liability (МСФО 17.32)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="formula-box">
+BEL = Σ PV(FCF_t)
+где:
+  PV   = Present Value (дисконтированная стоимость)
+  FCF  = Future Cash Flows (будущие денежные потоки)
+  t    = период времени
+
+Примечание: FCF включает:
+  - Страховые выплаты (Insurance Payments)
+  - Комиссионные расходы (Commission Expenses)
+  - Администрирование (Administration Costs)
+  - Инвестиционные расходы (Investment Expenses)
+  - Входящие премии (Inflows from Premiums)
+
+Пример для пакета "Будущее" на 31.12.2024:
+─────────────────────────────────────────────
+Год    Страховые     Расходы   Премии   Чистые    Дисконт   PV(FCF)
+       выплаты (млн) (млн)     (млн)    FCF (млн) коэфф     (млн)
+
+2025   (1,200)       (250)     2,500    1,050     0.9709    1,020
+2026   (1,100)       (240)     2,400    1,060     0.9426    1,000
+2027   (1,050)       (235)     2,350    1,065     0.9151    976
+...
+2034   (950)         (200)     2,150    1,000     0.8203    821
+─────────────────────────────────────────────
+BEL (Дисконт.ставка 3.0%)                        18,500
+
+Дисконт. кривая KZT: Treasury yields 2.8-3.5%
+            </div>
+
+                            <h6 class="mt-4">Чувствительность BEL к дисконтной ставке</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Дисконтная ставка</th>
+                                            <th>BEL (Life)</th>
+                                            <th>Изменение</th>
+                                            <th>% Изменение</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>2.0% (базовая - 100 bp)</td>
+                                            <td>₸ 52.8 млрд</td>
+                                            <td>+₸ 0.5 млрд</td>
+                                            <td>+1.0%</td>
+                                        </tr>
+                                        <tr style="background: #f7fafc; font-weight: 600;">
+                                            <td>3.0% (базовая)</td>
+                                            <td>₸ 52.3 млрд</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>4.0% (базовая + 100 bp)</td>
+                                            <td>₸ 51.8 млрд</td>
+                                            <td>(₸ 0.5 млрд)</td>
+                                            <td>-1.0%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>5.0% (базовая + 200 bp)</td>
+                                            <td>₸ 51.3 млрд</td>
+                                            <td>(₸ 1.0 млрд)</td>
+                                            <td>-1.9%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h6 class="mt-4">Чувствительность BEL к смертности (Mortality Assumption)</h6>
+                            <p class="text-muted">Life страхование:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Сценарий смертности</th>
+                                            <th>BEL (Life)</th>
+                                            <th>Изменение</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>-20% (базовая - 20%)</td>
+                                            <td>₸ 47.2 млрд</td>
+                                            <td>(₸ 5.1 млрд)</td>
+                                        </tr>
+                                        <tr style="background: #f7fafc; font-weight: 600;">
+                                            <td>Базовые таблицы CMI_2024</td>
+                                            <td>₸ 52.3 млрд</td>
+                                            <td>-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>+20% (базовая + 20%)</td>
+                                            <td>₸ 57.4 млрд</td>
+                                            <td>+₸ 5.1 млрд</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Adjustment Tab -->
+        <div id="risk-adjustment" class="tab-pane fade">
+            <h4 class="mb-3">Risk Adjustment (RA) - Компенсация за риск</h4>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">Методология расчета Risk Adjustment (МСФО 17.36-43)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="formula-box">
+Risk Adjustment = Premium for bearing risk
+                = [(Выплаты при доверии Х%) - (Выплаты при доверии 50%)]
+
+Метод: Cost of Capital (CoC)
+Ставка: 6.0% в год
+Уровень доверия: 90%
+
+Пример расчета для пакета "Защита семьи":
+─────────────────────────────────────────────
+VaR(90%) выплаты = ₸ 24.5 млрд
+BEL (50% вероятность) = ₸ 22.6 млрд
+─────────────────────────────────────────────
+Risk Adjustment = ₸ 24.5 - ₸ 22.6 = ₸ 1.9 млрд
+
+Эквивалент CoC метода:
+RA_CoC = CoC × Σ SCR(t) × DF(t)
+       = 6.0% × ₸ 32.1 млрд × DF
+       = ₸ 1.9 млрд
+            </div>
+
+                            <h6 class="mt-4">Распределение Risk Adjustment по видам риска</h6>
+                            <div class="risk-heatmap">
+                                <div class="risk-cell risk-high">
+                                    <h6 class="mb-2">Морбидность</h6>
+                                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.5rem 0;">₸ 2.8 млрд</div>
+                                    <small>Риск возникновения болезни/инвалидности</small>
+                                </div>
+                                <div class="risk-cell risk-medium">
+                                    <h6 class="mb-2">Смертность</h6>
+                                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.5rem 0;">₸ 5.2 млрд</div>
+                                    <small>Риск смерти страхователя</small>
+                                </div>
+                                <div class="risk-cell risk-medium">
+                                    <h6 class="mb-2">Отмены договоров</h6>
+                                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.5rem 0;">₸ 1.9 млрд</div>
+                                    <small>Риск отмены страхования</small>
+                                </div>
+                                <div class="risk-cell risk-low">
+                                    <h6 class="mb-2">Расходов</h6>
+                                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.5rem 0;">₸ 1.2 млрд</div>
+                                    <small>Риск превышения расходов</small>
+                                </div>
+                                <div class="risk-cell risk-low">
+                                    <h6 class="mb-2">Стихийные бедствия</h6>
+                                    <div style="font-size: 1.5rem; font-weight: 700; margin: 0.5rem 0;">₸ 0.9 млрд</div>
+                                    <small>Catastrophe risk</small>
+                                </div>
+                            </div>
+
+                            <h6 class="mt-4">Раскрытие Risk Adjustment по видам страхования (МСФО 17.119)</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Вид страхования</th>
+                                            <th>Risk Adjustment</th>
+                                            <th>Как % от BEL</th>
+                                            <th>Метод расчета</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Life (Страхование жизни)</td>
+                                            <td>₸ 2.1 млрд + 1.9 млрд + 0.1 млрд</td>
+                                            <td>4.0%</td>
+                                            <td>VaR 90% (CoC)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>General (Общее страхование)</td>
+                                            <td>₸ 2.8 млрд + 0.4 млрд</td>
+                                            <td>8.4%</td>
+                                            <td>Percentile 75%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Health (Страхование здоровья)</td>
+                                            <td>₸ 0.5 млрд + 0.3 млрд</td>
+                                            <td>28.6%</td>
+                                            <td>Percentile 85%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reinsurance Tab -->
+        <div id="reinsurance" class="tab-pane fade">
+            <h4 class="mb-3">Анализ перестрахования и чистой позиции</h4>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">Перестраховочное покрытие и влияние на резервы</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="formula-box">
+Liabilities for Incurred Claims (LIC) - NET = LIC GROSS - Reinsurance Recoveries
+
+Пример для портфеля General Insurance:
+
+GROSS позиция (до перестрахования):
+───────────────────────────────────
+Life:      BEL ₸ 52.3 млрд + RA ₸ 4.0 млрд = ₸ 56.3 млрд
+General:   BEL ₸ 21.5 млрд + RA ₸ 1.8 млрд = ₸ 23.3 млрд
+Health:    BEL ₸ 4.6 млрд  + RA ₸ 1.3 млрд = ₸ 5.9 млрд
+───────────────────────────────────────────────────────
+ИТОГО GROSS:                                ₸ 85.5 млрд
+
+Перестраховочное возмещение:
+───────────────────────────────────
+Treaty Excess of Loss (Выше ₸500 млн): (₸ 3.2 млрд)
+Cat Cover (Catastrophe Risk):           (₸ 1.8 млрд)
+Facultative Coverage:                   (₸ 0.4 млрд)
+───────────────────────────────────────────────────────
+ИТОГО перестраховочное возмещение:      (₸ 5.4 млрд)
+
+NET позиция (после перестрахования):
+───────────────────────────────────────────────────────
+₸ 85.5 млрд - ₸ 5.4 млрд = ₸ 80.1 млрд
+            </div>
+
+                            <h6 class="mt-4">Структура перестраховочного покрытия</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Вид перестрахования</th>
+                                            <th>Лимит</th>
+                                            <th>Дедактибл</th>
+                                            <th>Покрытие</th>
+                                            <th>Результат в 2024</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Treaty XL (Excess of Loss)</td>
+                                            <td>₸ 5 млрд</td>
+                                            <td>₸ 500 млн</td>
+                                            <td>General + Life</td>
+                                            <td>₸ 2.1 млн (убыток)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Catastrophe Cover</td>
+                                            <td>₸ 3 млрд</td>
+                                            <td>₸ 1 млрд</td>
+                                            <td>Nature Disasters</td>
+                                            <td>₸ 1.8 млн (убыток)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Facultative Coverage</td>
+                                            <td>₸ 1 млрд</td>
+                                            <td>₸ 200 млн</td>
+                                            <td>Large Risks</td>
+                                            <td>₸ 0.4 млн (убыток)</td>
+                                        </tr>
+                                        <tr style="background: #f7fafc; font-weight: 600;">
+                                            <td colspan="4"><strong>ИТОГО чистое перестраховочное возмещение</strong></td>
+                                            <td><strong>₸ 5.4 млрд</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h6 class="mt-4">Влияние перестрахования на платежеспособность</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Показатель</th>
+                                            <th>GROSS</th>
+                                            <th>NET (после ПС)</th>
+                                            <th>Улучшение</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Обязательства (BEL + RA)</td>
+                                            <td>₸ 85.5 млрд</td>
+                                            <td>₸ 80.1 млрд</td>
+                                            <td>6.3%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Требуемый капитал (SCR)</td>
+                                            <td>₸ 12.8 млрд</td>
+                                            <td>₸ 10.2 млрд</td>
+                                            <td>20.3%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Коэффициент платежеспособности</td>
+                                            <td>157%</td>
+                                            <td>186%</td>
+                                            <td>+29 п.п.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contract Detail Modal -->
+<div class="modal fade" id="contractModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0">
+            <div class="modal-header modal-header-detail">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-earmark-contract"></i> Детали страхового договора
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Contract Modal Tabs -->
+            <ul class="nav nav-tabs tabs-detail px-3 pt-3 mb-0" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#contract-overview">
+                        <i class="bi bi-info-circle"></i> Обзор
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#contract-csm">
+                        <i class="bi bi-graph-up"></i> CSM
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#contract-bel">
+                        <i class="bi bi-calculator"></i> BEL
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#contract-ra">
+                        <i class="bi bi-exclamation-triangle"></i> RA
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tab-content px-3 py-3">
+                <!-- Contract Overview Tab -->
+                <div id="contract-overview" class="tab-pane fade show active">
+                    <h6 class="mb-3">Информация о договоре</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="metric-mini">
+                                <span>Код договора:</span>
+                                <strong id="c-id">-</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>Название:</span>
+                                <strong id="c-name">-</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>Вид страхования:</span>
+                                <strong id="c-lob">-</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>Статус:</span>
+                                <strong id="c-status">-</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="metric-mini">
+                                <span>Дата начала:</span>
+                                <strong id="c-inception">-</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>Период покрытия:</span>
+                                <strong id="c-coverage">-</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>Количество учтенных:</span>
+                                <strong id="c-insured">-</strong>
+                            </div>
+                            <div class="metric-mini">
+                                <span>Комиссия:</span>
+                                <strong id="c-commission">-</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Финансовые показатели</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Best Estimate Liability (BEL)</strong></td>
+                                    <td class="text-end"><strong id="c-bel">-</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Risk Adjustment (RA)</strong></td>
+                                    <td class="text-end"><strong id="c-ra">-</strong></td>
+                                </tr>
+                                <tr style="background: #f7fafc;">
+                                    <td><strong>Контрактное обязательство (BEL + RA)</strong></td>
+                                    <td class="text-end"><strong id="c-liability">-</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Contractual Service Margin (CSM)</strong></td>
+                                    <td class="text-end"><strong id="c-csm">-</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Накопленная амортизация CSM</strong></td>
+                                    <td class="text-end"><strong id="c-csm-amort">-</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Contract CSM Tab -->
+                <div id="contract-csm" class="tab-pane fade">
+                    <h6 class="mb-3">Анализ CSM для данного договора</h6>
+                    <div class="formula-box">
+CSM Амортизация = CSM / Оставшихся единиц покрытия
+
+Пример (Пакет "Будущее"):
+Opening CSM:       ₸ 3,200 млн
+Coverage Units:    10 лет
+Amortization 2024: ₸ 3,200 млн / 10 лет = ₸ 320 млн/год
+Фактическая:       ₸ 180 млн   (взвешено по дате)
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Roll-forward CSM (31.12.2024)</h6>
+                    <div class="table-responsive">
+                        <table class="csm-rollforward">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Компонент</th>
+                                    <th>Сумма (млн)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Opening CSM (1.1.2024)</td>
+                                    <td id="csm-opening">-</td>
+                                </tr>
+                                <tr>
+                                    <td>+ New Business CSM</td>
+                                    <td id="csm-new">-</td>
+                                </tr>
+                                <tr>
+                                    <td>- CSM Amortization</td>
+                                    <td id="csm-amort-period">-</td>
+                                </tr>
+                                <tr>
+                                    <td>+ Investment Return (2.5%)</td>
+                                    <td id="csm-invest">-</td>
+                                </tr>
+                                <tr>
+                                    <td>+ Experience Adjustments</td>
+                                    <td id="csm-exp">-</td>
+                                </tr>
+                                <tr style="background: #f7fafc; font-weight: 600;">
+                                    <td>Closing CSM (31.12.2024)</td>
+                                    <td id="csm-closing">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Contract BEL Tab -->
+                <div id="contract-bel" class="tab-pane fade">
+                    <h6 class="mb-3">Best Estimate Liability - детальный расчет</h6>
+
+                    <h6 class="mt-3 mb-2">Основные допущения</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Таблица смертности (Life):</strong></td>
+                                    <td id="bel-mortality">CMI_2024</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Таблица заболеваемости (Health):</strong></td>
+                                    <td id="bel-morbidity">CMI_Health_2024</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Темп отмены (Lapse):</strong></td>
+                                    <td id="bel-lapse">2.5% в год</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Темп инфляции расходов:</strong></td>
+                                    <td id="bel-inflation">2.0% в год</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Дисконтная ставка:</strong></td>
+                                    <td id="bel-discount">3.0% (KZT curve)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h6 class="mt-4 mb-2">Спрогнозированные денежные потоки (FCF)</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Год</th>
+                                    <th style="text-align: right;">Выплаты</th>
+                                    <th style="text-align: right;">Расходы</th>
+                                    <th style="text-align: right;">Премии</th>
+                                    <th style="text-align: right;">Чистые FCF</th>
+                                    <th style="text-align: right;">DF</th>
+                                    <th style="text-align: right;">PV</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bel-fcf-table">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">Загрузка данных...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Contract RA Tab -->
+                <div id="contract-ra" class="tab-pane fade">
+                    <h6 class="mb-3">Risk Adjustment - детальный расчет</h6>
+
+                    <div class="formula-box">
+RA = Σ (Risk Premium) по видам риска
+
+Распределение RA для данного договора:
+────────────────────────────────────────
+Смертность (q-risk):      ₸ 0.8 млрд
+Морбидность (i-risk):     ₸ 0.5 млрд
+Отмены (lapse-risk):      ₸ 0.3 млрд
+Расходы (expense-risk):   ₸ 0.2 млрд
+────────────────────────────────────────
+ИТОГО RA (90% доверие):   ₸ 1.8 млрд
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Параметры расчета RA</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Метод расчета:</strong></td>
+                                    <td id="ra-method">Cost of Capital (CoC)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ставка CoC:</strong></td>
+                                    <td id="ra-coc">6.0% в год</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Уровень доверия:</strong></td>
+                                    <td id="ra-cl">90%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Эквивалент VaR(90%):</strong></td>
+                                    <td id="ra-var">1.282 стандартное отклонение</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SCR в процессе RA:</strong></td>
+                                    <td id="ra-scr">₸ 32.1 млрд (по всему портфелю Life)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Чувствительность RA к ставке CoC</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>CoC ставка</th>
+                                    <th style="text-align: right;">RA</th>
+                                    <th style="text-align: right;">Изменение</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>4.0% (базовая - 200 bp)</td>
+                                    <td style="text-align: right;">₸ 1.2 млрд</td>
+                                    <td style="text-align: right;">-33%</td>
+                                </tr>
+                                <tr style="background: #f7fafc;">
+                                    <td><strong>6.0% (базовая)</strong></td>
+                                    <td style="text-align: right;"><strong>₸ 1.8 млрд</strong></td>
+                                    <td style="text-align: right;">-</td>
+                                </tr>
+                                <tr>
+                                    <td>8.0% (базовая + 200 bp)</td>
+                                    <td style="text-align: right;">₸ 2.4 млрд</td>
+                                    <td style="text-align: right;">+33%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Contract data library
+const contracts = {
+    'INS-LIFE-2024-001': {
+        id: 'INS-LIFE-2024-001',
+        name: 'Пакет "Будущее"',
+        lob: '<span class="lob-badge lob-life">Life</span>',
+        status: 'Активен',
+        inception: '01.01.2015',
+        coverage: '10 лет (до 31.12.2024)',
+        insured: '2,847',
+        commission: '3.5%',
+        bel: '₸ 18.5 млрд',
+        ra: '₸ 2.1 млрд',
+        csm: '₸ 3.8 млрд',
+        csmOpening: 3200,
+        csmNew: 150,
+        csmAmort: -180,
+        csmInvest: 85,
+        csmExp: 45,
+        csmClosing: 3800
+    },
+    'INS-LIFE-2024-002': {
+        id: 'INS-LIFE-2024-002',
+        name: 'Пакет "Защита семьи"',
+        lob: '<span class="lob-badge lob-life">Life</span>',
+        status: 'Активен',
+        inception: '01.06.2005',
+        coverage: '20 лет (до 31.12.2025)',
+        insured: '4,156',
+        commission: '2.8%',
+        bel: '₸ 22.6 млрд',
+        ra: '₸ 1.9 млрд',
+        csm: '₸ 5.2 млрд',
+        csmOpening: 4800,
+        csmNew: 200,
+        csmAmort: -192,
+        csmInvest: 120,
+        csmExp: 65,
+        csmClosing: 4993
+    },
+    'INS-LIFE-2024-003': {
+        id: 'INS-LIFE-2024-003',
+        name: 'Пакет "Инвестиционный"',
+        lob: '<span class="lob-badge lob-life">Life</span>',
+        status: 'Активен',
+        inception: '01.01.2010',
+        coverage: '15 лет (до 31.12.2025)',
+        insured: '1,247',
+        commission: '4.2%',
+        bel: '₸ 11.2 млрд',
+        ra: '₸ 0.8 млрд',
+        csm: '₸ 2.1 млрд',
+        csmOpening: 2100,
+        csmNew: 85,
+        csmAmort: -105,
+        csmInvest: 52,
+        csmExp: 28,
+        csmClosing: 2160
+    },
+    'INS-GEN-2024-001': {
+        id: 'INS-GEN-2024-001',
+        name: 'КАСКО "Полная защита"',
+        lob: '<span class="lob-badge lob-property">Property</span>',
+        status: 'Активен',
+        inception: '01.01.2024',
+        coverage: '1 год (годовой полис)',
+        insured: '3,284',
+        commission: '5.0%',
+        bel: '₸ 12.3 млрд',
+        ra: '₸ 0.9 млрд',
+        csm: '₸ 1.2 млрд',
+        csmOpening: 1200,
+        csmNew: 50,
+        csmAmort: -180,
+        csmInvest: 30,
+        csmExp: 12,
+        csmClosing: 1112
+    },
+    'INS-GEN-2024-002': {
+        id: 'INS-GEN-2024-002',
+        name: 'ОМС "Семейный"',
+        lob: '<span class="lob-badge lob-property">Property</span>',
+        status: 'Активен',
+        inception: '01.01.2024',
+        coverage: '1 год (годовой полис)',
+        insured: '5,428',
+        commission: '4.5%',
+        bel: '₸ 15.8 млрд',
+        ra: '₸ 1.2 млрд',
+        csm: '₸ 1.8 млрд',
+        csmOpening: 1800,
+        csmNew: 75,
+        csmAmort: -270,
+        csmInvest: 45,
+        csmExp: 18,
+        csmClosing: 1668
+    },
+    'INS-GEN-2024-003': {
+        id: 'INS-GEN-2024-003',
+        name: 'Страхование имущества юридических лиц',
+        lob: '<span class="lob-badge lob-property">Property</span>',
+        status: 'Активен',
+        inception: '01.03.2022',
+        coverage: '3 года (до 28.02.2025)',
+        insured: '542',
+        commission: '6.0%',
+        bel: '₸ 10.1 млрд',
+        ra: '₸ 0.7 млрд',
+        csm: '₸ 0.9 млрд',
+        csmOpening: 900,
+        csmNew: 35,
+        csmAmort: -75,
+        csmInvest: 22,
+        csmExp: 10,
+        csmClosing: 892
+    }
+};
+
+function openContractModal(contractId) {
+    const data = contracts[contractId];
+
+    // Fill overview tab
+    document.getElementById('c-id').textContent = data.id;
+    document.getElementById('c-name').innerHTML = data.name;
+    document.getElementById('c-lob').innerHTML = data.lob;
+    document.getElementById('c-status').textContent = data.status;
+    document.getElementById('c-inception').textContent = data.inception;
+    document.getElementById('c-coverage').textContent = data.coverage;
+    document.getElementById('c-insured').textContent = data.insured;
+    document.getElementById('c-commission').textContent = data.commission;
+
+    document.getElementById('c-bel').textContent = data.bel;
+    document.getElementById('c-ra').textContent = data.ra;
+    document.getElementById('c-csm').textContent = data.csm;
+    document.getElementById('c-liability').textContent =
+        `₸ ${(parseFloat(data.bel.replace(/[^0-9.]/g, '')) + parseFloat(data.ra.replace(/[^0-9.]/g, ''))).toFixed(1)} млрд`;
+    document.getElementById('c-csm-amort').textContent =
+        `₸ ${(data.csmOpening - data.csmClosing).toFixed(0)} млн`;
+
+    // Fill CSM tab
+    document.getElementById('csm-opening').textContent = `₸ ${data.csmOpening} млн`;
+    document.getElementById('csm-new').textContent = `₸ ${data.csmNew} млн`;
+    document.getElementById('csm-amort-period').textContent = `(₸ ${Math.abs(data.csmAmort)} млн)`;
+    document.getElementById('csm-invest').textContent = `₸ ${data.csmInvest} млн`;
+    document.getElementById('csm-exp').textContent = `₸ ${data.csmExp} млн`;
+    document.getElementById('csm-closing').textContent = `₸ ${data.csmClosing} млн`;
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('contractModal'));
+    modal.show();
+}
+</script>
+{% endblock %}
