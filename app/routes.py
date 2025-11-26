@@ -138,6 +138,17 @@ def solvency2_page():
                           APP_CONFIG=APP_CONFIG)
 
 
+@main_bp.route('/afr')
+def afr_report():
+    """
+    Годовой финансовый отчет (AFR) - Полное раскрытие финансовой информации
+    Баланс, отчет о прибылях/убытках, ключевые показатели, аудиторское заключение
+    """
+    return render_template('afr_report.html',
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
 # =============================================================================
 # ГЛАВНЫЙ РАСЧЕТ - UNIFIED CALCULATION (ECL + IFRS 17 + Solvency)
 # =============================================================================

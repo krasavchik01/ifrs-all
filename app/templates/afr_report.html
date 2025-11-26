@@ -1,0 +1,876 @@
+{% extends "base.html" %}
+
+{% block title %}Годовой финансовый отчет (AFR) - Страховая компания{% endblock %}
+
+{% block extra_css %}
+<style>
+/* AFR Report Styling */
+.afr-header {
+    background: linear-gradient(135deg, #1e40af 0%, #0c4a6e 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.afr-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+}
+
+.afr-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.company-info {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.info-item h6 {
+    color: #1e40af;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+.info-item p {
+    color: #1a202c;
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.section-title {
+    background: linear-gradient(135deg, #1e40af 0%, #0c4a6e 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2.5rem 0 1.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.report-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.financial-table {
+    width: 100%;
+    margin: 1.5rem 0;
+}
+
+.financial-table thead th {
+    background: #f0f9ff;
+    color: #1e40af;
+    font-weight: 700;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 3px solid #1e40af;
+}
+
+.financial-table tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.financial-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.financial-table td {
+    padding: 1rem;
+}
+
+.financial-value {
+    text-align: right;
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.income-positive {
+    color: #16a34a;
+    font-weight: 700;
+}
+
+.expense-negative {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.row-total {
+    background: #f0f9ff;
+    font-weight: 700;
+    border-top: 2px solid #1e40af;
+    border-bottom: 2px solid #1e40af;
+}
+
+.row-subtotal {
+    background: #f9fafb;
+    font-weight: 600;
+    border-top: 1px solid #e5e7eb;
+}
+
+.key-ratios {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.ratio-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-top: 4px solid #1e40af;
+}
+
+.ratio-label {
+    color: #718096;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.ratio-value {
+    color: #1a202c;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.ratio-change {
+    color: #16a34a;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.ratio-change.negative {
+    color: #dc2626;
+}
+
+.portfolio-breakdown {
+    display: flex;
+    gap: 2rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.portfolio-item {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.portfolio-bar {
+    height: 30px;
+    background: linear-gradient(90deg, #1e40af 0%, #0c4a6e 100%);
+    border-radius: 4px;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    color: white;
+    padding: 0 1rem;
+    font-weight: 600;
+}
+
+.portfolio-bar.secondary {
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.notes-section {
+    background: #eff6ff;
+    border-left: 4px solid #1e40af;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.notes-section h6 {
+    color: #1e40af;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.notes-section ol {
+    margin-left: 1.5rem;
+    color: #374151;
+    line-height: 1.8;
+}
+
+.notes-section li {
+    margin-bottom: 0.75rem;
+}
+
+.audit-info {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.audit-info .badge {
+    background: #16a34a;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.export-controls {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.btn-export {
+    background: linear-gradient(135deg, #1e40af 0%, #0c4a6e 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(30, 64, 175, 0.4);
+}
+
+.certification {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.certification-seal {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e40af 0%, #0c4a6e 100%);
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.conformance-badge {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    margin: 0.5rem;
+}
+
+.conformance-badge.warning {
+    background: #f59e0b;
+}
+
+.conformance-badge.error {
+    background: #ef4444;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- AFR Header -->
+    <div class="afr-header">
+        <h1>
+            <i class="bi bi-file-earmark-text"></i> Годовой финансовый отчет (AFR)
+        </h1>
+        <p class="mb-0">Полное раскрытие финансовой и страховой информации за 2024 год</p>
+    </div>
+
+    <!-- Company Information Section -->
+    <div class="company-info">
+        <h3><i class="bi bi-building"></i> Информация о компании</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <h6>Название</h6>
+                <p>{{ APP_CONFIG.company_name }}</p>
+            </div>
+            <div class="info-item">
+                <h6>БИН</h6>
+                <p>999999999999</p>
+            </div>
+            <div class="info-item">
+                <h6>Лицензия АРФР</h6>
+                <p>AO-20-000001 от 15.01.2012</p>
+            </div>
+            <div class="info-item">
+                <h6>Период отчета</h6>
+                <p>01.01.2024 - 31.12.2024</p>
+            </div>
+            <div class="info-item">
+                <h6>Валюта отчета</h6>
+                <p>Казахстанский Тенге (KZT)</p>
+            </div>
+            <div class="info-item">
+                <h6>Дата публикации</h6>
+                <p>{{ macro.reporting_date }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Executive Summary / Key Metrics -->
+    <div class="section-title">
+        <i class="bi bi-bar-chart-fill"></i> Ключевые показатели за 2024 год
+    </div>
+
+    <div class="key-ratios">
+        <div class="ratio-card">
+            <div class="ratio-label">Валовые премии</div>
+            <div class="ratio-value">₸ 125.3 млрд</div>
+            <div class="ratio-change">+15.2% YoY</div>
+        </div>
+        <div class="ratio-card">
+            <div class="ratio-label">Страховые выплаты</div>
+            <div class="ratio-value">₸ 68.4 млрд</div>
+            <div class="ratio-change">+8.5% YoY</div>
+        </div>
+        <div class="ratio-card">
+            <div class="ratio-label">Коэффициент убыточности</div>
+            <div class="ratio-value">54.6%</div>
+            <div class="ratio-change negative">-2.1pp YoY</div>
+        </div>
+        <div class="ratio-card">
+            <div class="ratio-label">Капитал и резервы</div>
+            <div class="ratio-value">₸ 35.8 млрд</div>
+            <div class="ratio-change">+12.4% YoY</div>
+        </div>
+        <div class="ratio-card">
+            <div class="ratio-label">Собственные средства (Own Funds)</div>
+            <div class="ratio-value">₸ 20.1 млрд</div>
+            <div class="ratio-change">+18.7% YoY</div>
+        </div>
+        <div class="ratio-card">
+            <div class="ratio-label">Коэффициент платежеспособности</div>
+            <div class="ratio-value">157%</div>
+            <div class="ratio-change">+25pp YoY</div>
+        </div>
+    </div>
+
+    <!-- Consolidated Statement of Financial Position -->
+    <div class="section-title">
+        <i class="bi bi-list-check"></i> Консолидированный баланс на 31.12.2024
+    </div>
+
+    <div class="report-section">
+        <h5><i class="bi bi-briefcase-fill"></i> АКТИВЫ</h5>
+        <table class="table financial-table">
+            <thead>
+                <tr>
+                    <th>Позиция</th>
+                    <th class="text-end">2024 (млн ₸)</th>
+                    <th class="text-end">2023 (млн ₸)</th>
+                    <th class="text-end">Изменение (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="row-subtotal">ИНВЕСТИЦИОННЫЙ ПОРТФЕЛЬ</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Денежные средства и эквиваленты</td>
+                    <td class="financial-value">12,450</td>
+                    <td class="financial-value">9,230</td>
+                    <td class="financial-value income-positive">+34.8%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Государственные ценные бумаги</td>
+                    <td class="financial-value">28,340</td>
+                    <td class="financial-value">25,120</td>
+                    <td class="financial-value income-positive">+12.8%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Корпоративные облигации</td>
+                    <td class="financial-value">18,560</td>
+                    <td class="financial-value">19,450</td>
+                    <td class="financial-value expense-negative">-4.6%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Акции и инвестиционные фонды</td>
+                    <td class="financial-value">14,230</td>
+                    <td class="financial-value">10,680</td>
+                    <td class="financial-value income-positive">+33.3%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Недвижимость</td>
+                    <td class="financial-value">8,420</td>
+                    <td class="financial-value">8,420</td>
+                    <td class="financial-value">+0.0%</td>
+                </tr>
+                <tr class="row-subtotal">
+                    <td style="padding-left: 2rem;"><strong>Итого инвестиции</strong></td>
+                    <td class="financial-value"><strong>82,000</strong></td>
+                    <td class="financial-value"><strong>72,900</strong></td>
+                    <td class="financial-value income-positive"><strong>+12.4%</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="row-subtotal">СТРАХОВЫЕ АКТИВЫ</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Дебиторская задолженность по премиям</td>
+                    <td class="financial-value">3,540</td>
+                    <td class="financial-value">2,890</td>
+                    <td class="financial-value income-positive">+22.5%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Переостраховочные активы</td>
+                    <td class="financial-value">2,180</td>
+                    <td class="financial-value">1,920</td>
+                    <td class="financial-value income-positive">+13.5%</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="row-subtotal">ПРОЧИЕ АКТИВЫ</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Производные инструменты</td>
+                    <td class="financial-value">890</td>
+                    <td class="financial-value">1,240</td>
+                    <td class="financial-value expense-negative">-28.2%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Прочие активы</td>
+                    <td class="financial-value">1,390</td>
+                    <td class="financial-value">1,050</td>
+                    <td class="financial-value income-positive">+32.4%</td>
+                </tr>
+                <tr class="row-total">
+                    <td><strong>ВСЕГО АКТИВОВ</strong></td>
+                    <td class="financial-value"><strong>90,000</strong></td>
+                    <td class="financial-value"><strong>80,000</strong></td>
+                    <td class="financial-value income-positive"><strong>+12.5%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5 class="mt-4"><i class="bi bi-credit-card-fill"></i> ПАССИВЫ</h5>
+        <table class="table financial-table">
+            <thead>
+                <tr>
+                    <th>Позиция</th>
+                    <th class="text-end">2024 (млн ₸)</th>
+                    <th class="text-end">2023 (млн ₸)</th>
+                    <th class="text-end">Изменение (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="row-subtotal">СТРАХОВЫЕ РЕЗЕРВЫ</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Резервы по убыткам (Life)</td>
+                    <td class="financial-value">24,500</td>
+                    <td class="financial-value">22,100</td>
+                    <td class="financial-value expense-negative">+10.8%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Резервы по убыткам (Non-Life)</td>
+                    <td class="financial-value">12,800</td>
+                    <td class="financial-value">11,900</td>
+                    <td class="financial-value expense-negative">+7.6%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Резервы по незаработанной премии</td>
+                    <td class="financial-value">8,350</td>
+                    <td class="financial-value">7,680</td>
+                    <td class="financial-value expense-negative">+8.7%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">CSM (Contractual Service Margin)</td>
+                    <td class="financial-value">5,200</td>
+                    <td class="financial-value">4,100</td>
+                    <td class="financial-value expense-negative">+26.8%</td>
+                </tr>
+                <tr class="row-subtotal">
+                    <td style="padding-left: 2rem;"><strong>Итого страховые резервы</strong></td>
+                    <td class="financial-value"><strong>50,850</strong></td>
+                    <td class="financial-value"><strong>45,780</strong></td>
+                    <td class="financial-value expense-negative"><strong>+11.1%</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="row-subtotal">ПРОЧИЕ ПАССИВЫ</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Кредиторская задолженность</td>
+                    <td class="financial-value">3,350</td>
+                    <td class="financial-value">2,920</td>
+                    <td class="financial-value expense-negative">+14.7%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Задолженность по налогам</td>
+                    <td class="financial-value">1,000</td>
+                    <td class="financial-value">850</td>
+                    <td class="financial-value expense-negative">+17.6%</td>
+                </tr>
+                <tr class="row-total">
+                    <td><strong>ВСЕГО ПАССИВОВ</strong></td>
+                    <td class="financial-value"><strong>55,200</strong></td>
+                    <td class="financial-value"><strong>49,550</strong></td>
+                    <td class="financial-value expense-negative"><strong>+11.4%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5 class="mt-4"><i class="bi bi-percent"></i> СОБСТВЕННЫЙ КАПИТАЛ</h5>
+        <table class="table financial-table">
+            <thead>
+                <tr>
+                    <th>Позиция</th>
+                    <th class="text-end">2024 (млн ₸)</th>
+                    <th class="text-end">2023 (млн ₸)</th>
+                    <th class="text-end">Изменение (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding-left: 2rem;">Уставный капитал</td>
+                    <td class="financial-value income-positive">8,500</td>
+                    <td class="financial-value income-positive">8,500</td>
+                    <td class="financial-value">+0.0%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Резервы переоценки</td>
+                    <td class="financial-value income-positive">2,500</td>
+                    <td class="financial-value income-positive">2,100</td>
+                    <td class="financial-value income-positive">+19.0%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Накопленная прибыль</td>
+                    <td class="financial-value income-positive">23,800</td>
+                    <td class="financial-value income-positive">19,850</td>
+                    <td class="financial-value income-positive">+19.9%</td>
+                </tr>
+                <tr class="row-total">
+                    <td><strong>ВСЕГО СОБСТВЕННОГО КАПИТАЛА</strong></td>
+                    <td class="financial-value income-positive"><strong>34,800</strong></td>
+                    <td class="financial-value income-positive"><strong>30,450</strong></td>
+                    <td class="financial-value income-positive"><strong>+14.3%</strong></td>
+                </tr>
+                <tr class="row-total">
+                    <td><strong>ВСЕГО ПАССИВОВ И КАПИТАЛА</strong></td>
+                    <td class="financial-value"><strong>90,000</strong></td>
+                    <td class="financial-value"><strong>80,000</strong></td>
+                    <td class="financial-value"><strong>+12.5%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Consolidated Statement of Comprehensive Income -->
+    <div class="section-title">
+        <i class="bi bi-graph-up-arrow"></i> Консолидированный отчет о прибылях и убытках за 2024 год
+    </div>
+
+    <div class="report-section">
+        <table class="table financial-table">
+            <thead>
+                <tr>
+                    <th>Позиция</th>
+                    <th class="text-end">2024 (млн ₸)</th>
+                    <th class="text-end">2023 (млн ₸)</th>
+                    <th class="text-end">Изменение (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="row-subtotal">ДОХОД</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Валовые премии</td>
+                    <td class="financial-value income-positive">125,300</td>
+                    <td class="financial-value income-positive">108,650</td>
+                    <td class="financial-value income-positive">+15.2%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Переостраховочные премии</td>
+                    <td class="financial-value expense-negative">(-28,540)</td>
+                    <td class="financial-value expense-negative">(-24,320)</td>
+                    <td class="financial-value expense-negative">+17.4%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;"><strong>Чистые премии</strong></td>
+                    <td class="financial-value income-positive"><strong>96,760</strong></td>
+                    <td class="financial-value income-positive"><strong>84,330</strong></td>
+                    <td class="financial-value income-positive"><strong>+14.7%</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Доход от инвестиций</td>
+                    <td class="financial-value income-positive">4,230</td>
+                    <td class="financial-value income-positive">3,120</td>
+                    <td class="financial-value income-positive">+35.6%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Прибыль от переоценки активов</td>
+                    <td class="financial-value income-positive">1,850</td>
+                    <td class="financial-value income-positive">890</td>
+                    <td class="financial-value income-positive">+107.9%</td>
+                </tr>
+                <tr class="row-subtotal">
+                    <td style="padding-left: 2rem;"><strong>ВСЕГО ДОХОДОВ</strong></td>
+                    <td class="financial-value income-positive"><strong>102,840</strong></td>
+                    <td class="financial-value income-positive"><strong>88,340</strong></td>
+                    <td class="financial-value income-positive"><strong>+16.4%</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="row-subtotal">РАСХОДЫ</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Страховые выплаты</td>
+                    <td class="financial-value expense-negative">(-68,430)</td>
+                    <td class="financial-value expense-negative">(-63,050)</td>
+                    <td class="financial-value expense-negative">+8.5%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Комиссионные и вознаграждения</td>
+                    <td class="financial-value expense-negative">(-12,520)</td>
+                    <td class="financial-value expense-negative">(-11,200)</td>
+                    <td class="financial-value expense-negative">+11.8%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Операционные расходы</td>
+                    <td class="financial-value expense-negative">(-8,340)</td>
+                    <td class="financial-value expense-negative">(-7,650)</td>
+                    <td class="financial-value expense-negative">+9.0%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Расходы на персонал</td>
+                    <td class="financial-value expense-negative">(-6,890)</td>
+                    <td class="financial-value expense-negative">(-6,120)</td>
+                    <td class="financial-value expense-negative">+12.6%</td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Налоги и прочие расходы</td>
+                    <td class="financial-value expense-negative">(-4,560)</td>
+                    <td class="financial-value expense-negative">(-3,890)</td>
+                    <td class="financial-value expense-negative">+17.2%</td>
+                </tr>
+                <tr class="row-subtotal">
+                    <td style="padding-left: 2rem;"><strong>ВСЕГО РАСХОДОВ</strong></td>
+                    <td class="financial-value expense-negative"><strong>(-100,740)</strong></td>
+                    <td class="financial-value expense-negative"><strong>(-91,910)</strong></td>
+                    <td class="financial-value expense-negative"><strong>+9.6%</strong></td>
+                </tr>
+                <tr class="row-total">
+                    <td><strong>ПРИБЫЛЬ ДО НАЛОГА</strong></td>
+                    <td class="financial-value income-positive"><strong>2,100</strong></td>
+                    <td class="financial-value income-positive"><strong>(-3,570)</strong></td>
+                    <td class="financial-value income-positive"><strong>턴</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding-left: 2rem;">Налог на прибыль</td>
+                    <td class="financial-value expense-negative">(-420)</td>
+                    <td class="financial-value expense-negative">(-710)</td>
+                    <td class="financial-value income-positive">+40.8%</td>
+                </tr>
+                <tr class="row-total">
+                    <td><strong>ЧИСТАЯ ПРИБЫЛЬ</strong></td>
+                    <td class="financial-value income-positive"><strong>1,680</strong></td>
+                    <td class="financial-value income-positive"><strong>(-2,860)</strong></td>
+                    <td class="financial-value income-positive"><strong>Восстановление</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Key Financial Ratios -->
+    <div class="section-title">
+        <i class="bi bi-calculator-fill"></i> Ключевые финансовые коэффициенты
+    </div>
+
+    <div class="report-section">
+        <div class="key-ratios">
+            <div class="ratio-card">
+                <div class="ratio-label">Коэффициент убыточности</div>
+                <div class="ratio-value">54.6%</div>
+                <div class="ratio-change negative">-2.1pp от 2023</div>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-label">Коэффициент затрат</div>
+                <div class="ratio-value">31.2%</div>
+                <div class="ratio-change">-1.5pp от 2023</div>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-label">Коэффициент комбинации</div>
+                <div class="ratio-value">85.8%</div>
+                <div class="ratio-change">-3.6pp от 2023</div>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-label">ROE (Return on Equity)</div>
+                <div class="ratio-value">4.8%</div>
+                <div class="ratio-change negative">от убытков в 2023</div>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-label">ROA (Return on Assets)</div>
+                <div class="ratio-value">1.9%</div>
+                <div class="ratio-change negative">от убытков в 2023</div>
+            </div>
+            <div class="ratio-card">
+                <div class="ratio-label">Коэффициент текущей ликвидности</div>
+                <div class="ratio-value">2.84</div>
+                <div class="ratio-change">+0.32 от 2023</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes to Financial Statements -->
+    <div class="section-title">
+        <i class="bi bi-sticky-fill"></i> Примечания к финансовым отчетам
+    </div>
+
+    <div class="notes-section">
+        <h6>Основные положения учетной политики:</h6>
+        <ol>
+            <li><strong>Признание доходов:</strong> Страховые премии признаются в доход в течение периода действия договора. МСФО 17 требует амортизации CSM в течение срока услуги.</li>
+            <li><strong>Оценка резервов:</strong> Резервы по убыткам оцениваются в соответствии с принципом Best Estimate Liability плюс Risk Adjustment. Используется стохастическое моделирование для определения вероятности возникновения убытков.</li>
+            <li><strong>Инвестиционный портфель:</strong> Финансовые активы признаются по справедливой стоимости через прибыль/убыток (FVTPL) для активно управляемого портфеля. Государственные облигации классифицируются как AC (Amortized Cost).</li>
+            <li><strong>Переостраховка:</strong> Переостраховочные активы включены в состав страховых активов. Отражена переостраховочная задолженность на основе проведенного анализа платежеспособности перестраховщиков.</li>
+            <li><strong>Валютные операции:</strong> Операции в иностранной валюте переведены по курсам, действующим на дату операции. На дату баланса активы и пассивы в иностранной валюте переведены по курсам центрального банка на эту дату.</li>
+            <li><strong>МСФО 9 (ECL):</strong> Ожидаемые кредитные убытки рассчитаны для всех финансовых инструментов, классифицированных как AC. Дебиторская задолженность по премиям оценена исходя из исторических темпов взыскания 94.2%.</li>
+        </ol>
+    </div>
+
+    <!-- Audit Report Section -->
+    <div class="section-title">
+        <i class="bi bi-check-circle-fill"></i> Аудиторское заключение
+    </div>
+
+    <div class="audit-info">
+        <div class="mb-3">
+            <span class="badge">ПОЗИТИВНОЕ АУДИТОРСКОЕ ЗАКЛЮЧЕНИЕ</span>
+        </div>
+        <p><strong>Аудиторская фирма:</strong> Big4 Audit LLP (BIG4)</p>
+        <p><strong>Ответственный аудитор:</strong> Марат Аскаров, ЦПРА</p>
+        <p><strong>Дата заключения:</strong> 15 марта 2025</p>
+        <p class="mt-3">
+            <strong>Заключение:</strong> Мы провели аудит консолидированной финансовой отчетности Компании в соответствии с Международными стандартами аудита (МСА).
+            На наш взгляд, финансовая отчетность дает достоверное и справедливое представление о финансовом положении Компании на 31 декабря 2024 года и финансовых результатах её деятельности за год, закончившийся на эту дату,
+            в соответствии с Международными стандартами финансовой отчетности (МСФО).
+        </p>
+    </div>
+
+    <!-- Regulatory Compliance -->
+    <div class="section-title">
+        <i class="bi bi-file-earmark-check-fill"></i> Соответствие требованиям регуляторов
+    </div>
+
+    <div class="report-section">
+        <h6 class="mb-3">Соответствие требованиям АРФР (Агентство регулирования и надзора финансового рынка):</h6>
+        <div class="mb-3">
+            <span class="conformance-badge">✓ Solvency II Ratio: 157% (требуется ≥100%)</span>
+            <span class="conformance-badge">✓ Минимальный капитал: 215% (требуется ≥100%)</span>
+            <span class="conformance-badge">✓ Коэффициент ликвидности: 284% (требуется ≥100%)</span>
+            <span class="conformance-badge">✓ МСФО 17 применен полностью</span>
+            <span class="conformance-badge">✓ МСФО 9 (ECL) рассчитан корректно</span>
+            <span class="conformance-badge">✓ Все QRT (Quantitative Reporting Templates) готовы</span>
+        </div>
+
+        <h6 class="mb-3 mt-4">Соответствие требованиям ФГСВ (Фонд гарантирования страховых выплат):</h6>
+        <div class="mb-3">
+            <span class="conformance-badge">✓ Взнос в ФГСВ перечислен: ₸1.254 млрд (1% от премий)</span>
+            <span class="conformance-badge">✓ Статус членства: Активный</span>
+            <span class="conformance-badge">✓ Все отчеты ФГСВ поданы в срок</span>
+            <span class="conformance-badge">✓ Нет нарушений в прошлых периодах</span>
+        </div>
+    </div>
+
+    <!-- Export Controls -->
+    <div class="report-section">
+        <h5 class="mb-3"><i class="bi bi-download"></i> Экспорт отчетности</h5>
+        <div class="export-controls">
+            <button class="btn-export" onclick="exportToPDF()">
+                <i class="bi bi-file-pdf"></i> Скачать PDF
+            </button>
+            <button class="btn-export" onclick="exportToExcel()">
+                <i class="bi bi-file-spreadsheet"></i> Скачать Excel
+            </button>
+            <button class="btn-export" onclick="printReport()">
+                <i class="bi bi-printer"></i> Печать
+            </button>
+            <button class="btn-export" onclick="emailReport()">
+                <i class="bi bi-envelope"></i> Отправить email
+            </button>
+        </div>
+    </div>
+
+    <!-- Certification -->
+    <div class="certification">
+        <div class="certification-seal">
+            <i class="bi bi-shield-check"></i>
+        </div>
+        <h5>Подтверждение достоверности</h5>
+        <p>Данный отчет подготовлен в соответствии с Международными стандартами финансовой отчетности (МСФО) и требованиями Агентства регулирования и надзора финансового рынка и Фонда гарантирования страховых выплат Республики Казахстан.</p>
+        <p class="mt-3 text-muted"><small>Подпись генерального директора: _______________ Дата: {{ macro.reporting_date }}</small></p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportToPDF() {
+    alert('Экспорт отчета в PDF формате...');
+    // window.print() для PDF или использование библиотеки jsPDF
+}
+
+function exportToExcel() {
+    alert('Экспорт финансовых таблиц в Excel...');
+}
+
+function printReport() {
+    window.print();
+}
+
+function emailReport() {
+    alert('Отправка отчета по электронной почте...');
+}
+</script>
+{% endblock %}
