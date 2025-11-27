@@ -160,6 +160,9 @@ from app.services.unified_calculation_service import unified_calculation_service
 @main_bp.route('/calculation', methods=['GET', 'POST'])
 def main_calculation():
     """Главный расчет - единая система ECL, МСФО 17 и платежеспособности"""
+    # Главный расчет ТОЛЬКО для страховщиков
+    session['role'] = 'insurer'
+
     result = None
     error = None
 
