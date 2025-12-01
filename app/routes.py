@@ -98,6 +98,7 @@ def ifrs9_page():
     Страница МСФО 9 - Детальная подробная аналитика финансовых инструментов
     Все расчеты ECL, кликабельные инструменты с модальными окнами
     """
+    session['role'] = 'insurer'
     return render_template('ifrs9_detailed.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -109,6 +110,7 @@ def ifrs17_page():
     Страница МСФО 17 - Детальная подробная аналитика страховых договоров
     Все расчеты CSM, BEL, Risk Adjustment с модальными окнами договоров
     """
+    session['role'] = 'insurer'
     return render_template('ifrs17_detailed.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -136,6 +138,7 @@ def solvency2_page():
     Страница Solvency 2 - Детальная подробная аналитика платежеспособности
     Все расчеты SCR, Own Funds, Risk Analysis с полными формулами и диаграммами
     """
+    session['role'] = 'insurer'
     return render_template('solvency2_detailed.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -283,6 +286,7 @@ def arfr_dashboard():
 @main_bp.route('/arfr/insurers')
 def arfr_insurers():
     """Список страховых компаний для АРФР"""
+    session['role'] = 'arfr'
     # Демо-данные по страховым компаниям
     insurers = [
         {
@@ -321,6 +325,7 @@ def arfr_insurers():
 @main_bp.route('/arfr/reports')
 def arfr_reports():
     """Проверка отчетности АРФР"""
+    session['role'] = 'arfr'
     # Демо-данные по отчетам на проверке
     reports = [
         {
@@ -349,6 +354,7 @@ def arfr_reports():
 @main_bp.route('/arfr/violations')
 def arfr_violations():
     """Нарушения - АРФР"""
+    session['role'] = 'arfr'
     violations = [
         {
             'id': 1, 'insurer': 'СК Виктория', 'type': 'Nmп < 1.0',
@@ -373,6 +379,7 @@ def arfr_violations():
 @main_bp.route('/arfr/market')
 def arfr_market():
     """Аналитика рынка страхования"""
+    session['role'] = 'arfr'
     market_data = {
         'total_premiums': '890 млрд ₸',
         'yoy_growth': '+12.5%',
@@ -391,6 +398,7 @@ def arfr_market():
 @main_bp.route('/arfr/stress')
 def arfr_stress():
     """Стресс-тесты рынка - АРФР"""
+    session['role'] = 'arfr'
     return render_template('arfr/stress.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -404,6 +412,7 @@ def arfr_stress():
 @main_bp.route('/fgsv-info/dashboard')
 def fgsv_info():
     """Информация о ФГСВ для страховщиков и других ролей (read-only)"""
+    session['role'] = 'insurer'
     stats = {
         'fund_balance': '50 млрд ₸',
         'total_contributions': '8.2 млрд ₸',
@@ -449,6 +458,7 @@ def fgsv_dashboard():
 @main_bp.route('/fgsv-panel/contributions')
 def fgsv_contributions():
     """Взносы в ФГСВ"""
+    session['role'] = 'fgsv'
     contributions = [
         {
             'insurer': 'СК КазСтрах', 'premiums': '35 млрд ₸',
@@ -476,6 +486,7 @@ def fgsv_contributions():
 @main_bp.route('/fgsv-panel/insurers')
 def fgsv_insurers():
     """Страховщики - мониторинг ФГСВ"""
+    session['role'] = 'fgsv'
     insurers = [
         {
             'name': 'СК КазСтрах', 'solvency': 2.57, 'loss_ratio': 0.55,
@@ -500,6 +511,7 @@ def fgsv_insurers():
 @main_bp.route('/fgsv-panel/bankruptcy')
 def fgsv_bankruptcy():
     """Риск банкротства - ФГСВ"""
+    session['role'] = 'fgsv'
     risk_data = {
         'high_risk_count': 3,
         'expected_defaults': 0.8,
@@ -517,6 +529,7 @@ def fgsv_bankruptcy():
 @main_bp.route('/fgsv-panel/payouts')
 def fgsv_payouts():
     """История выплат ФГСВ"""
+    session['role'] = 'fgsv'
     payouts = [
         {
             'year': 2024, 'insurer': 'СК Альянс (ликвидирована)',
@@ -537,6 +550,7 @@ def fgsv_payouts():
 @main_bp.route('/fgsv-panel/simulation')
 def fgsv_simulation():
     """Monte Carlo моделирование - ФГСВ"""
+    session['role'] = 'fgsv'
     return render_template('fgsv_panel/simulation.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -549,6 +563,7 @@ def fgsv_simulation():
 @main_bp.route('/contracts-registry')
 def contracts_registry():
     """Реестр договоров страхования (МСФО 17)"""
+    session['role'] = 'insurer'
     return render_template('contracts_registry.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -557,6 +572,7 @@ def contracts_registry():
 @main_bp.route('/instruments-registry')
 def instruments_registry():
     """Реестр финансовых инструментов (МСФО 9)"""
+    session['role'] = 'insurer'
     return render_template('instruments_registry.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -578,6 +594,7 @@ def calculation_runs():
     КРИТИЧНО: В production системе расчеты НЕ выполняются вручную для каждого договора.
     Пользователь запускает JOB, который обрабатывает весь портфель.
     """
+    session['role'] = 'insurer'
     # Получаем последние 20 расчетов
     runs = batch_processing_service.get_recent_runs(limit=20)
 
@@ -590,6 +607,7 @@ def calculation_runs():
 @main_bp.route('/calculations/new', methods=['GET', 'POST'])
 def new_calculation_run():
     """Запуск нового пакетного расчета"""
+    session['role'] = 'insurer'
     if request.method == 'POST':
         try:
             # Параметры расчета
@@ -647,6 +665,7 @@ def new_calculation_run():
 @main_bp.route('/calculations/run/<int:run_id>')
 def calculation_run_detail(run_id):
     """Детальная информация по расчету"""
+    session['role'] = 'insurer'
     run = CalculationRun.query.get_or_404(run_id)
 
     # Получаем результаты по группам
@@ -735,6 +754,7 @@ from app.enterprise_models import ChartOfAccounts, AccountingRule, AccountingEve
 @main_bp.route('/accounting/chart-of-accounts')
 def chart_of_accounts():
     """План счетов (Chart of Accounts)"""
+    session['role'] = 'insurer'
     accounts = ChartOfAccounts.query.order_by(ChartOfAccounts.account_code).all()
 
     return render_template('accounting/chart_of_accounts.html',
@@ -751,6 +771,7 @@ def accounting_mapping_rules():
     КРИТИЧНО: Это "мозг" Accounting Engine.
     Определяет какие проводки генерировать для каждого события.
     """
+    session['role'] = 'insurer'
     rules = AccountingRule.query.order_by(
         AccountingRule.event_type,
         AccountingRule.priority
@@ -778,6 +799,7 @@ def accounting_mapping_rules():
 @main_bp.route('/accounting/mapping-rules/new', methods=['GET', 'POST'])
 def new_accounting_rule():
     """Создание нового правила маппинга"""
+    session['role'] = 'insurer'
     if request.method == 'POST':
         try:
             # Получаем данные из формы
@@ -834,6 +856,7 @@ def new_accounting_rule():
 @main_bp.route('/accounting/journal-entries')
 def journal_entries():
     """Журнал проводок (Sub-ledger)"""
+    session['role'] = 'insurer'
     from app.enterprise_models import JournalEntry
     from app import db
     from sqlalchemy import func
@@ -906,6 +929,7 @@ def api_group_net_gross(result_id):
 @main_bp.route('/analytics/reinsurance', methods=['GET'])
 def reinsurance_analysis():
     """Страница анализа перестрахования с Net/Gross разбором"""
+    session['role'] = 'insurer'
     return render_template('analytics/reinsurance_analysis.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -920,6 +944,7 @@ from app.services.yield_curve_service import yield_curve_service
 @main_bp.route('/yield-curves', methods=['GET'])
 def yield_curves_list():
     """Страница со списком всех кривых доходности"""
+    session['role'] = 'insurer'
     result = yield_curve_service.list_curves()
     curves = result.get('curves', [])
     return render_template('analytics/yield_curves.html',
