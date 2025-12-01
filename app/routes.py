@@ -146,6 +146,7 @@ def afr_report():
     Годовой финансовый отчет (AFR) - Полное раскрытие финансовой информации
     Баланс, отчет о прибылях/убытках, ключевые показатели, аудиторское заключение
     """
+    session['role'] = 'insurer'
     return render_template('afr_report.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -236,6 +237,7 @@ def main_calculation():
 @main_bp.route('/reports')
 def reports():
     """Расширенная система отчетности"""
+    session['role'] = 'insurer'
     return render_template('reports_advanced.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
@@ -244,6 +246,7 @@ def reports():
 @main_bp.route('/audit')
 def audit():
     """Аудиторский след"""
+    session['role'] = 'insurer'
     return render_template('audit.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
