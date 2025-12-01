@@ -396,11 +396,36 @@ def arfr_stress():
 # ФГСВ - МАРШРУТЫ ФОНДА ГАРАНТИРОВАНИЯ
 # =============================================================================
 
+@main_bp.route('/fgsv-info')
+@main_bp.route('/fgsv-info/dashboard')
+def fgsv_info():
+    """Информация о ФГСВ для страховщиков и других ролей (read-only)"""
+    stats = {
+        'fund_balance': '50 млрд ₸',
+        'total_contributions': '8.2 млрд ₸',
+        'expected_payouts': '2.1 млрд ₸',
+        'adequacy_ratio': '2.38',
+        'insurers_monitored': 27,
+        'high_risk': 3,
+    }
+
+    # Используем ту же шаблон, но отметим что это read-only версия
+    return render_template('fgsv_info/dashboard.html',
+                          stats=stats,
+                          is_admin=False,
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
 @main_bp.route('/fgsv-panel')
 @main_bp.route('/fgsv-panel/dashboard')
 def fgsv_dashboard():
-    """Панель ФГСВ"""
-    session['role'] = 'fgsv'
+    """Панель ФГСВ - ТОЛЬКО для администраторов ФГСВ"""
+    # Страховщики могут только ПРОСМАТРИВАТЬ информацию о ФГСВ через read-only страницы
+    # Полная административная панель ТОЛЬКО для роли 'fgsv'
+    if session.get('role') != 'fgsv':
+        # Перенаправляем на информационный просмотр для других ролей
+        return redirect(url_for('main.fgsv_info'))
 
     stats = {
         'fund_balance': '50 млрд ₸',

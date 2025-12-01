@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Информация о ФГСВ{% endblock %}
+{% block page_title %}Информация фонда гарантирования{% endblock %}
+
+{% block content %}
+<style>
+    .clickable-stat {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .clickable-stat:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
+    }
+    .company-row-clickable {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .company-row-clickable:hover {
+        background: rgba(0, 102, 204, 0.05);
+        transform: scale(1.01);
+    }
+    .read-only-notice {
+        background: rgba(108, 117, 125, 0.1);
+        border-left: 4px solid #6c757d;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<!-- Уведомление о режиме чтения -->
+<div class="read-only-notice">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>Режим просмотра:</strong> Вы просматриваете информацию о ФГСВ как страховая компания. Административные функции недоступны.
+</div>
+
+<!-- Статистика -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showFundDetails()">
+            <div class="stat-icon success">
+                <i class="bi bi-piggy-bank"></i>
+            </div>
+            <div class="stat-label">Баланс фонда</div>
+            <div class="stat-value">{{ stats.fund_balance }}</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i> +15.3% за год
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showContributionsBreakdown()">
+            <div class="stat-icon primary">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-label">Взносы за год</div>
+            <div class="stat-value">{{ stats.total_contributions }}</div>
+            <div class="stat-change">
+                От 27 страховщиков
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showPayoutsProjection()">
+            <div class="stat-icon warning">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-label">Ожид. выплаты</div>
+            <div class="stat-value">{{ stats.expected_payouts }}</div>
+            <div class="stat-change">
+                По текущим рискам
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showAdequacyAnalysis()">
+            <div class="stat-icon {% if stats.adequacy_ratio|float >= 1.2 %}success{% else %}danger{% endif %}">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="stat-label">Коэф. достаточности</div>
+            <div class="stat-value">{{ stats.adequacy_ratio }}</div>
+            <div class="stat-change {% if stats.adequacy_ratio|float >= 1.2 %}positive{% else %}negative{% endif %}">
+                {% if stats.adequacy_ratio|float >= 1.2 %}
+                <i class="bi bi-check-circle"></i> Норма ≥ 1.20
+                {% else %}
+                <i class="bi bi-exclamation-circle"></i> Ниже нормы
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Страховщики по риску -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-exclamation-diamond me-2"></i>Страховщики высокого риска</h5>
+                <a href="{{ url_for('main.fgsv_insurers') }}" class="btn btn-sm btn-outline-primary">Все страховщики</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>Nmп</th>
+                            <th>Loss Ratio</th>
+                            <th>Combined</th>
+                            <th>PD</th>
+                            <th>Риск</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>СК Виктория</strong></td>
+                            <td><span class="text-danger fw-bold">1.12</span></td>
+                            <td>82%</td>
+                            <td><span class="text-danger">105%</span></td>
+                            <td>15%</td>
+                            <td><span class="status-badge danger">Высокий</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>СК НурПолис</strong></td>
+                            <td><span class="text-warning fw-bold">1.35</span></td>
+                            <td>71%</td>
+                            <td><span class="text-warning">98%</span></td>
+                            <td>8%</td>
+                            <td><span class="status-badge warning">Средний</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>СК АзияСтрах</strong></td>
+                            <td><span class="text-warning fw-bold">1.48</span></td>
+                            <td>68%</td>
+                            <td>92%</td>
+                            <td>6%</td>
+                            <td><span class="status-badge warning">Средний</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Последние взносы -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-cash-stack me-2"></i>Последние взносы</h5>
+                <a href="{{ url_for('main.fgsv_contributions') }}" class="btn btn-sm btn-outline-primary">Все взносы</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>Премии</th>
+                            <th>Ставка</th>
+                            <th>Взнос</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>СК КазСтрах</td>
+                            <td>35 млрд ₸</td>
+                            <td>0.5%</td>
+                            <td>175 млн ₸</td>
+                            <td><span class="status-badge success">Оплачен</span></td>
+                        </tr>
+                        <tr>
+                            <td>СК НурПолис</td>
+                            <td>12 млрд ₸</td>
+                            <td>1.0%</td>
+                            <td>120 млн ₸</td>
+                            <td><span class="status-badge success">Оплачен</span></td>
+                        </tr>
+                        <tr>
+                            <td>СК Виктория</td>
+                            <td>5 млрд ₸</td>
+                            <td>2.0%</td>
+                            <td>100 млн ₸</td>
+                            <td><span class="status-badge danger">Просрочен</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Боковая панель -->
+    <div class="col-md-4">
+        <!-- Риски -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up-arrow me-2"></i>Оценка рисков</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Ожид. дефолтов</span>
+                        <strong>0.8</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Ожид. убыток</span>
+                        <strong>1.2 млрд ₸</strong>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">VaR 95%</span>
+                        <strong>2.5 млрд ₸</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">VaR 99%</span>
+                        <strong>4.1 млрд ₸</strong>
+                    </div>
+                </div>
+                <hr>
+                <div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Высокий риск</span>
+                        <strong class="text-danger">{{ stats.high_risk }} компаний</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Полезные ссылки -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-link-45deg me-2"></i>Информационные ссылки</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.fgsv_contributions') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-cash-stack me-2"></i>Взносы
+                    </a>
+                    <a href="{{ url_for('main.fgsv_insurers') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-building me-2"></i>Страховщики
+                    </a>
+                    <a href="{{ url_for('main.fgsv_bankruptcy') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-exclamation-diamond me-2"></i>Риски
+                    </a>
+                    <a href="{{ url_for('main.fgsv_payouts') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-wallet2 me-2"></i>История выплат
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальные окна (скрыты для режима чтения) -->
+<div class="modal fade" id="fundDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-piggy-bank me-2"></i>Детализация баланса фонда</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Структура активов</h6>
+                        <canvas id="fundAssetsChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Динамика баланса</h6>
+                        <canvas id="fundBalanceChart" height="200"></canvas>
+                    </div>
+                </div>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Компонент</th>
+                            <th class="text-end">Сумма (млрд ₸)</th>
+                            <th class="text-end">Доля</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Государственные ЦБ</td><td class="text-end">8.5</td><td class="text-end">42.5%</td></tr>
+                        <tr><td>Корпоративные облигации</td><td class="text-end">5.2</td><td class="text-end">26.0%</td></tr>
+                        <tr><td>Банковские депозиты</td><td class="text-end">4.8</td><td class="text-end">24.0%</td></tr>
+                        <tr><td>Денежные средства</td><td class="text-end">1.5</td><td class="text-end">7.5%</td></tr>
+                        <tr class="table-primary"><td><strong>Итого</strong></td><td class="text-end"><strong>20.0</strong></td><td class="text-end"><strong>100%</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showFundDetails() {
+        const modal = new bootstrap.Modal(document.getElementById('fundDetailsModal'));
+        modal.show();
+        setTimeout(() => {
+            new Chart(document.getElementById('fundAssetsChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Гос. ЦБ', 'Корп. облигации', 'Депозиты', 'Денежные'],
+                    datasets: [{ data: [42.5, 26, 24, 7.5], backgroundColor: ['#0066cc', '#27ae60', '#f39c12', '#e74c3c'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+            new Chart(document.getElementById('fundBalanceChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'],
+                    datasets: [{ label: 'Баланс', data: [17.5, 18.0, 18.3, 19.1, 19.5, 20.0], borderColor: '#0066cc', fill: false }]
+                },
+                options: { responsive: true }
+            });
+        }, 300);
+    }
+
+    function showContributionsBreakdown() {
+        alert('Полная детализация взносов доступна в разделе "Взносы"');
+    }
+
+    function showPayoutsProjection() {
+        alert('Прогноз выплат доступен в разделе "История выплат"');
+    }
+
+    function showAdequacyAnalysis() {
+        alert('Подробный анализ достаточности доступен в административной панели');
+    }
+</script>
+{% endblock %}
