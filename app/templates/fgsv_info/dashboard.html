@@ -195,6 +195,33 @@
 </div>
 
 <script>
+    // Функции для уведомлений
+    function showNotification(message, type = 'success') {
+        // Создаем элемент для уведомления
+        const alert = document.createElement('div');
+        const alertClass = {
+            'success': 'alert-success',
+            'danger': 'alert-danger',
+            'warning': 'alert-warning',
+            'info': 'alert-info'
+        }[type] || 'alert-info';
+
+        alert.className = `alert ${alertClass} alert-dismissible fade show`;
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        // Вставляем в начало контента
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alert, container.firstChild);
+
+        // Автоматически закрываем через 5 секунд
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+
     async function calculateContribution() {
         const premiums = parseFloat(document.getElementById('premiums').value);
         const solvency_ratio = parseFloat(document.getElementById('solvency_ratio').value);
@@ -202,12 +229,16 @@
         const combined_ratio = parseFloat(document.getElementById('combined_ratio').value);
 
         if (!premiums || premiums <= 0) {
-            showToast('Пожалуйста, введите валовые премии', 'warning');
+            showNotification('Пожалуйста, введите валовые премии', 'warning');
             return;
         }
 
         try {
-            showLoading();
+            // Показываем индикатор загрузки
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Расчет...';
 
             const response = await fetch('/api/fgsv/contribution', {
                 method: 'POST',
@@ -223,16 +254,24 @@
             });
 
             const data = await response.json();
-            hideLoading();
+
+            // Восстанавливаем кнопку
+            button.disabled = false;
+            button.innerHTML = originalText;
 
             if (data.status === 'ok') {
                 displayResults(data.result, data.audit);
+                showNotification('Расчет выполнен успешно!', 'success');
             } else {
-                showToast('Ошибка расчета: ' + data.message, 'danger');
+                showNotification('Ошибка расчета: ' + data.message, 'danger');
             }
         } catch (error) {
-            hideLoading();
-            showToast('Ошибка при отправке запроса: ' + error.message, 'danger');
+            // Восстанавливаем кнопку
+            const button = event.target;
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-calculator"></i> Рассчитать взнос';
+
+            showNotification('Ошибка при отправке запроса: ' + error.message, 'danger');
         }
     }
 
@@ -298,17 +337,18 @@
     }
 
     function downloadReport() {
-        showToast('Отчет генерируется...', 'info');
+        showNotification('Отчет генерируется...', 'info');
         setTimeout(() => {
-            showToast('Отчет скачан: FGSV_Contribution_Report.pdf', 'success');
+            showNotification('Отчет скачан: FGSV_Contribution_Report.pdf', 'success');
         }, 1500);
     }
 
     function confirmPayment() {
-        showToast('Платеж сохранен. Перенаправление на способ оплаты...', 'success');
+        showNotification('Платеж сохранен. Перенаправление на способ оплаты...', 'success');
         setTimeout(() => {
             // Redirect to payment method selection
-            window.location.href = '/payment/fgsv-contribution';
+            // window.location.href = '/payment/fgsv-contribution';
+            showNotification('В полной версии доступна система платежей', 'info');
         }, 1500);
     }
 </script>
