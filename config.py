@@ -28,6 +28,9 @@ APP_CONFIG = {
     'COMPANY': 'Alliot Systems',
     'TAGLINE': 'Автоматизация МСФО 17, МСФО 9 и платежеспособности',
     'WATERMARK_TEXT': 'ДЕМО ВЕРСИЯ - НЕ ДЛЯ ПРОИЗВОДСТВЕННОГО ИСПОЛЬЗОВАНИЯ',
+    'version': '3.0.0',
+    'company_name': 'Alliot Systems',
+    'app_name': 'Alliot',
 }
 
 # Для обратной совместимости
@@ -57,8 +60,11 @@ MACRO_INDICATORS_2025 = {
     'base_rate': Decimal('18.0'),  # Базовая ставка НБК, %
     'usd_kzt': Decimal('560'),  # Курс USD/KZT
     'eur_kzt': Decimal('590'),  # Курс EUR/KZT
+    'rub_kzt': Decimal('5.8'),  # Курс RUB/KZT
     'brent_usd': Decimal('80.7'),  # Цена Brent, USD/баррель
     'mrp': Decimal('3932'),  # МРП (Месячный расчетный показатель) 2025, KZT
+    'kzt_rate': Decimal('18.0'),  # Процентная ставка в KZT (базовая ставка), %
+    'reporting_date': '01.12.2025',  # Дата отчетности
     'date': date(2025, 11, 1),
 }
 

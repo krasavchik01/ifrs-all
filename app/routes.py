@@ -124,6 +124,7 @@ def settings():
     - План счетов
     - Пользователи
     """
+    session['role'] = 'insurer'
     return render_template('settings.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
