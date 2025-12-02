@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Проверка нормативного соответствия - АРФР{% endblock %}
+{% block page_title %}Проверка нормативного соответствия (МСФО 9/17, Solvency 2){% endblock %}
+
+{% block content %}
+<style>
+    .compliance-card {
+        border-left: 5px solid #ccc;
+        transition: all 0.3s ease;
+    }
+    .compliance-card.compliant {
+        border-left-color: #28a745;
+        background: rgba(40, 167, 69, 0.03);
+    }
+    .compliance-card.warning {
+        border-left-color: #ffc107;
+        background: rgba(255, 193, 7, 0.03);
+    }
+    .compliance-card.critical {
+        border-left-color: #dc3545;
+        background: rgba(220, 53, 69, 0.08);
+    }
+    .compliance-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .check-item {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .check-item:last-child {
+        border-bottom: none;
+    }
+    .status-badge {
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+    }
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    .metric-row:last-child {
+        border-bottom: none;
+    }
+    .metric-label {
+        font-weight: 500;
+        color: #555;
+    }
+    .metric-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    .metric-threshold {
+        font-size: 0.9rem;
+        color: #999;
+    }
+</style>
+
+<!-- Сводка соответствия -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 bg-success bg-opacity-10">
+            <div class="card-body text-center">
+                <h3 class="text-success mb-1">{{ compliance_checks | selectattr('ifrs9_ecl.status', 'equalto', 'compliant') | list | length }}</h3>
+                <p class="text-muted mb-0">Полностью соответствуют</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-warning bg-opacity-10">
+            <div class="card-body text-center">
+                <h3 class="text-warning mb-1">{{ compliance_checks | selectattr('ifrs9_ecl.status', 'equalto', 'warning') | list | length }}</h3>
+                <p class="text-muted mb-0">Требуют мониторинга</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-danger bg-opacity-10">
+            <div class="card-body text-center">
+                <h3 class="text-danger mb-1">{{ compliance_checks | selectattr('ifrs9_ecl.status', 'equalto', 'critical') | list | length }}</h3>
+                <p class="text-muted mb-0">Критические нарушения</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-info bg-opacity-10">
+            <div class="card-body text-center">
+                <h3 class="text-info mb-1">{{ compliance_checks | length }}</h3>
+                <p class="text-muted mb-0">Всего компаний</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Описание стандартов -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-light border-bottom">
+        <h5 class="mb-0">
+            <i class="bi bi-info-circle"></i> Стандарты нормативного контроля
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="text-primary">МСФО 9 - Финансовые инструменты (ECL)</h6>
+                <ul class="small text-muted">
+                    <li><strong>Stage 1:</strong> 12-месячный ECL (нет SICR)</li>
+                    <li><strong>Stage 2:</strong> Lifetime ECL (SICR выявлен)</li>
+                    <li><strong>Stage 3:</strong> Default (дефолт или просрочка > 90 дней)</li>
+                    <li><strong>Требование:</strong> Минимум резервов по классам портфеля</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-primary">МСФО 17 - Договоры страхования</h6>
+                <ul class="small text-muted">
+                    <li><strong>BEL:</strong> Best Estimate Liability (денежные потоки)</li>
+                    <li><strong>RA:</strong> Risk Adjustment (корректировка за риск)</li>
+                    <li><strong>CSM:</strong> Contractual Service Margin (маржин прибыли)</li>
+                    <li><strong>Onerous:</strong> Обнаружение убыточных договоров</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 class="text-primary">Solvency 2 - Платежеспособность</h6>
+                <ul class="small text-muted">
+                    <li><strong>MMP:</strong> Минимальный требуемый капитал</li>
+                    <li><strong>FMP:</strong> Собственные средства</li>
+                    <li><strong>Nмп коэффициент:</strong> FMP / MMP ≥ 1.0</li>
+                    <li><strong>Требование:</strong> Стресс-тестирование Adverse/Severe</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Проверка соответствия по компаниям -->
+<div class="row">
+    {% for check in compliance_checks %}
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm compliance-card {{ check.ifrs9_ecl.status }}">
+            <div class="card-header bg-light border-bottom">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">{{ check.insurer }}</h5>
+                        <small class="text-muted">BIN: {{ check.bin }}</small>
+                    </div>
+                    <div class="text-end">
+                        {% if check.ifrs9_ecl.status == 'compliant' and check.ifrs17_insurance.status == 'compliant' and check.solvency2.status == 'compliant' %}
+                        <span class="badge bg-success status-badge">✓ СООТВЕТСТВИЕ</span>
+                        {% elif check.ifrs9_ecl.status == 'critical' or check.ifrs17_insurance.status == 'critical' or check.solvency2.status == 'critical' %}
+                        <span class="badge bg-danger status-badge">✗ КРИТИЧНО</span>
+                        {% else %}
+                        <span class="badge bg-warning status-badge">⚠ ПРЕДУПРЕЖДЕНИЕ</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- МСФО 9 - ECL -->
+                <div class="check-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">
+                            <i class="bi bi-graph-up"></i> МСФО 9: Expected Credit Loss
+                            {% if check.ifrs9_ecl.status == 'compliant' %}
+                            <span class="badge bg-success">✓ OK</span>
+                            {% elif check.ifrs9_ecl.status == 'warning' %}
+                            <span class="badge bg-warning">⚠ Внимание</span>
+                            {% else %}
+                            <span class="badge bg-danger">✗ Критично</span>
+                            {% endif %}
+                        </h6>
+                    </div>
+                    <p class="text-muted mb-2">{{ check.ifrs9_ecl.check }}</p>
+                    <div class="metric-row">
+                        <span class="metric-label">Коэффициент резервов:</span>
+                        <span class="metric-value">{{ check.ifrs9_ecl.coverage_ratio }}x</span>
+                        <span class="metric-threshold">Мин: {{ check.ifrs9_ecl.required }}x</span>
+                    </div>
+                    <p class="text-info small mt-2 mb-0">
+                        <i class="bi bi-info-circle"></i> {{ check.ifrs9_ecl.note }}
+                    </p>
+                </div>
+
+                <!-- МСФО 17 - Insurance -->
+                <div class="check-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">
+                            <i class="bi bi-file-earmark-text"></i> МСФО 17: Insurance Contract Accounting
+                            {% if check.ifrs17_insurance.status == 'compliant' %}
+                            <span class="badge bg-success">✓ OK</span>
+                            {% elif check.ifrs17_insurance.status == 'warning' %}
+                            <span class="badge bg-warning">⚠ Внимание</span>
+                            {% else %}
+                            <span class="badge bg-danger">✗ Критично</span>
+                            {% endif %}
+                        </h6>
+                    </div>
+                    <p class="text-muted mb-2">{{ check.ifrs17_insurance.check }}</p>
+                    <div class="metric-row">
+                        <span class="metric-label">Тяжелые договоры:</span>
+                        <span class="metric-value">{{ check.ifrs17_insurance.onerous_count }}</span>
+                        <span class="metric-threshold">из {{ check.ifrs17_insurance.total_contracts }}</span>
+                    </div>
+                    <p class="text-info small mt-2 mb-0">
+                        <i class="bi bi-info-circle"></i> {{ check.ifrs17_insurance.note }}
+                    </p>
+                </div>
+
+                <!-- Solvency 2 -->
+                <div class="check-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0">
+                            <i class="bi bi-shield-check"></i> Solvency 2: Платежеспособность
+                            {% if check.solvency2.status == 'compliant' %}
+                            <span class="badge bg-success">✓ OK</span>
+                            {% elif check.solvency2.status == 'warning' %}
+                            <span class="badge bg-warning">⚠ Внимание</span>
+                            {% else %}
+                            <span class="badge bg-danger">✗ Критично</span>
+                            {% endif %}
+                        </h6>
+                    </div>
+                    <p class="text-muted mb-2">Проверка коэффициента платежеспособности Nмп</p>
+
+                    <div class="metric-row">
+                        <span class="metric-label">Nмп коэффициент:</span>
+                        <span class="metric-value">{{ check.solvency2.nmp_ratio }}</span>
+                        <span class="metric-threshold">Мин: {{ check.solvency2.required }}</span>
+                    </div>
+
+                    <div class="metric-row">
+                        <span class="metric-label">Стресс-тест (Adverse):</span>
+                        <span class="metric-value">{{ check.solvency2.stress_adverse }}</span>
+                        <span class="metric-threshold">
+                            {% if check.solvency2.stress_adverse >= 1.0 %}
+                            <span class="badge bg-warning">Граница</span>
+                            {% else %}
+                            <span class="badge bg-danger">Провал</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="metric-row">
+                        <span class="metric-label">Стресс-тест (Severe):</span>
+                        <span class="metric-value">{{ check.solvency2.stress_severe }}</span>
+                        <span class="metric-threshold">
+                            {% if check.solvency2.stress_severe >= 1.0 %}
+                            <span class="badge bg-warning">Граница</span>
+                            {% else %}
+                            <span class="badge bg-danger">Провал</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <p class="text-info small mt-2 mb-0">
+                        <i class="bi bi-info-circle"></i> {{ check.solvency2.note }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light border-top">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" onclick="viewDetailedReport('{{ check.insurer }}')">
+                        <i class="bi bi-file-earmark-pdf"></i> Полный отчет
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="downloadComplianceData('{{ check.bin }}')">
+                        <i class="bi bi-download"></i> Данные Excel
+                    </button>
+                    {% if check.ifrs9_ecl.status == 'critical' or check.solvency2.status == 'critical' %}
+                    <button class="btn btn-sm btn-danger" onclick="issueViolationNotice('{{ check.insurer }}')">
+                        <i class="bi bi-exclamation-triangle"></i> Выпустить уведомление
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Таблица сводных результатов -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-light border-bottom">
+        <h5 class="mb-0">
+            <i class="bi bi-table"></i> Сводная таблица соответствия
+        </h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Страховая компания</th>
+                    <th>МСФО 9 (ECL)</th>
+                    <th>МСФО 17 (Insurance)</th>
+                    <th>Solvency 2 (Nмп)</th>
+                    <th>Общий статус</th>
+                    <th>Действие требуется</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for check in compliance_checks %}
+                <tr>
+                    <td><strong>{{ check.insurer }}</strong></td>
+                    <td>
+                        {% if check.ifrs9_ecl.status == 'compliant' %}
+                        <span class="badge bg-success">Stage 1 OK</span>
+                        {% elif check.ifrs9_ecl.status == 'warning' %}
+                        <span class="badge bg-warning">Stage 2 ⚠</span>
+                        {% else %}
+                        <span class="badge bg-danger">Stage 3 ✗</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if check.ifrs17_insurance.status == 'compliant' %}
+                        <span class="badge bg-success">GMM OK</span>
+                        {% elif check.ifrs17_insurance.status == 'warning' %}
+                        <span class="badge bg-warning">Onerous ⚠</span>
+                        {% else %}
+                        <span class="badge bg-danger">Critical ✗</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if check.solvency2.status == 'compliant' %}
+                        <span class="badge bg-success">{{ check.solvency2.nmp_ratio }}</span>
+                        {% elif check.solvency2.status == 'warning' %}
+                        <span class="badge bg-warning">{{ check.solvency2.nmp_ratio }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{{ check.solvency2.nmp_ratio }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if check.ifrs9_ecl.status == 'compliant' and check.ifrs17_insurance.status == 'compliant' and check.solvency2.status == 'compliant' %}
+                        <span class="badge bg-success">✓ СООТВЕТСТВИЕ</span>
+                        {% elif check.ifrs9_ecl.status == 'critical' or check.ifrs17_insurance.status == 'critical' or check.solvency2.status == 'critical' %}
+                        <span class="badge bg-danger">✗ КРИТИЧНО</span>
+                        {% else %}
+                        <span class="badge bg-warning">⚠ ПРЕДУПРЕЖДЕНИЕ</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if check.solvency2.status == 'critical' %}
+                        <span class="badge bg-danger">Немедленно</span>
+                        {% elif check.ifrs9_ecl.status == 'warning' %}
+                        <span class="badge bg-warning">Мониторинг</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Нет</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Методология проверки -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-light border-bottom">
+        <h5 class="mb-0">
+            <i class="bi bi-info-circle"></i> Методология нормативного контроля АРФР
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="accordion" id="methodologyAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#methodIfrs9">
+                        МСФО 9: Критерии проверки ECL
+                    </button>
+                </h2>
+                <div id="methodIfrs9" class="accordion-collapse collapse show" data-bs-parent="#methodologyAccordion">
+                    <div class="accordion-body">
+                        <h6>Требования регулятора:</h6>
+                        <ul>
+                            <li><strong>Стадия 1:</strong> Коэффициент резервов ≥ 0.5x (12-месячный ECL)</li>
+                            <li><strong>Стадия 2:</strong> SICR выявлен при PD увеличении > 50% от оригинала</li>
+                            <li><strong>Стадия 3:</strong> DPD > 90 дней = автоматический дефолт</li>
+                            <li><strong>Макро-корректировки:</strong> Инфляция, процентные ставки, валютные риски</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#methodIfrs17">
+                        МСФО 17: Критерии проверки Insurance
+                    </button>
+                </h2>
+                <div id="methodIfrs17" class="accordion-collapse collapse" data-bs-parent="#methodologyAccordion">
+                    <div class="accordion-body">
+                        <h6>Требования регулятора:</h6>
+                        <ul>
+                            <li><strong>BEL расчет:</strong> PV(Премии - Убытки - Расходы) с разбивкой по лет</li>
+                            <li><strong>RA количификация:</strong> 75-й percentile (CoC или CTE метод)</li>
+                            <li><strong>CSM амортизация:</strong> По услугам в течение периода покрытия</li>
+                            <li><strong>Onerous контракты:</strong> CSM < 0 требует резервирования в период выявления</li>
+                            <li><strong>Модели:</strong> GMM (general), VFA (investment), PAA (simple)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#methodSolvency">
+                        Solvency 2: Критерии проверки платежеспособности
+                    </button>
+                </h2>
+                <div id="methodSolvency" class="accordion-collapse collapse" data-bs-parent="#methodologyAccordion">
+                    <div class="accordion-body">
+                        <h6>Требования регулятора:</h6>
+                        <ul>
+                            <li><strong>Nмп коэффициент:</strong> FMP/MMP ≥ 1.0 в любой момент</li>
+                            <li><strong>MMP расчет:</strong> max(4% × ВП, 25% × ОУ) + корректировки</li>
+                            <li><strong>FMP компоненты:</strong> Капитал + Прибыли - ECL - CSM < 0 + Субдолг</li>
+                            <li><strong>Стресс-тесты:</strong> Adverse (инфляция +2%, убытки +10%) и Severe (+5%, +25%)</li>
+                            <li><strong>K-коэффициент:</strong> ОСАГО = 0.70 (повышенный риск)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewDetailedReport(insurerName) {
+    alert('Загрузка полного отчета для ' + insurerName + ' (функция в разработке)');
+}
+
+function downloadComplianceData(bin) {
+    alert('Скачивание данных Excel для BIN: ' + bin + ' (функция в разработке)');
+}
+
+function issueViolationNotice(insurerName) {
+    if (confirm('Выпустить официальное уведомление о нарушении для ' + insurerName + '?')) {
+        alert('Уведомление выпущено. Отправить копию в архив АРФР.');
+    }
+}
+</script>
+{% endblock %}

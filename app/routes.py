@@ -404,6 +404,99 @@ def arfr_stress():
                           APP_CONFIG=APP_CONFIG)
 
 
+@main_bp.route('/arfr/compliance')
+def arfr_compliance():
+    """Проверка нормативного соответствия (МСФО 9/17, Solvency 2) - АРФР"""
+    session['role'] = 'arfr'
+
+    # Примеры проверки соответствия для каждой страховой компании
+    compliance_checks = [
+        {
+            'insurer': 'СК КазСтрах',
+            'bin': '123456789012',
+            'ifrs9_ecl': {
+                'status': 'compliant',
+                'check': 'ECL стадия 1 - Нет SICR',
+                'coverage_ratio': 4.2,
+                'required': 0.5,
+                'note': 'Резерв превышает требования'
+            },
+            'ifrs17_insurance': {
+                'status': 'compliant',
+                'check': 'BEL/RA/CSM рассчитаны по GMM',
+                'onerous_count': 0,
+                'total_contracts': 450,
+                'note': 'Нет тяжелых договоров'
+            },
+            'solvency2': {
+                'status': 'compliant',
+                'nmp_ratio': 2.57,
+                'required': 1.0,
+                'stress_adverse': 1.85,
+                'stress_severe': 1.23,
+                'note': 'Хорошая платежеспособность'
+            }
+        },
+        {
+            'insurer': 'СК НурПолис',
+            'bin': '987654321098',
+            'ifrs9_ecl': {
+                'status': 'warning',
+                'check': 'ECL стадия 2 - SICR выявлен',
+                'coverage_ratio': 1.8,
+                'required': 0.5,
+                'note': 'Дополнительный мониторинг требуется'
+            },
+            'ifrs17_insurance': {
+                'status': 'warning',
+                'check': 'Обнаружены признаки тяжелых договоров',
+                'onerous_count': 3,
+                'total_contracts': 125,
+                'note': 'Требуется корректировка пакета премий'
+            },
+            'solvency2': {
+                'status': 'warning',
+                'nmp_ratio': 1.35,
+                'required': 1.0,
+                'stress_adverse': 0.92,
+                'stress_severe': 0.65,
+                'note': 'Требуется план восстановления капитала'
+            }
+        },
+        {
+            'insurer': 'СК Виктория',
+            'bin': '999000111222',
+            'ifrs9_ecl': {
+                'status': 'critical',
+                'check': 'ECL стадия 3 - Default',
+                'coverage_ratio': 0.5,
+                'required': 1.0,
+                'note': 'Критический недостаток резервов'
+            },
+            'ifrs17_insurance': {
+                'status': 'critical',
+                'check': 'Множественные убыточные договоры',
+                'onerous_count': 25,
+                'total_contracts': 78,
+                'note': 'Требуется срочное восстановление платежеспособности'
+            },
+            'solvency2': {
+                'status': 'critical',
+                'nmp_ratio': 1.12,
+                'required': 1.0,
+                'stress_adverse': 0.45,
+                'stress_severe': 0.22,
+                'note': 'НАРУШЕНИЕ - Немедленное действие АРФР'
+            }
+        },
+    ]
+
+    return render_template('arfr/compliance.html',
+                          compliance_checks=compliance_checks,
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
 # =============================================================================
 # ФГСВ - МАРШРУТЫ ФОНДА ГАРАНТИРОВАНИЯ
 # =============================================================================
