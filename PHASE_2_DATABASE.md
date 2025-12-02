@@ -465,8 +465,9 @@ GROUP BY t.id, t.code;
 
 ## License & Support
 
-- **License:** Proprietary (PwC FinTech)
-- **Support:** claude@anthropic.com
+- **License:** Proprietary - All rights reserved
+- **Copyright © 2025 Alliot Systems. All rights reserved.**
+- **Support:** support@alliot-systems.kz
 - **SLA:** 99.9% uptime (with HA PostgreSQL), <100ms P95
 
 ---
