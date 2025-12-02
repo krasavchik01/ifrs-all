@@ -164,7 +164,7 @@ class CalculationService:
         stage, stage_justification = self.ifrs9_calc.determine_stage(
             days_past_due=days_past_due,
             pd_current=pd_annual,
-            pd_initial=pd_annual * Decimal('0.5')  # Примерное начальное PD
+            pd_at_origination=pd_annual * Decimal('0.5')  # Примерное начальное PD
         )
 
         # Расчет ECL
