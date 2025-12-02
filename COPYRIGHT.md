@@ -2,9 +2,9 @@
 
 ## Copyright Notice
 
-**Copyright © 2025 Alliot Systems. All rights reserved.**
+**Copyright © 2025 RB Partners. All rights reserved.**
 
-This software, including all source code, documentation, graphics, and other materials, is the exclusive property of Alliot Systems and is protected by international copyright laws.
+This software, including all source code, documentation, graphics, and other materials, is the exclusive property of RB Partners and is protected by international copyright laws.
 
 ## Intellectual Property
 
@@ -16,11 +16,11 @@ All intellectual property rights in this software, including but not limited to:
 - Documentation and specifications
 - All improvements and modifications
 
-are owned exclusively by Alliot Systems.
+are owned exclusively by RB Partners.
 
 ## License Grant
 
-This software is provided under a **Proprietary License**. No license is granted for any use except as expressly authorized in writing by Alliot Systems.
+This software is provided under a **Proprietary License**. No license is granted for any use except as expressly authorized in writing by RB Partners.
 
 ### Permitted Use
 - Use is restricted to authorized end-users and licensees only
@@ -62,13 +62,14 @@ THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## Limitation of Liability
 
-IN NO EVENT SHALL ALLIOT SYSTEMS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF OR RELATING TO THIS SOFTWARE.
+IN NO EVENT SHALL RB PARTNERS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF OR RELATING TO THIS SOFTWARE.
 
 ## Contact
 
 For licensing inquiries or legal questions:
-- **Email:** legal@alliot-systems.kz
-- **Address:** Astana Hub, Astana, Kazakhstan
+- **Email:** aidos@rbpartners.kz
+- **Website:** www.rbpartners.kz
+- **Address:** Kazakhstan
 
 ## Modification History
 

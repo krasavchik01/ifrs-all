@@ -663,7 +663,7 @@ TOTAL                             94%
 
 ### Technical Support
 
-- **Email**: support@alliot-systems.kz
+- **Email**: aidos@rbpartners.kz
 - **Documentation**: [GitHub Wiki](https://github.com/krasavchik01/Solvency2/wiki)
 - **Issues**: [GitHub Issues](https://github.com/krasavchik01/Solvency2/issues)
 
@@ -671,14 +671,14 @@ TOTAL                             94%
 
 For enterprise licensing, custom development, or integration services:
 
-- **Sales**: sales@alliot-systems.kz
-- **Website**: www.alliot-systems.kz
+- **Sales**: aidos@rbpartners.kz
+- **Website**: www.rbpartners.kz
 
 ---
 
 ## 📄 License
 
-Copyright © 2025 Alliot Systems. All rights reserved.
+Copyright © 2025 RB Partners. All rights reserved.
 
 This software is proprietary and confidential. See [COPYRIGHT.md](COPYRIGHT.md) for full details.
 
