@@ -218,10 +218,11 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center" role="button" data-bs-toggle="collapse" data-bs-target="#eclDetails">
                     <h5 class="mb-0">
                         <i class="bi bi-graph-up"></i> МСФО 9: Expected Credit Loss (ECL)
                     </h5>
+                    <span class="badge bg-info">Развернуть детали</span>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -248,14 +249,141 @@
                         </div>
                         <div class="col-md-3">
                             <div class="text-center p-3 bg-light rounded">
-                                <small class="d-block text-muted mb-2">Обоснование</small>
-                                <small class="text-muted d-block">{{ result.ecl.justification[:50] }}...</small>
+                                <small class="d-block text-muted mb-2">Статус SICR</small>
+                                {% if result.ecl_formatted.stage == 'Stage 1' %}
+                                <span class="badge bg-success mb-2">Нет SICR</span>
+                                {% elif result.ecl_formatted.stage == 'Stage 2' %}
+                                <span class="badge bg-warning mb-2">SICR выявлен</span>
+                                {% else %}
+                                <span class="badge bg-danger mb-2">Default</span>
+                                {% endif %}
+                                <small class="text-muted d-block">Увеличение кредитного риска</small>
                             </div>
                         </div>
                     </div>
-                    <hr class="my-3">
-                    <p><strong>Формула:</strong></p>
-                    <pre class="bg-light p-3 rounded">{{ result.ecl.formula_display }}</pre>
+
+                    <!-- Расширяемые детали расчета -->
+                    <div class="collapse mt-4" id="eclDetails">
+                        <hr class="my-3">
+                        <div class="accordion" id="eclAccordion">
+                            <!-- Параметры входа -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#eclInputs">
+                                        📊 Параметры входа
+                                    </button>
+                                </h2>
+                                <div id="eclInputs" class="accordion-collapse collapse" data-bs-parent="#eclAccordion">
+                                    <div class="accordion-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <table class="table table-sm table-borderless">
+                                                    <tr>
+                                                        <td><strong>Валовая остаточная стоимость (GCA):</strong></td>
+                                                        <td><code>{{ result.ecl.gross_carrying_amount }}</code></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Вероятность дефолта (PD):</strong></td>
+                                                        <td><code>{{ result.ecl.pd_12m }}</code> (12-месячная)</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>PD Lifetime:</strong></td>
+                                                        <td><code>{{ result.ecl.pd_lifetime }}</code> (срок договора)</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <table class="table table-sm table-borderless">
+                                                    <tr>
+                                                        <td><strong>Loss Given Default (LGD):</strong></td>
+                                                        <td><code>0.69</code> (69%)</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Exposure At Default (EAD):</strong></td>
+                                                        <td><code>GCA</code></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Дней просрочки (DPD):</strong></td>
+                                                        <td><code>0</code> дней</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Методология расчета -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eclMethodology">
+                                        🔬 Методология (МСФО 9)
+                                    </button>
+                                </h2>
+                                <div id="eclMethodology" class="accordion-collapse collapse" data-bs-parent="#eclAccordion">
+                                    <div class="accordion-body">
+                                        <h6>Формула ECL (Expected Credit Loss):</h6>
+                                        <pre class="bg-light p-3 rounded border"><code>ECL = PD × LGD × EAD × DiscountFactor</code></pre>
+
+                                        <h6 class="mt-3">Классификация по стадиям МСФО 9:</h6>
+                                        <table class="table table-sm">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Стадия</th>
+                                                    <th>PD</th>
+                                                    <th>Условие</th>
+                                                    <th>Резервирование</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><span class="badge bg-success">Stage 1</span></td>
+                                                    <td>12-месячная</td>
+                                                    <td>Нет SICR (Significant Increase in Credit Risk)</td>
+                                                    <td>12-месячный ECL</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span class="badge bg-warning">Stage 2</span></td>
+                                                    <td>Lifetime</td>
+                                                    <td>SICR выявлен, но не в дефолте</td>
+                                                    <td>Lifetime ECL (от 0.5% до 100%)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span class="badge bg-danger">Stage 3</span></td>
+                                                    <td>Lifetime</td>
+                                                    <td>Дефолт или просрочка > 90 дней</td>
+                                                    <td>Полный Lifetime ECL (100%)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <h6 class="mt-3">Детекция SICR в системе:</h6>
+                                        <ul class="small">
+                                            <li><strong>Увеличение PD:</strong> PD_текущий > 1.5 × PD_оригинальный</li>
+                                            <li><strong>Дней просрочки:</strong> DPD > 30 дней = автоматический SICR</li>
+                                            <li><strong>Качественные факторы:</strong> Снижение кредитного рейтинга, макроэкономические изменения</li>
+                                            <li><strong>Risk migration:</strong> Уровень риска портфеля коллегального анализа</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Расчетная формула -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eclFormula">
+                                        📐 Детальная расчетная формула
+                                    </button>
+                                </h2>
+                                <div id="eclFormula" class="accordion-collapse collapse" data-bs-parent="#eclAccordion">
+                                    <div class="accordion-body">
+                                        <pre class="bg-light p-3 rounded border" style="font-size: 0.85rem; max-height: 300px; overflow-y: auto;">{{ result.ecl.formula_display }}</pre>
+                                        <p class="text-muted small mt-2">{{ result.ecl.justification }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -265,10 +393,11 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center" role="button" data-bs-toggle="collapse" data-bs-target="#ifrs17Details">
                     <h5 class="mb-0">
                         <i class="bi bi-file-earmark-text"></i> МСФО 17: Insurance Contract Accounting
                     </h5>
+                    <span class="badge bg-info">Развернуть детали</span>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -301,17 +430,141 @@
                             </div>
                         </div>
                     </div>
-                    <hr class="my-3">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="alert alert-info mb-0">
-                                <strong>Тяжелый договор (Onerous):</strong> {{ result.ifrs17_formatted.is_onerous }}
+
+                    <!-- Статус договора -->
+                    <div class="mt-3">
+                        {% if result.ifrs17_formatted.is_onerous == 'Да' %}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>⚠️ Тяжелый договор (Onerous Contract)</strong><br>
+                            <small>Договор расчитан в убытки. Требуется немедленное резервирование убытков в период обнаружения.</small>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success" role="alert">
+                            <strong>✓ Прибыльный договор</strong><br>
+                            <small>Контрактный маржин прибыли (CSM) признается в прибыль в течение периода обслуживания.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Расширяемые детали расчета -->
+                    <div class="collapse mt-4" id="ifrs17Details">
+                        <hr class="my-3">
+                        <div class="accordion" id="ifrs17Accordion">
+                            <!-- Компоненты ответственности -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ifrs17Components">
+                                        📊 Компоненты ответственности
+                                    </button>
+                                </h2>
+                                <div id="ifrs17Components" class="accordion-collapse collapse" data-bs-parent="#ifrs17Accordion">
+                                    <div class="accordion-body">
+                                        <h6>Best Estimate Liability (BEL) - Наиболее вероятная оценка</h6>
+                                        <p class="small text-muted">
+                                            Сумма денежных потоков, которые страховщик ожидает платить за выполнение
+                                            обязательств по страховым договорам с вероятностной взвешиванием.
+                                        </p>
+                                        <pre class="bg-light p-2 rounded border" style="font-size: 0.75rem;"><code>BEL = PV(Expected Cash Flows)
+   = PV(Premiums - Claims - Expenses)</code></pre>
+
+                                        <h6 class="mt-3">Risk Adjustment (RA) - Корректировка за риск</h6>
+                                        <p class="small text-muted">
+                                            Премия за асимметричность и неопределенность при оценке денежных потоков.
+                                            Рассчитывается на основе коэффициента стоимости капитала (CoC) или условного хвостового ожидания (CTE).
+                                        </p>
+                                        <pre class="bg-light p-2 rounded border" style="font-size: 0.75rem;"><code>RA = 75-й percentile(Losses) - BEL
+   ≈ BEL × RiskMargin% × (1 + MarginSpread)</code></pre>
+
+                                        <h6 class="mt-3">Contractual Service Margin (CSM) - Маржин обслуживания</h6>
+                                        <p class="small text-muted">
+                                            Резерв прибыли от контракта (если есть). Амортизируется в течение периода обслуживания.
+                                            Если отрицателен = тяжелый договор.
+                                        </p>
+                                        <pre class="bg-light p-2 rounded border" style="font-size: 0.75rem;"><code>CSM = (PV(Premiums) - BEL - RA) × (если > 0)
+   = PV(Profit)  // Положительный доход или убыток</code></pre>
+
+                                        <hr class="my-2">
+                                        <h6>Полная Ответственность:</h6>
+                                        <pre class="bg-primary-light p-2 rounded border text-dark" style="font-size: 0.85rem;"><code>Total Liability = BEL + RA - CSM
+
+Если CSM < 0 (Onerous):
+  Total Liability = BEL + RA + |CSM|  // Убыток признается сразу</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Методология расчета -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ifrs17Methodology">
+                                        🔬 Методология (General Measurement Model - GMM)
+                                    </button>
+                                </h2>
+                                <div id="ifrs17Methodology" class="accordion-collapse collapse" data-bs-parent="#ifrs17Accordion">
+                                    <div class="accordion-body">
+                                        <h6>Выбор модели измерения:</h6>
+                                        <table class="table table-sm">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Модель</th>
+                                                    <th>Применимость</th>
+                                                    <th>Сложность</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><strong>GMM</strong></td>
+                                                    <td>Все типы договоров</td>
+                                                    <td>Высокая (полные денежные потоки)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>VFA</strong></td>
+                                                    <td>Инвестиционные контракты</td>
+                                                    <td>Средняя (вариабельность прибыли)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>PAA</strong></td>
+                                                    <td>Простые краткосрочные</td>
+                                                    <td>Низкая (премии - убытки)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <h6 class="mt-3">Этапы расчета GMM:</h6>
+                                        <ol class="small">
+                                            <li><strong>Прогноз денежных потоков:</strong> Ожидаемые платежи по притязаниям, расходы и комиссии на основе исторических данных</li>
+                                            <li><strong>Дисконтирование:</strong> Приведение к текущей стоимости по ставке дисконтирования, специфичной для компании</li>
+                                            <li><strong>BEL расчет:</strong> Взвешивание вероятности различных сценариев</li>
+                                            <li><strong>RA количификация:</strong> Добавление стоимости за асимметричность (обычно 0.5-5%)</li>
+                                            <li><strong>CSM определение:</strong> Остаток прибыли или убытка</li>
+                                            <li><strong>Годовое признание:</strong> Амортизация CSM в течение периода обслуживания</li>
+                                        </ol>
+
+                                        <h6 class="mt-3">Детекция onerous contract:</h6>
+                                        <ul class="small">
+                                            <li>При выпуске контракта: Если (Premiums - BEL - RA) < 0 → CSM отрицателен</li>
+                                            <li>При переоценке: Если CSM становится отрицательным → создается резерв убыток</li>
+                                            <li>Нет отката: Отрицательный CSM не может быть восстановлен, даже если условия улучшатся</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Расчетная формула -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ifrs17Formula">
+                                        📐 Детальная расчетная формула
+                                    </button>
+                                </h2>
+                                <div id="ifrs17Formula" class="accordion-collapse collapse" data-bs-parent="#ifrs17Accordion">
+                                    <div class="accordion-body">
+                                        <pre class="bg-light p-3 rounded border" style="font-size: 0.85rem; max-height: 400px; overflow-y: auto;">{{ result.ifrs17.formula_display }}</pre>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <hr class="my-3">
-                    <p><strong>Формула:</strong></p>
-                    <pre class="bg-light p-3 rounded">{{ result.ifrs17.formula_display }}</pre>
                 </div>
             </div>
         </div>
@@ -321,10 +574,11 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center" role="button" data-bs-toggle="collapse" data-bs-target="#solvencyDetails">
                     <h5 class="mb-0">
-                        <i class="bi bi-shield-check"></i> Платежеспособность (Solvency)
+                        <i class="bi bi-shield-check"></i> Платежеспособность (Solvency - Nмп коэффициент)
                     </h5>
+                    <span class="badge bg-info">Развернуть детали</span>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -332,70 +586,242 @@
                             <div class="text-center p-3 bg-light rounded">
                                 <small class="d-block text-muted mb-2">MMP</small>
                                 <h5 class="mb-1" style="color: #6f42c1;">{{ result.solvency_formatted.mmp }}</h5>
-                                <small class="text-muted">Min Capital Requirement</small>
+                                <small class="text-muted">Минимальный капитал</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center p-3 bg-light rounded">
                                 <small class="d-block text-muted mb-2">FMP</small>
                                 <h5 class="mb-1" style="color: #20c997;">{{ result.solvency_formatted.fmp }}</h5>
-                                <small class="text-muted">Own Funds</small>
+                                <small class="text-muted">Собственные средства</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center p-3 bg-light rounded">
-                                <small class="d-block text-muted mb-2">Nmp Ratio</small>
+                                <small class="d-block text-muted mb-2">Nмп Ratio</small>
                                 <h5 class="mb-1" style="color: #fd7e14;">{{ result.solvency_formatted.ratio }}</h5>
-                                <small class="text-muted">FMP / MMP</small>
+                                <small class="text-muted">FMP ÷ MMP</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="text-center p-3 bg-light rounded">
                                 <small class="d-block text-muted mb-2">Статус</small>
                                 {% if result.solvency.is_compliant %}
-                                <h5 class="mb-1" style="color: #28a745;">✓ OK</h5>
+                                <span class="badge bg-success mb-2" style="font-size: 1rem;">✓ OK</span>
                                 {% else %}
-                                <h5 class="mb-1" style="color: #dc3545;">✗ Fail</h5>
+                                <span class="badge bg-danger mb-2" style="font-size: 1rem;">✗ Breach</span>
                                 {% endif %}
-                                <small class="text-muted">Минимум: 1.0</small>
+                                <small class="text-muted">Мин. 1.0</small>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-3">
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Stress Test Results</h6>
-                            <table class="table table-sm">
-                                <tr>
-                                    <td>Adverse Scenario Ratio:</td>
-                                    <td><strong>{{ result.solvency_formatted.stress_adverse }}</strong></td>
-                                </tr>
-                                <tr>
-                                    <td>Severe Scenario Ratio:</td>
-                                    <td><strong>{{ result.solvency_formatted.stress_severe }}</strong></td>
-                                </tr>
-                                <tr>
-                                    <td>VaR 99.5% Ratio:</td>
-                                    <td><strong>{{ result.solvency_formatted.var_99_5 }}</strong></td>
-                                </tr>
-                            </table>
+                    <!-- Статус платежеспособности -->
+                    <div class="mt-3">
+                        {% if result.solvency.is_compliant %}
+                        <div class="alert alert-success" role="alert">
+                            <strong>✓ Платежеспособна</strong><br>
+                            <small>Компания имеет достаточные собственные средства (FMP) для покрытия минимального требуемого капитала (MMP) с коэффициентом Nмп = FMP/MMP > 1.0</small>
                         </div>
-                        <div class="col-md-6">
-                            <div class="alert alert-info">
-                                <small>
-                                    <strong>Интерпретация:</strong><br>
-                                    Nmp > 1.0 означает, что компания имеет достаточный собственный капитал.
-                                    Результаты стресс-теста показывают отношение FMP/MMP в худших сценариях.
-                                </small>
+                        {% else %}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>⚠️ Нарушение платежеспособности</strong><br>
+                            <small>Собственные средства (FMP) ниже минимума (MMP). Требуется немедленное восстановление капитала.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Расширяемые детали расчета -->
+                    <div class="collapse mt-4" id="solvencyDetails">
+                        <hr class="my-3">
+                        <div class="accordion" id="solvencyAccordion">
+                            <!-- Компоненты платежеспособности -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#solvencyComponents">
+                                        📊 Компоненты платежеспособности (Nмп)
+                                    </button>
+                                </h2>
+                                <div id="solvencyComponents" class="accordion-collapse collapse" data-bs-parent="#solvencyAccordion">
+                                    <div class="accordion-body">
+                                        <h6>MMP (Минимальное требуемое капиталоэкономическое требование)</h6>
+                                        <p class="small text-muted">
+                                            Минимальная сумма капитала, которую должна иметь страховая компания для соответствия
+                                            нормативным требованиям. Рассчитывается как процент от брутто-премий и убытков.
+                                        </p>
+                                        <pre class="bg-light p-2 rounded border" style="font-size: 0.75rem;"><code>MMP = max(Min₁, Min₂) + Adjustment
+
+где:
+  Min₁ = 4% × Gross Premiums (за 1 год)
+  Min₂ = 25% × Incurred Claims (за последние 3 года)
+  Adjustment = K-coefficient × portfolio size</code></pre>
+
+                                        <h6 class="mt-3">FMP (Собственные средства)</h6>
+                                        <p class="small text-muted">
+                                            Собственный капитал, доступный для абсорбции убытков. Включает акционерный капитал,
+                                            прибыли, резервы и прочие допустимые компоненты.
+                                        </p>
+                                        <pre class="bg-light p-2 rounded border" style="font-size: 0.75rem;"><code>FMP = Share Capital + Retained Earnings + Reserves
+      - ECL Adjustments - CSM Impact - Illiquid Assets
+      + Subordinated Debt</code></pre>
+
+                                        <h6 class="mt-3">Nмп Коэффициент</h6>
+                                        <p class="small text-muted">
+                                            Основной индикатор платежеспособности. Должен быть > 1.0 в любой момент времени.
+                                            Коэффициент < 1.5 указывает на необходимость мониторинга и планирования восстановления.
+                                        </p>
+                                        <pre class="bg-light p-2 rounded border" style="font-size: 0.85rem;"><code>Nмп = FMP / MMP
+
+Интерпретация:
+  > 2.0: Хорошая платежеспособность
+  1.5 - 2.0: Адекватная платежеспособность
+  1.0 - 1.5: Требует мониторинга ⚠️
+  < 1.0: НАРУШЕНИЕ (Breach) 🔴</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Стресс-тестирование -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stressTest">
+                                        ⚡ Стресс-тестирование (Stress Test Scenarios)
+                                    </button>
+                                </h2>
+                                <div id="stressTest" class="accordion-collapse collapse" data-bs-parent="#solvencyAccordion">
+                                    <div class="accordion-body">
+                                        <table class="table table-sm">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Сценарий</th>
+                                                    <th>Шоки (Shocks)</th>
+                                                    <th>Nмп Ratio</th>
+                                                    <th>Статус</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><strong>Базовый</strong></td>
+                                                    <td>Без шоков (baseline)</td>
+                                                    <td>{{ result.solvency_formatted.ratio }}</td>
+                                                    <td>{% if result.solvency.is_compliant %}<span class="badge bg-success">✓ OK</span>{% else %}<span class="badge bg-danger">✗ Fail</span>{% endif %}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Adverse</strong></td>
+                                                    <td>
+                                                        <small>
+                                                            Инфляция +2% | Убытки +10% | FX ±3% | Валовые премии -5%
+                                                        </small>
+                                                    </td>
+                                                    <td>{{ result.solvency_formatted.stress_adverse }}</td>
+                                                    <td>
+                                                        {% if result.solvency.stress_adverse >= 1.0 %}
+                                                        <span class="badge bg-warning">⚠️ Edge</span>
+                                                        {% else %}
+                                                        <span class="badge bg-danger">✗ Fail</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Severe</strong></td>
+                                                    <td>
+                                                        <small>
+                                                            Инфляция +5% | Убытки +25% | FX ±8% | Валовые премии -15%
+                                                        </small>
+                                                    </td>
+                                                    <td>{{ result.solvency_formatted.stress_severe }}</td>
+                                                    <td>
+                                                        {% if result.solvency.stress_severe >= 1.0 %}
+                                                        <span class="badge bg-warning">⚠️ Edge</span>
+                                                        {% else %}
+                                                        <span class="badge bg-danger">✗ Fail</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>VaR 99.5%</strong></td>
+                                                    <td>
+                                                        <small>
+                                                            Экстремальный хвост распределения (1 в 200)
+                                                        </small>
+                                                    </td>
+                                                    <td>{{ result.solvency_formatted.var_99_5 }}</td>
+                                                    <td>
+                                                        {% if result.solvency.var_99_5 >= 1.0 %}
+                                                        <span class="badge bg-warning">⚠️ Extreme</span>
+                                                        {% else %}
+                                                        <span class="badge bg-danger">✗ Fail</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <p class="small text-muted mt-2">
+                                            <strong>Интерпретация:</strong> Компания должна сохранять Nмп > 1.0 даже в неблагоприятных сценариях.
+                                            VaR 99.5% представляет экстремальные риски на уровне доверия 99.5%, что соответствует нормативным
+                                            требованиям Solvency 2 для страховых компаний.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Методология расчета -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#solvencyMethodology">
+                                        🔬 Методология (АРФР казахская регуляция)
+                                    </button>
+                                </h2>
+                                <div id="solvencyMethodology" class="accordion-collapse collapse" data-bs-parent="#solvencyAccordion">
+                                    <div class="accordion-body">
+                                        <h6>Требования АРФР (Агентство регуляции и развития финансового рынка):</h6>
+                                        <ul class="small">
+                                            <li>Nмп коэффициент должен быть ≥ 1.0 в любое время</li>
+                                            <li>MMP = max(4% × GPW, 25% × ICL, мин. размер) + корректировки</li>
+                                            <li>K-коэффициент для ОСАГО портфелей составляет 0.70</li>
+                                            <li>Ежегодное раскрытие платежеспособности в финансовой отчетности</li>
+                                            <li>Стресс-тестирование по согласованным с АРФР сценариям</li>
+                                        </ul>
+
+                                        <h6 class="mt-3">Расчет FMP (Собственные средства):</h6>
+                                        <ol class="small">
+                                            <li>Начисляется акционерный капитал (Share Capital)</li>
+                                            <li>Добавляются накопленные прибыли</li>
+                                            <li>Вычитаются убытки (ECL) по МСФО 9</li>
+                                            <li>Вычитаются воздействия МСФО 17 (CSM < 0)</li>
+                                            <li>Вычитаются неликвидные активы (дисконт 50%)</li>
+                                            <li>Добавляется субординированный долг (100%)</li>
+                                            <li>Результат = FMP (Available Own Funds)</li>
+                                        </ol>
+
+                                        <h6 class="mt-3">Стресс-тестирование:</h6>
+                                        <pre class="bg-light p-2 rounded border" style="font-size: 0.75rem;"><code>Для каждого сценария:
+1. Пересчитать премии с корректировкой
+2. Пересчитать убытки с заданным шоком
+3. Пересчитать FMP (может снизиться)
+4. Пересчитать MMP (может измениться)
+5. Проверить Nмп = FMP / MMP ≥ 1.0</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Расчетная формула -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#solvencyFormula">
+                                        📐 Детальная расчетная формула
+                                    </button>
+                                </h2>
+                                <div id="solvencyFormula" class="accordion-collapse collapse" data-bs-parent="#solvencyAccordion">
+                                    <div class="accordion-body">
+                                        <pre class="bg-light p-3 rounded border" style="font-size: 0.85rem; max-height: 400px; overflow-y: auto;">{{ result.solvency.formula_display }}</pre>
+                                        <p class="text-muted small mt-2">{{ result.solvency.justification }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <hr class="my-3">
-                    <p><strong>Формула:</strong></p>
-                    <pre class="bg-light p-3 rounded">{{ result.solvency.formula_display }}</pre>
                 </div>
             </div>
         </div>
