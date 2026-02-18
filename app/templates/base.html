@@ -1251,7 +1251,27 @@
                         <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
                             <i class="bi bi-speedometer2"></i>
                             <span>Dashboard</span>
-                            <span class="badge bg-success">Solvency 2</span>
+                            <span class="badge bg-success">Live</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">CRM</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.customers_page' %}active{% endif %}" href="{{ url_for('main.customers_page') }}">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Клиенты</span>
+                            <span class="badge bg-info">12.4K</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.agents_page' %}active{% endif %}" href="{{ url_for('main.agents_page') }}">
+                            <i class="bi bi-person-badge-fill"></i>
+                            <span>Агенты</span>
+                            <span class="badge bg-warning">156</span>
                         </a>
                     </li>
                 </ul>
@@ -1282,6 +1302,30 @@
             </div>
 
             <div class="nav-section">
+                <div class="nav-section-title">Реестры</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.contracts_registry' %}active{% endif %}" href="{{ url_for('main.contracts_registry') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span>Договоры</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.instruments_registry' %}active{% endif %}" href="{{ url_for('main.instruments_registry') }}">
+                            <i class="bi bi-bank"></i>
+                            <span>Инструменты</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.main_calculation' %}active{% endif %}" href="{{ url_for('main.main_calculation') }}">
+                            <i class="bi bi-cpu"></i>
+                            <span>Расчеты</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
                 <div class="nav-section-title">Отчеты</div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
@@ -1299,7 +1343,20 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">
                             <i class="bi bi-graph-up"></i>
-                            <span>Отчеты</span>
+                            <span>Аналитика</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.reports_generator' %}active{% endif %}" href="{{ url_for('main.reports_generator') }}">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Генератор отчётов</span>
+                            <span class="badge bg-danger">!</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.regulatory_dashboard' %}active{% endif %}" href="{{ url_for('main.regulatory_dashboard') }}">
+                            <i class="bi bi-bank"></i>
+                            <span>Регуляторка АРРФР</span>
                         </a>
                     </li>
                 </ul>

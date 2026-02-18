@@ -663,7 +663,7 @@ TOTAL                             94%
 
 ### Technical Support
 
-- **Email**: aidos@rbpartners.kz
+- **Email**: sholpan@rbpartners.kz
 - **Documentation**: [GitHub Wiki](https://github.com/krasavchik01/Solvency2/wiki)
 - **Issues**: [GitHub Issues](https://github.com/krasavchik01/Solvency2/issues)
 
@@ -671,7 +671,7 @@ TOTAL                             94%
 
 For enterprise licensing, custom development, or integration services:
 
-- **Sales**: aidos@rbpartners.kz
+- **Sales**: sholpan@rbpartners.kz
 - **Website**: www.rbpartners.kz
 
 ---

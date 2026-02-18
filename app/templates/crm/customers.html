@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}KZ-InsurePro | Клиенты{% endblock %}
+
+{% block extra_css %}
+<style>
+.customer-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #3d5a80 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.stat-card .stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.customer-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.customer-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    padding: 1rem;
+    border: none;
+}
+
+.customer-table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.segment-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.segment-vip { background: #ffd700; color: #000; }
+.segment-standard { background: #e9ecef; color: #495057; }
+.segment-risk { background: #dc3545; color: #fff; }
+
+.risk-low { color: #28a745; }
+.risk-medium { color: #ffc107; }
+.risk-high { color: #dc3545; }
+
+.search-filters {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+@media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="customer-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-people-fill me-3"></i>Управление клиентами</h1>
+            <p class="mb-0">CRM модуль - полный контроль над клиентской базой</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="btn-group">
+                <button class="btn btn-outline-light" onclick="exportData('full')">
+                    <i class="bi bi-file-earmark-excel me-2"></i>Экспорт полный
+                </button>
+                <button class="btn btn-light" onclick="exportData('anonymized')">
+                    <i class="bi bi-shield-lock me-2"></i>Экспорт обезличенный
+                </button>
+            </div>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                <i class="bi bi-plus-lg me-2"></i>Добавить
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-value" id="totalCustomers">{{ stats.total }}</div>
+        <div class="stat-label">Всего клиентов</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value text-warning" id="vipCustomers">{{ stats.vip }}</div>
+        <div class="stat-label">VIP клиенты</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value text-success" id="totalCLV">{{ stats.total_clv }}</div>
+        <div class="stat-label">Общий CLV (₸)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value text-info" id="activeCustomers">{{ stats.active }}</div>
+        <div class="stat-label">Активных</div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="search-filters">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="searchInput" placeholder="Поиск по имени, ИИН, email...">
+            </div>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="segmentFilter">
+                <option value="">Все сегменты</option>
+                <option value="VIP">VIP</option>
+                <option value="STANDARD">Стандарт</option>
+                <option value="RISK">Риск</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="riskFilter">
+                <option value="">Все риски</option>
+                <option value="LOW">Низкий</option>
+                <option value="MEDIUM">Средний</option>
+                <option value="HIGH">Высокий</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="statusFilter">
+                <option value="true">Активные</option>
+                <option value="false">Неактивные</option>
+                <option value="">Все</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-outline-primary w-100" onclick="applyFilters()">
+                <i class="bi bi-funnel me-2"></i>Применить
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Customers Table -->
+<div class="customer-table">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Клиент</th>
+                <th>ИИН</th>
+                <th>Сегмент</th>
+                <th>Риск</th>
+                <th>CLV</th>
+                <th>Полисы</th>
+                <th>Убытки</th>
+                <th>Посл. контакт</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="customersTableBody">
+            {% for customer in customers %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-2 bg-primary text-white">
+                            {{ customer.full_name[:2] | upper }}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">{{ customer.full_name }}</div>
+                            <small class="text-muted">{{ customer.email }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td><code>{{ customer.iin }}</code></td>
+                <td>
+                    <span class="segment-badge segment-{{ customer.segment | lower }}">
+                        {{ customer.segment }}
+                    </span>
+                </td>
+                <td class="risk-{{ customer.risk_rating | lower }}">
+                    <i class="bi bi-circle-fill me-1"></i>{{ customer.risk_rating }}
+                </td>
+                <td>{{ "{:,.0f}".format(customer.customer_lifetime_value) }} ₸</td>
+                <td><span class="badge bg-info">{{ customer.total_policies }}</span></td>
+                <td><span class="badge bg-warning">{{ customer.total_claims }}</span></td>
+                <td>{{ customer.last_interaction }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="#" class="btn btn-outline-primary" title="Просмотр">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary" title="Редактировать">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-success" title="Новый полис">
+                            <i class="bi bi-plus"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item disabled"><a class="page-link" href="#">Назад</a></li>
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item"><a class="page-link" href="#">Далее</a></li>
+    </ul>
+</nav>
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Добавить клиента</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCustomerForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">ФИО</label>
+                            <input type="text" class="form-control" name="full_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">ИИН</label>
+                            <input type="text" class="form-control" name="iin" maxlength="12" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Сегмент</label>
+                            <select class="form-select" name="segment">
+                                <option value="STANDARD">Стандарт</option>
+                                <option value="VIP">VIP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Дата рождения</label>
+                            <input type="date" class="form-control" name="date_of_birth">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="saveCustomer()">
+                    <i class="bi bi-check-lg me-2"></i>Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadCustomers() {
+    try {
+        const response = await fetch('/api/customers');
+        const result = await response.json();
+        if (result.status === 'success') {
+            updateCustomersTable(result.data.customers);
+        }
+    } catch (error) {
+        console.error('Error loading customers:', error);
+    }
+}
+
+function updateCustomersTable(customers) {
+    // Update table with new data
+    console.log('Customers loaded:', customers.length);
+}
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const segment = document.getElementById('segmentFilter').value;
+    // Apply filters via API
+    console.log('Applying filters:', { search, segment });
+}
+
+function saveCustomer() {
+    const form = document.getElementById('addCustomerForm');
+    const formData = new FormData(form);
+    console.log('Saving customer:', Object.fromEntries(formData));
+}
+
+async function exportData(type) {
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Загрузка...';
+
+    try {
+        const response = await fetch(`/api/customers/export?type=${type}`);
+        const blob = await response.blob();
+
+        // Создаем ссылку для скачивания
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = type === 'full'
+            ? `customers_full_${new Date().toISOString().slice(0,10)}.xlsx`
+            : `customers_anonymized_${new Date().toISOString().slice(0,10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        // Показываем уведомление
+        showToast(type === 'full'
+            ? 'Полные данные экспортированы'
+            : 'Обезличенные данные экспортированы (ИИН → хеш, ФИО удалены)',
+            'success');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Ошибка экспорта', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    }
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'x-circle'} me-2"></i>${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Load on page ready
+document.addEventListener('DOMContentLoaded', loadCustomers);
+</script>
+{% endblock %}

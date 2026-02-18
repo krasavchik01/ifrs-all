@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block title %}KZ-InsurePro | Агенты{% endblock %}
+
+{% block extra_css %}
+<style>
+.agents-header {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.kpi-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.kpi-card .kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.kpi-card .kpi-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.kpi-card .kpi-change {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.kpi-change.positive { color: #28a745; }
+.kpi-change.negative { color: #dc3545; }
+
+.agent-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.agent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+}
+
+.agent-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.agent-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.agent-stat {
+    text-align: center;
+}
+
+.agent-stat .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.agent-stat .label {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.kpi-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.kpi-score.excellent { background: #d4edda; color: #155724; }
+.kpi-score.good { background: #fff3cd; color: #856404; }
+.kpi-score.poor { background: #f8d7da; color: #721c24; }
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-active { background: #28a745; color: white; }
+.status-inactive { background: #6c757d; color: white; }
+.status-suspended { background: #dc3545; color: white; }
+
+.leaderboard {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.leaderboard-item:last-child { border-bottom: none; }
+
+.leaderboard-rank {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-right: 1rem;
+}
+
+.rank-1 { background: #ffd700; color: #000; }
+.rank-2 { background: #c0c0c0; color: #000; }
+.rank-3 { background: #cd7f32; color: #fff; }
+.rank-other { background: #e9ecef; color: #495057; }
+
+@media (max-width: 768px) {
+    .kpi-cards { grid-template-columns: repeat(2, 1fr); }
+    .agent-stats { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="agents-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-person-badge-fill me-3"></i>Управление агентами</h1>
+            <p class="mb-0">Мониторинг эффективности и комиссионных выплат</p>
+        </div>
+        <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addAgentModal">
+            <i class="bi bi-plus-lg me-2"></i>Добавить агента
+        </button>
+    </div>
+</div>
+
+<!-- KPI Overview -->
+<div class="kpi-cards">
+    <div class="kpi-card">
+        <div class="kpi-value text-primary">{{ summary.total_agents }}</div>
+        <div class="kpi-label">Всего агентов</div>
+        <div class="kpi-change positive"><i class="bi bi-arrow-up"></i> +3 за месяц</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value text-success">{{ summary.avg_kpi_score }}%</div>
+        <div class="kpi-label">Средний KPI</div>
+        <div class="kpi-change positive"><i class="bi bi-arrow-up"></i> +2.1%</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value text-info">{{ "{:,.0f}".format(summary.total_premium) }} ₸</div>
+        <div class="kpi-label">Объем продаж (мес)</div>
+        <div class="kpi-change positive"><i class="bi bi-arrow-up"></i> +12.5%</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value text-warning">{{ "{:,.0f}".format(summary.total_commission) }} ₸</div>
+        <div class="kpi-label">Комиссии (мес)</div>
+        <div class="kpi-change positive"><i class="bi bi-arrow-up"></i> +8.3%</div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Agents List -->
+    <div class="col-lg-8">
+        <h4 class="mb-3"><i class="bi bi-list-ul me-2"></i>Список агентов</h4>
+
+        {% for agent in agents %}
+        <div class="agent-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex align-items-center">
+                    <div class="agent-avatar me-3">
+                        {{ agent.full_name[:2] | upper }}
+                    </div>
+                    <div>
+                        <h5 class="mb-1">{{ agent.full_name }}</h5>
+                        <div class="text-muted">
+                            <span class="me-3"><i class="bi bi-hash me-1"></i>{{ agent.agent_code }}</span>
+                            <span class="me-3"><i class="bi bi-geo-alt me-1"></i>{{ agent.region }}</span>
+                            <span><i class="bi bi-briefcase me-1"></i>{{ agent.type }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="status-badge status-{{ agent.status | lower }}">{{ agent.status }}</span>
+                    <div class="mt-2">
+                        <span class="kpi-score {% if agent.kpi_score >= 85 %}excellent{% elif agent.kpi_score >= 70 %}good{% else %}poor{% endif %}">
+                            <i class="bi bi-star-fill"></i>KPI: {{ agent.kpi_score }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-stats">
+                <div class="agent-stat">
+                    <div class="value">{{ agent.performance.total_policies_sold }}</div>
+                    <div class="label">Полисов продано</div>
+                </div>
+                <div class="agent-stat">
+                    <div class="value">{{ "{:,.0f}".format(agent.performance.total_premium_volume) }} ₸</div>
+                    <div class="label">Объем премий</div>
+                </div>
+                <div class="agent-stat">
+                    <div class="value">{{ "{:,.0f}".format(agent.performance.total_commission_earned) }} ₸</div>
+                    <div class="label">Комиссия</div>
+                </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye me-1"></i>Профиль
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-cash me-1"></i>Комиссии
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-graph-up me-1"></i>Статистика
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="col-lg-4">
+        <div class="leaderboard">
+            <h5 class="mb-4"><i class="bi bi-trophy-fill text-warning me-2"></i>Лидерборд месяца</h5>
+
+            {% for agent in agents[:5] %}
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
+                    {{ loop.index }}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{{ agent.full_name }}</div>
+                    <small class="text-muted">{{ "{:,.0f}".format(agent.performance.total_premium_volume) }} ₸</small>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-success">{{ agent.kpi_score }}%</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="leaderboard mt-4">
+            <h5 class="mb-4"><i class="bi bi-pie-chart-fill text-info me-2"></i>Статистика по типам</h5>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Индивидуальные</span>
+                    <span class="fw-bold">{{ stats.individual }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-primary" style="width: {{ stats.individual }}%"></div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Брокеры</span>
+                    <span class="fw-bold">{{ stats.brokers }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-success" style="width: {{ stats.brokers }}%"></div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Корпоративные</span>
+                    <span class="fw-bold">{{ stats.corporate }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-warning" style="width: {{ stats.corporate }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Agent Modal -->
+<div class="modal fade" id="addAgentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Добавить агента</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAgentForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">ФИО</label>
+                            <input type="text" class="form-control" name="full_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Код агента</label>
+                            <input type="text" class="form-control" name="agent_code" placeholder="AG-XXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Тип агента</label>
+                            <select class="form-select" name="type">
+                                <option value="INDIVIDUAL">Индивидуальный</option>
+                                <option value="BROKER">Брокер</option>
+                                <option value="CORPORATE">Корпоративный</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Регион</label>
+                            <select class="form-select" name="region">
+                                <option value="Алматы">Алматы</option>
+                                <option value="Астана">Астана</option>
+                                <option value="Шымкент">Шымкент</option>
+                                <option value="Караганда">Караганда</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="saveAgent()">
+                    <i class="bi bi-check-lg me-2"></i>Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadAgents() {
+    try {
+        const response = await fetch('/api/agents');
+        const result = await response.json();
+        if (result.status === 'success') {
+            console.log('Agents loaded:', result.data.agents.length);
+        }
+    } catch (error) {
+        console.error('Error loading agents:', error);
+    }
+}
+
+function saveAgent() {
+    const form = document.getElementById('addAgentForm');
+    const formData = new FormData(form);
+    console.log('Saving agent:', Object.fromEntries(formData));
+}
+
+document.addEventListener('DOMContentLoaded', loadAgents);
+</script>
+{% endblock %}

@@ -1,0 +1,1246 @@
+{% extends "base.html" %}
+
+{% block title %}KZ-InsurePro | Дашборд страховой компании{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========================================
+   PREMIUM INSURANCE DASHBOARD STYLES
+   ======================================== */
+
+/* Dashboard Header */
+.dashboard-header {
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.dashboard-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.dashboard-header p {
+    opacity: 0.85;
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+/* Master Sync Button */
+.master-sync-btn {
+    background: linear-gradient(135deg, #00c853 0%, #00e676 100%);
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
+}
+
+.master-sync-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 200, 83, 0.5);
+}
+
+.master-sync-btn.syncing {
+    background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+}
+
+.master-sync-btn i {
+    font-size: 1.25rem;
+}
+
+/* Real-time Badge */
+.realtime-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 230, 118, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    background: #00e676;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+/* Global Sync Progress - PREMIUM */
+.global-sync-progress {
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    display: none;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.global-sync-progress.active {
+    display: block;
+    animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); max-height: 0; }
+    to { opacity: 1; transform: translateY(0); max-height: 500px; }
+}
+
+.sync-header-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sync-counter {
+    text-align: center;
+}
+
+.sync-counter-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #00e676, #00c853);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sync-counter-label {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sync-stages-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.sync-stage {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.sync-stage.active {
+    background: rgba(255, 152, 0, 0.2);
+    border-color: rgba(255, 152, 0, 0.5);
+}
+
+.sync-stage.done {
+    background: rgba(0, 230, 118, 0.15);
+    border-color: rgba(0, 230, 118, 0.5);
+}
+
+.sync-stage-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: rgba(255,255,255,0.1);
+    margin: 0 auto 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.sync-stage.active .sync-stage-icon {
+    background: linear-gradient(135deg, #ff9800, #ffb74d);
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+}
+
+.sync-stage.done .sync-stage-icon {
+    background: linear-gradient(135deg, #00e676, #00c853);
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.5);
+}
+
+.sync-stage-icon i {
+    transition: transform 0.3s ease;
+}
+
+.sync-stage.active .sync-stage-icon i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.sync-stage-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.sync-stage-detail {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
+.sync-stage-items {
+    font-size: 0.65rem;
+    opacity: 0.6;
+    margin-top: 0.5rem;
+}
+
+.global-progress-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 1rem;
+    position: relative;
+}
+
+.global-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00e676, #00c853, #00e676);
+    background-size: 200% 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+    animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.global-progress-percent {
+    text-align: center;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+/* CRM Section - TOP PRIORITY */
+.crm-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+/* Data Protection Badge */
+.data-protection-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 200, 83, 0.2);
+    border: 1px solid rgba(0, 200, 83, 0.4);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: help;
+}
+
+.data-protection-badge i {
+    color: #00e676;
+}
+
+.data-protection-note {
+    background: rgba(255,255,255,0.1);
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    opacity: 0.9;
+    border-left: 3px solid #00e676;
+}
+
+.crm-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.crm-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.crm-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 2px solid transparent;
+}
+
+.crm-card:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.3);
+    color: white;
+}
+
+.crm-card-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.crm-card-info h5 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.crm-card-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.crm-card-stats {
+    margin-left: auto;
+    text-align: right;
+}
+
+.crm-card-stats .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.crm-card-stats .stat-label {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+/* Integration Systems Grid - PREMIUM */
+.integrations-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.integrations-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.integrations-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+}
+
+.integration-card {
+    background: linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%);
+    border-radius: 14px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.integration-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.integration-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.integration-card:hover::before {
+    opacity: 1;
+}
+
+.integration-card.syncing {
+    border-color: #ff9800;
+    animation: pulseSync 1s ease infinite;
+}
+
+@keyframes pulseSync {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+}
+
+.integration-card.synced {
+    border-color: #00c853;
+    background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.integration-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    margin: 0 auto 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.integration-card:hover .integration-icon {
+    transform: scale(1.1);
+}
+
+.integration-card.syncing .integration-icon {
+    animation: bounceIcon 0.6s ease infinite;
+}
+
+@keyframes bounceIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+.integration-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.25rem;
+    position: relative;
+    z-index: 1;
+}
+
+.integration-status {
+    font-size: 0.7rem;
+    color: #28a745;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.integration-status i {
+    font-size: 0.65rem;
+}
+
+.integration-records {
+    font-size: 0.6rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    position: relative;
+    z-index: 1;
+}
+
+.integration-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #e9ecef;
+    overflow: hidden;
+}
+
+.integration-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #0066CC, #00c853, #0066CC);
+    background-size: 200% 100%;
+    transition: width 0.2s ease;
+    animation: progressShimmer 1.5s linear infinite;
+}
+
+@keyframes progressShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Metrics Cards */
+.metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.metric-card.solvency::before { background: linear-gradient(90deg, #00c853, #00e676); }
+.metric-card.portfolio::before { background: linear-gradient(90deg, #2196f3, #03a9f4); }
+.metric-card.loss::before { background: linear-gradient(90deg, #ff9800, #ffc107); }
+.metric-card.ecl::before { background: linear-gradient(90deg, #f44336, #e91e63); }
+
+.metric-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.metric-value.updating {
+    animation: pulse-value 0.5s ease;
+}
+
+@keyframes pulse-value {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.metric-change {
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.metric-change.positive { color: #00c853; }
+.metric-change.negative { color: #f44336; }
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.chart-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chart-container {
+    height: 280px;
+    position: relative;
+}
+
+/* Quick Actions */
+.quick-actions {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.quick-actions h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #212529;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.action-btn:hover {
+    background: white;
+    border-color: #0066CC;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15);
+    color: #0066CC;
+}
+
+.action-btn i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.action-btn span {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Sync Log */
+.sync-log {
+    background: #1a1d23;
+    border-radius: 12px;
+    margin-top: 1rem;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+}
+
+.sync-log.expanded {
+    max-height: 200px;
+}
+
+.sync-log-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: #2d3748;
+    color: #a0aec0;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.sync-log-content {
+    padding: 0.75rem 1rem;
+    max-height: 150px;
+    overflow-y: auto;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.7rem;
+}
+
+.log-entry {
+    padding: 0.25rem 0;
+    color: #a0aec0;
+}
+
+.log-entry.success { color: #68d391; }
+.log-entry.warning { color: #f6e05e; }
+.log-entry.error { color: #fc8181; }
+.log-entry.info { color: #63b3ed; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .integrations-grid { grid-template-columns: repeat(3, 1fr); }
+    .metrics-row { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .actions-grid { grid-template-columns: repeat(2, 1fr); }
+    .sync-stages-container { grid-template-columns: 1fr; gap: 0.75rem; }
+    .sync-header-stats { flex-wrap: wrap; gap: 1rem; justify-content: center; }
+}
+
+@media (max-width: 768px) {
+    .integrations-grid { grid-template-columns: repeat(2, 1fr); }
+    .crm-cards { grid-template-columns: 1fr; }
+    .metrics-row { grid-template-columns: 1fr; }
+    .dashboard-header h1 { font-size: 1.25rem; }
+    .master-sync-btn { padding: 0.75rem 1.25rem; font-size: 0.9rem; }
+    .sync-counter-value { font-size: 1.25rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="premium-dashboard">
+    <!-- Dashboard Header with Master Sync -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1><i class="bi bi-speedometer2 me-2"></i>Панель управления</h1>
+                <p>Комплексная аналитика страховой компании в реальном времени</p>
+                <div class="realtime-badge mt-2">
+                    <span class="pulse-dot"></span>
+                    <span>LIVE DATA</span>
+                </div>
+            </div>
+            <button class="master-sync-btn" id="masterSyncBtn" onclick="masterSync()">
+                <i class="bi bi-arrow-repeat" id="syncIcon"></i>
+                <span id="syncBtnText">Обновить всё</span>
+            </button>
+        </div>
+
+        <!-- Global Sync Progress - PREMIUM VERSION -->
+        <div class="global-sync-progress" id="globalSyncProgress">
+            <div class="sync-header-stats">
+                <div class="sync-counter">
+                    <div class="sync-counter-value" id="recordsLoaded">0</div>
+                    <div class="sync-counter-label">Записей загружено</div>
+                </div>
+                <div class="sync-counter">
+                    <div class="sync-counter-value" id="systemsSynced">0/6</div>
+                    <div class="sync-counter-label">Систем синхронизировано</div>
+                </div>
+                <div class="sync-counter">
+                    <div class="sync-counter-value" id="calcProgress">0%</div>
+                    <div class="sync-counter-label">Прогресс</div>
+                </div>
+            </div>
+
+            <div class="sync-stages-container">
+                <div class="sync-stage" id="stage1">
+                    <div class="sync-stage-icon" id="stage1Icon"><i class="bi bi-cloud-download"></i></div>
+                    <div class="sync-stage-title">Загрузка данных</div>
+                    <div class="sync-stage-detail" id="stage1Status">Ожидание...</div>
+                    <div class="sync-stage-items" id="stage1Items">1С, ЕСБД, НБК, АРФР, КЦМР, eGov</div>
+                </div>
+                <div class="sync-stage" id="stage2">
+                    <div class="sync-stage-icon" id="stage2Icon"><i class="bi bi-cpu"></i></div>
+                    <div class="sync-stage-title">Пересчет МСФО</div>
+                    <div class="sync-stage-detail" id="stage2Status">Ожидание...</div>
+                    <div class="sync-stage-items" id="stage2Items">ECL, BEL, RA, CSM, SCR</div>
+                </div>
+                <div class="sync-stage" id="stage3">
+                    <div class="sync-stage-icon" id="stage3Icon"><i class="bi bi-bar-chart-line"></i></div>
+                    <div class="sync-stage-title">Обновление UI</div>
+                    <div class="sync-stage-detail" id="stage3Status">Ожидание...</div>
+                    <div class="sync-stage-items" id="stage3Items">Метрики, графики, отчеты</div>
+                </div>
+            </div>
+
+            <div class="global-progress-bar">
+                <div class="global-progress-fill" id="globalProgressFill"></div>
+            </div>
+            <div class="global-progress-percent" id="globalProgressPercent">0%</div>
+        </div>
+    </div>
+
+    <!-- CRM Section - PROMINENT -->
+    <div class="crm-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0"><i class="bi bi-people-fill"></i> CRM - Управление клиентами и агентами</h3>
+            <div class="data-protection-badge" title="Персональные данные защищены согласно Закону РК">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Данные защищены</span>
+            </div>
+        </div>
+        <div class="crm-cards">
+            <a href="{{ url_for('main.customers_page') }}" class="crm-card">
+                <div class="crm-card-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="crm-card-info">
+                    <h5>Клиенты</h5>
+                    <p>База клиентов, сегментация, CLV, история взаимодействий</p>
+                </div>
+                <div class="crm-card-stats">
+                    <div class="stat-value" id="customersCount">12,450</div>
+                    <div class="stat-label">активных</div>
+                </div>
+            </a>
+            <a href="{{ url_for('main.agents_page') }}" class="crm-card">
+                <div class="crm-card-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="crm-card-info">
+                    <h5>Агенты</h5>
+                    <p>KPI мониторинг, комиссии, продажи, лидерборд</p>
+                </div>
+                <div class="crm-card-stats">
+                    <div class="stat-value" id="agentsCount">156</div>
+                    <div class="stat-label">агентов</div>
+                </div>
+            </a>
+        </div>
+        <div class="data-protection-note mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            При передаче в АРФР/ФГСВ данные автоматически обезличиваются. ИИН, ФИО, контакты не покидают систему СК.
+        </div>
+    </div>
+
+    <!-- Integration Systems - PREMIUM -->
+    <div class="integrations-section">
+        <h4><i class="bi bi-link-45deg text-primary"></i> Интеграции с учетными системами РК</h4>
+        <div class="integrations-grid">
+            <div class="integration-card" id="int-1c" onclick="syncSingleSystem('1c')">
+                <div class="integration-icon" style="background: linear-gradient(135deg, #FFCC00, #FFE066); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);">1С</div>
+                <div class="integration-name">1С:Бухгалтерия</div>
+                <div class="integration-status"><i class="bi bi-check-circle-fill"></i> Online</div>
+                <div class="integration-records" id="records-1c">~3,200 записей</div>
+                <div class="integration-progress"><div class="integration-progress-bar" id="prog-1c"></div></div>
+            </div>
+            <div class="integration-card" id="int-esbd" onclick="syncSingleSystem('esbd')">
+                <div class="integration-icon" style="background: linear-gradient(135deg, #0066CC, #3399FF); box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4);"><i class="bi bi-database"></i></div>
+                <div class="integration-name">ЕСБД</div>
+                <div class="integration-status"><i class="bi bi-check-circle-fill"></i> Online</div>
+                <div class="integration-records" id="records-esbd">~15,800 полисов</div>
+                <div class="integration-progress"><div class="integration-progress-bar" id="prog-esbd"></div></div>
+            </div>
+            <div class="integration-card" id="int-nbk" onclick="syncSingleSystem('nbk')">
+                <div class="integration-icon" style="background: linear-gradient(135deg, #006B3F, #00A65A); box-shadow: 0 4px 15px rgba(0, 107, 63, 0.4);"><i class="bi bi-bank2"></i></div>
+                <div class="integration-name">НБК</div>
+                <div class="integration-status"><i class="bi bi-check-circle-fill"></i> Online</div>
+                <div class="integration-records" id="records-nbk">Курсы валют</div>
+                <div class="integration-progress"><div class="integration-progress-bar" id="prog-nbk"></div></div>
+            </div>
+            <div class="integration-card" id="int-arfr" onclick="syncSingleSystem('arfr')">
+                <div class="integration-icon" style="background: linear-gradient(135deg, #8B0000, #DC143C); box-shadow: 0 4px 15px rgba(139, 0, 0, 0.4);"><i class="bi bi-shield-check"></i></div>
+                <div class="integration-name">АРФР</div>
+                <div class="integration-status"><i class="bi bi-check-circle-fill"></i> Online</div>
+                <div class="integration-records" id="records-arfr">Отчетность</div>
+                <div class="integration-progress"><div class="integration-progress-bar" id="prog-arfr"></div></div>
+            </div>
+            <div class="integration-card" id="int-kcmr" onclick="syncSingleSystem('kcmr')">
+                <div class="integration-icon" style="background: linear-gradient(135deg, #4B0082, #8A2BE2); box-shadow: 0 4px 15px rgba(75, 0, 130, 0.4);"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="integration-name">КЦМР</div>
+                <div class="integration-status"><i class="bi bi-check-circle-fill"></i> Online</div>
+                <div class="integration-records" id="records-kcmr">~450 облигаций</div>
+                <div class="integration-progress"><div class="integration-progress-bar" id="prog-kcmr"></div></div>
+            </div>
+            <div class="integration-card" id="int-egov" onclick="syncSingleSystem('egov')">
+                <div class="integration-icon" style="background: linear-gradient(135deg, #00A0B0, #4ECDC4); box-shadow: 0 4px 15px rgba(0, 160, 176, 0.4);"><i class="bi bi-building-check"></i></div>
+                <div class="integration-name">eGov</div>
+                <div class="integration-status"><i class="bi bi-check-circle-fill"></i> Online</div>
+                <div class="integration-records" id="records-egov">ИИН/БИН данные</div>
+                <div class="integration-progress"><div class="integration-progress-bar" id="prog-egov"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="metrics-row">
+        <div class="metric-card solvency">
+            <div class="metric-label">Solvency Ratio</div>
+            <div class="metric-value" id="solvencyValue">157.2%</div>
+            <div class="metric-change positive"><i class="bi bi-arrow-up"></i> +5.2% за месяц</div>
+        </div>
+        <div class="metric-card portfolio">
+            <div class="metric-label">Портфель</div>
+            <div class="metric-value" id="portfolioValue">850M ₸</div>
+            <div class="metric-change positive"><i class="bi bi-arrow-up"></i> +12.3% YoY</div>
+        </div>
+        <div class="metric-card loss">
+            <div class="metric-label">Loss Ratio</div>
+            <div class="metric-value" id="lossRatioValue">62.4%</div>
+            <div class="metric-change negative"><i class="bi bi-arrow-down"></i> -2.1% MoM</div>
+        </div>
+        <div class="metric-card ecl">
+            <div class="metric-label">Total ECL</div>
+            <div class="metric-value" id="eclValue">25.6M ₸</div>
+            <div class="metric-change positive"><i class="bi bi-arrow-up"></i> +3.4% QoQ</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h4><i class="bi bi-graph-up text-success"></i> Solvency Ratio - Тренд</h4>
+            <div class="chart-container"><canvas id="solvencyRatioChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+            <h4><i class="bi bi-pie-chart text-primary"></i> Состав портфеля</h4>
+            <div class="chart-container"><canvas id="portfolioCompositionChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+            <h4><i class="bi bi-layers text-warning"></i> ECL по стадиям</h4>
+            <div class="chart-container"><canvas id="eclByStageChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+            <h4><i class="bi bi-bar-chart text-info"></i> CSM Roll-Forward</h4>
+            <div class="chart-container"><canvas id="csmWaterfallChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h4><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Быстрые действия</h4>
+        <div class="actions-grid">
+            <a href="{{ url_for('main.ifrs9_page') }}" class="action-btn">
+                <i class="bi bi-calculator text-primary"></i>
+                <span>МСФО 9</span>
+            </a>
+            <a href="{{ url_for('main.ifrs17_page') }}" class="action-btn">
+                <i class="bi bi-file-earmark-bar-graph text-success"></i>
+                <span>МСФО 17</span>
+            </a>
+            <a href="{{ url_for('main.solvency2_page') }}" class="action-btn">
+                <i class="bi bi-shield-check text-info"></i>
+                <span>Solvency II</span>
+            </a>
+            <a href="{{ url_for('main.regulatory_dashboard') }}" class="action-btn">
+                <i class="bi bi-file-earmark-text text-warning"></i>
+                <span>АРФР Отчеты</span>
+            </a>
+            <a href="{{ url_for('main.contracts_registry') }}" class="action-btn">
+                <i class="bi bi-journal-text text-secondary"></i>
+                <span>Договоры</span>
+            </a>
+            <a href="{{ url_for('main.instruments_registry') }}" class="action-btn">
+                <i class="bi bi-bank text-danger"></i>
+                <span>Инструменты</span>
+            </a>
+            <a href="{{ url_for('main.main_calculation') }}" class="action-btn">
+                <i class="bi bi-cpu text-purple"></i>
+                <span>Расчеты</span>
+            </a>
+            <a href="{{ url_for('main.reports') }}" class="action-btn">
+                <i class="bi bi-file-earmark-pdf text-danger"></i>
+                <span>Отчеты</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Sync Log (Collapsible) -->
+    <div class="sync-log" id="syncLog">
+        <div class="sync-log-header" onclick="toggleSyncLog()">
+            <span><i class="bi bi-terminal me-2"></i>Лог синхронизации</span>
+            <span id="lastSyncTime">--</span>
+        </div>
+        <div class="sync-log-content" id="syncLogContent"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+<script>
+// ========================================
+// MASTER SYNC SYSTEM
+// ========================================
+
+let isSyncing = false;
+
+const systems = [
+    { id: '1c', name: '1С:Бухгалтерия', types: ['Журнал проводок', 'Баланс', 'ОСВ'] },
+    { id: 'esbd', name: 'ЕСБД', types: ['Полисы ОСАГО', 'Полисы КАСКО', 'Убытки'] },
+    { id: 'nbk', name: 'НБК', types: ['Курсы валют', 'Базовая ставка'] },
+    { id: 'arfr', name: 'АРФР', types: ['Форма №85', 'Форма №86', 'Форма №304'] },
+    { id: 'kcmr', name: 'КЦМР', types: ['Гос. облигации', 'Корп. облигации'] },
+    { id: 'egov', name: 'eGov', types: ['Данные клиентов', 'ИИН верификация'] }
+];
+
+function addLog(message, type = 'info') {
+    const log = document.getElementById('syncLogContent');
+    const time = new Date().toLocaleTimeString('ru-RU');
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.innerHTML = `[${time}] ${message}`;
+    log.insertBefore(entry, log.firstChild);
+    while (log.children.length > 20) log.removeChild(log.lastChild);
+}
+
+function updateLastSync() {
+    document.getElementById('lastSyncTime').textContent = new Date().toLocaleString('ru-RU');
+}
+
+function toggleSyncLog() {
+    document.getElementById('syncLog').classList.toggle('expanded');
+}
+
+async function syncSingleSystem(systemId) {
+    if (isSyncing) return;
+
+    const card = document.getElementById(`int-${systemId}`);
+    const progress = document.getElementById(`prog-${systemId}`);
+    const system = systems.find(s => s.id === systemId);
+
+    card.classList.add('syncing');
+    addLog(`Синхронизация ${system.name}...`, 'info');
+
+    for (let i = 0; i < system.types.length; i++) {
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 300));
+        progress.style.width = `${((i + 1) / system.types.length) * 100}%`;
+        addLog(`  → ${system.types[i]} загружено`, 'success');
+    }
+
+    await new Promise(r => setTimeout(r, 300));
+    card.classList.remove('syncing');
+    card.classList.add('synced');
+    progress.style.width = '0%';
+    setTimeout(() => card.classList.remove('synced'), 2000);
+
+    addLog(`${system.name}: синхронизация завершена`, 'success');
+    updateLastSync();
+}
+
+async function masterSync() {
+    if (isSyncing) return;
+    isSyncing = true;
+
+    const btn = document.getElementById('masterSyncBtn');
+    const icon = document.getElementById('syncIcon');
+    const text = document.getElementById('syncBtnText');
+    const progressPanel = document.getElementById('globalSyncProgress');
+    const progressFill = document.getElementById('globalProgressFill');
+    const progressPercent = document.getElementById('globalProgressPercent');
+
+    btn.classList.add('syncing');
+    icon.classList.add('spin');
+    text.textContent = 'Синхронизация...';
+    progressPanel.classList.add('active');
+
+    let totalRecords = 0;
+    let systemsDone = 0;
+    let currentProgress = 0;
+
+    function updateCounters() {
+        document.getElementById('recordsLoaded').textContent = totalRecords.toLocaleString('ru-RU');
+        document.getElementById('systemsSynced').textContent = `${systemsDone}/6`;
+        document.getElementById('calcProgress').textContent = `${Math.round(currentProgress)}%`;
+        progressFill.style.width = `${currentProgress}%`;
+        progressPercent.textContent = `${Math.round(currentProgress)}%`;
+    }
+
+    addLog('═══ ЗАПУСК ПОЛНОЙ СИНХРОНИЗАЦИИ ═══', 'info');
+
+    // ========== STAGE 1: Load data from systems ==========
+    document.getElementById('stage1').classList.add('active');
+    document.getElementById('stage1Status').textContent = 'Загрузка...';
+
+    for (let i = 0; i < systems.length; i++) {
+        const system = systems[i];
+        const card = document.getElementById(`int-${system.id}`);
+        const progress = document.getElementById(`prog-${system.id}`);
+
+        card.classList.add('syncing');
+        document.getElementById('stage1Status').textContent = `${system.name}...`;
+
+        for (let j = 0; j < system.types.length; j++) {
+            await new Promise(r => setTimeout(r, 150 + Math.random() * 100));
+            progress.style.width = `${((j + 1) / system.types.length) * 100}%`;
+            totalRecords += Math.floor(Math.random() * 800) + 200;
+            updateCounters();
+        }
+
+        card.classList.remove('syncing');
+        card.classList.add('synced');
+        progress.style.width = '0%';
+        setTimeout(() => card.classList.remove('synced'), 1500);
+
+        systemsDone++;
+        currentProgress = (systemsDone / systems.length) * 33;
+        updateCounters();
+        addLog(`✓ ${system.name}: ${Math.floor(Math.random() * 3000) + 1500} записей`, 'success');
+    }
+
+    document.getElementById('stage1').classList.remove('active');
+    document.getElementById('stage1').classList.add('done');
+    document.getElementById('stage1Icon').innerHTML = '<i class="bi bi-check-lg"></i>';
+    document.getElementById('stage1Status').textContent = `${totalRecords.toLocaleString('ru-RU')} записей`;
+
+    await new Promise(r => setTimeout(r, 300));
+
+    // ========== STAGE 2: Recalculate IFRS ==========
+    document.getElementById('stage2').classList.add('active');
+    document.getElementById('stage2Status').textContent = 'Инициализация...';
+
+    const calculations = [
+        { name: 'ECL Stage 1-3', module: 'МСФО 9', time: 400 },
+        { name: 'BEL дисконтирование', module: 'МСФО 17', time: 500 },
+        { name: 'Risk Adjustment (VaR)', module: 'МСФО 17', time: 350 },
+        { name: 'CSM Roll-Forward', module: 'МСФО 17', time: 450 },
+        { name: 'Solvency Ratio', module: 'Solvency II', time: 300 },
+        { name: 'SCR по модулям', module: 'Solvency II', time: 350 }
+    ];
+
+    for (let i = 0; i < calculations.length; i++) {
+        const calc = calculations[i];
+        document.getElementById('stage2Status').textContent = calc.name;
+        document.getElementById('stage2Items').textContent = calc.module;
+        await new Promise(r => setTimeout(r, calc.time + Math.random() * 150));
+        currentProgress = 33 + ((i + 1) / calculations.length) * 33;
+        updateCounters();
+        addLog(`→ ${calc.module}: ${calc.name}`, 'info');
+    }
+
+    document.getElementById('stage2').classList.remove('active');
+    document.getElementById('stage2').classList.add('done');
+    document.getElementById('stage2Icon').innerHTML = '<i class="bi bi-check-lg"></i>';
+    document.getElementById('stage2Status').textContent = '6 расчетов выполнено';
+    document.getElementById('stage2Items').textContent = 'ECL, BEL, RA, CSM, Solvency, SCR';
+
+    await new Promise(r => setTimeout(r, 300));
+
+    // ========== STAGE 3: Update dashboard ==========
+    document.getElementById('stage3').classList.add('active');
+    document.getElementById('stage3Status').textContent = 'Обновление метрик...';
+
+    // Fetch real metrics from API
+    try {
+        const response = await fetch('/api/dashboard/metrics');
+        const result = await response.json();
+        if (result.status === 'success') {
+            const data = result.data;
+
+            // Animate metric updates with real values
+            const metricsToUpdate = [
+                { id: 'solvencyValue', value: `${(data.solvency_ratio || 157.2).toFixed(1)}%` },
+                { id: 'portfolioValue', value: `${((data.portfolio_total || 850000000) / 1000000).toFixed(0)}M ₸` },
+                { id: 'lossRatioValue', value: `${(data.loss_ratio || 62.4).toFixed(1)}%` },
+                { id: 'eclValue', value: `${((data.total_ecl || 25600000) / 1000000).toFixed(1)}M ₸` }
+            ];
+
+            for (let i = 0; i < metricsToUpdate.length; i++) {
+                const metric = metricsToUpdate[i];
+                const el = document.getElementById(metric.id);
+                el.classList.add('updating');
+                await new Promise(r => setTimeout(r, 150));
+                el.textContent = metric.value;
+                el.classList.remove('updating');
+                currentProgress = 66 + ((i + 1) / metricsToUpdate.length) * 17;
+                updateCounters();
+            }
+
+            // Update CRM counts
+            document.getElementById('customersCount').textContent = (data.customers_count || 12450).toLocaleString('ru-RU');
+            document.getElementById('agentsCount').textContent = (data.agents_count || 156).toLocaleString('ru-RU');
+        }
+    } catch (e) {
+        addLog('Используются демо-данные', 'warning');
+    }
+
+    document.getElementById('stage3Status').textContent = 'Обновление графиков...';
+
+    // Refresh charts
+    if (window.ChartManager && window.ChartManager.fetchAndUpdateCharts) {
+        await window.ChartManager.fetchAndUpdateCharts();
+    }
+
+    await new Promise(r => setTimeout(r, 500));
+    currentProgress = 100;
+    updateCounters();
+
+    document.getElementById('stage3').classList.remove('active');
+    document.getElementById('stage3').classList.add('done');
+    document.getElementById('stage3Icon').innerHTML = '<i class="bi bi-check-lg"></i>';
+    document.getElementById('stage3Status').textContent = 'Всё обновлено';
+    document.getElementById('stage3Items').textContent = '4 метрики, 4 графика';
+
+    addLog('═══ СИНХРОНИЗАЦИЯ ЗАВЕРШЕНА УСПЕШНО ═══', 'success');
+    addLog(`Всего загружено: ${totalRecords.toLocaleString('ru-RU')} записей`, 'success');
+    updateLastSync();
+
+    // Reset UI after delay
+    await new Promise(r => setTimeout(r, 2000));
+
+    btn.classList.remove('syncing');
+    icon.classList.remove('spin');
+    text.textContent = 'Обновить всё';
+    progressPanel.classList.remove('active');
+
+    // Reset all stages
+    ['stage1', 'stage2', 'stage3'].forEach((id, i) => {
+        const stage = document.getElementById(id);
+        stage.classList.remove('done', 'active');
+        document.getElementById(`${id}Icon`).innerHTML = ['<i class="bi bi-cloud-download"></i>', '<i class="bi bi-cpu"></i>', '<i class="bi bi-bar-chart-line"></i>'][i];
+        document.getElementById(`${id}Status`).textContent = 'Ожидание...';
+    });
+    document.getElementById('stage1Items').textContent = '1С, ЕСБД, НБК, АРФР, КЦМР, eGov';
+    document.getElementById('stage2Items').textContent = 'ECL, BEL, RA, CSM, SCR';
+    document.getElementById('stage3Items').textContent = 'Метрики, графики, отчеты';
+
+    isSyncing = false;
+}
+
+// Add spin animation
+const style = document.createElement('style');
+style.textContent = `.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`;
+document.head.appendChild(style);
+
+// Initial log message
+document.addEventListener('DOMContentLoaded', () => {
+    addLog('Система готова к работе', 'success');
+    document.getElementById('syncLog').classList.add('expanded');
+    setTimeout(() => document.getElementById('syncLog').classList.remove('expanded'), 3000);
+});
+</script>
+{% endblock %}

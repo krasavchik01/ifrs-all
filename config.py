@@ -42,8 +42,9 @@ DEMO_CONFIG = APP_CONFIG
 class Config:
     """Базовая конфигурация Flask"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'kz-insurepro-demo-secret-key-2025'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        f'sqlite:///{os.path.join(BASE_DIR, "kz_insurepro_demo.db")}'
+    # Используем абсолютный путь к базе данных
+    DB_PATH = os.path.join(BASE_DIR, 'kz_insurepro_demo.db')
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{DB_PATH}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Настройки для продакшн (заглушки)
