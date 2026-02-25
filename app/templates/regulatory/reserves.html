@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Страховые резервы (П.№304) | Alliot{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Заголовок -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.regulatory_dashboard') }}">Регуляторная отчётность</a></li>
+                    <li class="breadcrumb-item active">Постановление №304</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-piggy-bank me-2 text-warning"></i>
+                Страховые резервы
+            </h1>
+            <p class="text-muted">
+                Постановление АРРФР №304 "Об утверждении Правил формирования системы страховых резервов"
+            </p>
+        </div>
+    </div>
+
+    <!-- Виды резервов -->
+    <div class="row mb-4">
+        <!-- РНП -->
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-cash-stack me-2"></i>
+                        РНП
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Резерв незаработанной премии</h6>
+                    <p class="text-muted small">
+                        Часть премии, относящаяся к периоду действия договора после отчётной даты
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Методы расчёта:</strong>
+                        <ul class="mb-0 small">
+                            <li><code>Pro-rata temporis</code> - пропорционально сроку</li>
+                            <li><code>1/365</code> - подневной расчёт</li>
+                            <li><code>1/24</code> - полумесячный (для краткосрочных)</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-secondary py-2 mb-0">
+                        <strong>Демо-расчёт:</strong><br>
+                        Премия: {{ "{:,.0f}".format(rnpp_demo.gross_amount) }} ₸<br>
+                        РНП: <strong>{{ "{:,.0f}".format(rnpp_demo.reserve_amount) }} ₸</strong><br>
+                        <small class="text-muted">{{ rnpp_demo.formula_display }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- РЗУ -->
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        РЗУ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Резерв заявленных, но неурегулированных убытков</h6>
+                    <p class="text-muted small">
+                        Оценка обязательств по уже заявленным страховым случаям
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Метод расчёта:</strong>
+                        <ul class="mb-0 small">
+                            <li>Индивидуальная оценка по каждому убытку</li>
+                            <li>На основе акта осмотра / экспертизы</li>
+                            <li>С учётом расходов на урегулирование</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-info py-2 mb-0">
+                        <strong>Компоненты:</strong><br>
+                        <small>
+                            РЗУ = Оценка убытка + ALAE (allocated LAE)<br>
+                            - Суброгация - Регресс
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- РПНУ/IBNR -->
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-question-circle me-2"></i>
+                        РПНУ / IBNR
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Резерв произошедших, но незаявленных убытков</h6>
+                    <p class="text-muted small">
+                        Incurred But Not Reported - убытки произошли, но ещё не заявлены
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Актуарные методы:</strong>
+                        <ul class="mb-0 small">
+                            <li><code>Chain-Ladder</code> - коэффициенты развития</li>
+                            <li><code>Bornhuetter-Ferguson</code> - ожидаемый убыток</li>
+                            <li><code>Cape Cod</code> - взвешенный метод</li>
+                            <li><code>Loss Ratio</code> - процент от премии</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning py-2 mb-0">
+                        <small>
+                            <i class="bi bi-info-circle me-1"></i>
+                            Требует треугольники развития убытков
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- РПЗУ -->
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>
+                        РПЗУ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Резерв расходов на урегулирование убытков</h6>
+                    <p class="text-muted small">
+                        Unallocated LAE - общие расходы на урегулирование
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Расчёт:</strong>
+                        <ul class="mb-0 small">
+                            <li>% от (РЗУ + РПНУ)</li>
+                            <li>Обычно 3-5% для non-life</li>
+                            <li>На основе исторических данных</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-secondary py-2 mb-0">
+                        <strong>Формула:</strong><br>
+                        <code>РПЗУ = (РЗУ + РПНУ) × k%</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Стабилизационный резерв -->
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 border-dark">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield me-2"></i>
+                        Стаб. резерв
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Стабилизационный резерв</h6>
+                    <p class="text-muted small">
+                        Для покрытия катастрофических убытков и колебаний убыточности
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Применяется для:</strong>
+                        <ul class="mb-0 small">
+                            <li>Катастрофические риски</li>
+                            <li>Ядерные риски</li>
+                            <li>Риски терроризма</li>
+                            <li>Классы с высокой волатильностью</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-dark py-2 mb-0">
+                        <small>
+                            Формируется из прибыли при убыточности ниже нормы
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Математический резерв -->
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-heart-pulse me-2"></i>
+                        МР (Life)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Математический резерв</h6>
+                    <p class="text-muted small">
+                        Для договоров страхования жизни
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <strong>Методы расчёта:</strong>
+                        <ul class="mb-0 small">
+                            <li><code>Prospective</code> - PV будущих выплат - PV премий</li>
+                            <li><code>Retrospective</code> - накопленные премии + инвестдоход - выплаты</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-primary py-2 mb-0">
+                        <small>
+                            Использует таблицы смертности и гарантированную ставку
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Формы отчётности по П.№304 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        Формы отчётности по Постановлению №304
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Код</th>
+                                    <th>Название формы</th>
+                                    <th>Название (каз.)</th>
+                                    <th>Периодичность</th>
+                                    <th>Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for form in forms %}
+                                <tr>
+                                    <td><span class="badge bg-warning text-dark">{{ form.form_code }}</span></td>
+                                    <td>{{ form.form_name }}</td>
+                                    <td><small class="text-muted">{{ form.form_name_kz }}</small></td>
+                                    <td>
+                                        {% if form.frequency.value == 'quarterly' %}
+                                            <span class="badge bg-info">Ежеквартально</span>
+                                        {% elif form.frequency.value == 'annual' %}
+                                            <span class="badge bg-secondary">Ежегодно</span>
+                                        {% else %}
+                                            <span class="badge bg-primary">{{ form.frequency.value }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ form.description }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Связь с МСФО 17 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-link-45deg me-2"></i>
+                        Связь резервов П.№304 и МСФО 17
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Резерв по П.№304</th>
+                                    <th>Компонент МСФО 17</th>
+                                    <th>Примечание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>РНП (Резерв незаработанной премии)</td>
+                                    <td>LRC (Liability for Remaining Coverage)</td>
+                                    <td>При PAA: РНП ≈ LRC без корректировок</td>
+                                </tr>
+                                <tr>
+                                    <td>РЗУ + РПНУ + РПЗУ</td>
+                                    <td>LIC (Liability for Incurred Claims)</td>
+                                    <td>LIC = BEL(claims) + RA(claims)</td>
+                                </tr>
+                                <tr>
+                                    <td>Математический резерв</td>
+                                    <td>BEL + RA + CSM</td>
+                                    <td>Для Life: полный расчёт GMM/VFA</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Важно:</strong> Резервы по П.№304 и обязательства по МСФО 17 могут различаться
+                        из-за разных методов дисконтирования и оценки риска.
+                        Alliot рассчитывает оба варианта параллельно.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

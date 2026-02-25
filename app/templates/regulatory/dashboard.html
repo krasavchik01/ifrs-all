@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Регуляторная отчётность | Alliot{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Заголовок -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-clipboard-data me-2"></i>
+                        Регуляторная отчётность
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Постановления АРРФР №85, №86, №304
+                    </p>
+                </div>
+                <div>
+                    <span class="badge bg-primary fs-6">
+                        <i class="bi bi-calendar me-1"></i>
+                        {{ stats.total_forms }} форм отчётности
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Карточки постановлений -->
+    <div class="row mb-4">
+        <!-- Постановление №85 -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        Постановление №85
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3 text-muted">
+                        Формы отчётности страховых организаций
+                    </h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Бухгалтерский баланс (01-СК)
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Отчёт о прибылях и убытках (02-СК)
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Отчёт о страховых премиях (04-СК)
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Отчёт о страховых резервах (05-СК)
+                        </li>
+                    </ul>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-dark">
+                            {{ stats.forms_85 }} форм
+                        </span>
+                        <a href="{{ url_for('main.regulatory_reports_85') }}" class="btn btn-outline-primary btn-sm">
+                            Подробнее <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Постановление №86 -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Постановление №86
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3 text-muted">
+                        Требования к платёжеспособности
+                    </h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-calculator text-success me-2"></i>
+                            ФМП - Фактическая маржа
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-calculator text-success me-2"></i>
+                            НМП - Нормативная маржа
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-calculator text-success me-2"></i>
+                            МГФ - Минимальный гарантийный фонд
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-graph-up text-success me-2"></i>
+                            Коэффициент платёжеспособности
+                        </li>
+                    </ul>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-dark">
+                            {{ stats.forms_86 }} форм
+                        </span>
+                        <a href="{{ url_for('main.regulatory_solvency') }}" class="btn btn-outline-success btn-sm">
+                            Расчёт <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Постановление №304 -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-piggy-bank me-2"></i>
+                        Постановление №304
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-3 text-muted">
+                        Формирование страховых резервов
+                    </h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-cash-stack text-warning me-2"></i>
+                            РНП - Резерв незаработанной премии
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-cash-stack text-warning me-2"></i>
+                            РЗУ - Резерв заявленных убытков
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-cash-stack text-warning me-2"></i>
+                            РПНУ/IBNR - Незаявленные убытки
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-cash-stack text-warning me-2"></i>
+                            Стабилизационный резерв
+                        </li>
+                    </ul>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-dark">
+                            {{ stats.forms_304 }} форм
+                        </span>
+                        <a href="{{ url_for('main.regulatory_reserves') }}" class="btn btn-outline-warning btn-sm">
+                            Расчёт <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ближайшие дедлайны -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-alarm me-2"></i>
+                        Ближайшие дедлайны сдачи отчётности
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Код формы</th>
+                                    <th>Название</th>
+                                    <th>Постановление</th>
+                                    <th>Дедлайн</th>
+                                    <th>Осталось дней</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deadline in upcoming_deadlines %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ deadline.form_code }}</span>
+                                    </td>
+                                    <td>{{ deadline.form_name }}</td>
+                                    <td>{{ deadline.regulation }}</td>
+                                    <td>{{ deadline.deadline.strftime('%d.%m.%Y') }}</td>
+                                    <td>
+                                        {% if deadline.days_remaining <= 7 %}
+                                            <span class="badge bg-danger">{{ deadline.days_remaining }} дней</span>
+                                        {% elif deadline.days_remaining <= 14 %}
+                                            <span class="badge bg-warning">{{ deadline.days_remaining }} дней</span>
+                                        {% else %}
+                                            <span class="badge bg-success">{{ deadline.days_remaining }} дней</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">Ожидает</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика по периодичности -->
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-primary">{{ stats.monthly_forms }}</h2>
+                    <p class="text-muted mb-0">Ежемесячные формы</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-success">{{ stats.quarterly_forms }}</h2>
+                    <p class="text-muted mb-0">Квартальные формы</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-warning">{{ stats.annual_forms }}</h2>
+                    <p class="text-muted mb-0">Годовые формы</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-danger">{{ stats.total_forms }}</h2>
+                    <p class="text-muted mb-0">Всего форм</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация о защите данных -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5 class="alert-heading">
+                    <i class="bi bi-shield-lock me-2"></i>
+                    Защита персональных данных
+                </h5>
+                <p class="mb-0">
+                    В соответствии с Законом РК "О персональных данных и их защите",
+                    при передаче данных в АРРФР персональные данные клиентов автоматически
+                    анонимизируются. ИИН/БИН заменяются на уникальные анонимные идентификаторы.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

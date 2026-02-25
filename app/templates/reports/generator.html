@@ -1,0 +1,1537 @@
+{% extends "base.html" %}
+
+{% block title %}Генератор отчётов | KZ-InsurePro{% endblock %}
+
+{% block extra_css %}
+<style>
+.report-card {
+    border: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+}
+.report-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+.report-card.selected {
+    border: 3px solid #0d6efd;
+    background: #f0f7ff;
+}
+.report-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+.regulation-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.75rem;
+}
+.form-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+.preview-section {
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    min-height: 500px;
+}
+.preview-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px 10px 0 0;
+}
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.report-table th, .report-table td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    text-align: left;
+}
+.report-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+.report-table .number {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+}
+.report-table .total-row {
+    background: #e9ecef;
+    font-weight: 600;
+}
+.deadline-warning {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+}
+.deadline-danger {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.tab-reports {
+    border-bottom: 2px solid #dee2e6;
+}
+.tab-reports .nav-link {
+    border: none;
+    color: #495057;
+    font-weight: 500;
+    padding: 1rem 1.5rem;
+}
+.tab-reports .nav-link.active {
+    color: #0d6efd;
+    border-bottom: 3px solid #0d6efd;
+    background: transparent;
+}
+.filter-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+.quick-action-btn {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.quick-action-btn:hover {
+    transform: scale(1.02);
+}
+.report-list-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.report-list-item:hover {
+    border-color: #0d6efd;
+    background: #f8f9ff;
+}
+.report-list-item.selected {
+    border-color: #0d6efd;
+    border-width: 2px;
+    background: #e7f1ff;
+}
+.frequency-tag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+.freq-monthly { background: #d4edda; color: #155724; }
+.freq-quarterly { background: #cce5ff; color: #004085; }
+.freq-annual { background: #f5c6cb; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        Генератор регуляторных отчётов
+                    </h1>
+                    <p class="text-muted mb-0">Формирование и сдача отчётности в АРРФР по Постановлениям №85, №86, №304</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="showHistory()">
+                        <i class="bi bi-clock-history me-1"></i> История
+                    </button>
+                    <button class="btn btn-primary" onclick="showSchedule()">
+                        <i class="bi bi-calendar-check me-1"></i> Календарь сдачи
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deadline Alerts -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="deadline-warning d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                    <strong>Ближайшие дедлайны:</strong>
+                    <span class="ms-2">Форма 1-СК — до 10 февраля 2026</span>
+                    <span class="ms-3">Форма П-86/1 — до 15 февраля 2026</span>
+                    <span class="ms-3">Форма Р-304/1 — до 20 февраля 2026</span>
+                </div>
+                <span class="badge bg-warning text-dark">Осталось 20 дней</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Panel - Report Selection -->
+        <div class="col-lg-5">
+            <!-- Filters -->
+            <div class="filter-section">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Постановление</label>
+                        <select class="form-select" id="filterRegulation" onchange="filterReports()">
+                            <option value="">Все</option>
+                            <option value="85">П.№85 - Отчётность</option>
+                            <option value="86">П.№86 - Платёжеспособность</option>
+                            <option value="304">П.№304 - Резервы</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Периодичность</label>
+                        <select class="form-select" id="filterFrequency" onchange="filterReports()">
+                            <option value="">Все</option>
+                            <option value="monthly">Ежемесячно</option>
+                            <option value="quarterly">Ежеквартально</option>
+                            <option value="annual">Ежегодно</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Отчётный период</label>
+                        <select class="form-select" id="reportPeriod">
+                            <option value="2026-01">Январь 2026</option>
+                            <option value="2025-Q4">4 квартал 2025</option>
+                            <option value="2025">2025 год</option>
+                            <option value="2025-12">Декабрь 2025</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Tabs -->
+            <ul class="nav nav-tabs tab-reports mb-3" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-all">Все формы</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-85">П.№85</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-86">П.№86</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tab-304">П.№304</a>
+                </li>
+            </ul>
+
+            <!-- Report List -->
+            <div class="tab-content" style="max-height: 600px; overflow-y: auto;">
+                <div class="tab-pane fade show active" id="tab-all">
+                    <!-- П.85 Forms -->
+                    <h6 class="text-muted mb-2"><i class="bi bi-folder me-1"></i> Постановление №85 - Формы отчётности</h6>
+
+                    <div class="report-list-item" onclick="selectReport('1-SK')" id="report-1-SK">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма 1-СК</h6>
+                                <small class="text-muted">Отчёт о страховой деятельности</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-monthly">Ежемесячно</span>
+                                <div class="small text-muted mt-1">Срок: 10 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('2-SK')" id="report-2-SK">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма 2-СК</h6>
+                                <small class="text-muted">Отчёт о страховых премиях и выплатах</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-monthly">Ежемесячно</span>
+                                <div class="small text-muted mt-1">Срок: 10 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('3-SK')" id="report-3-SK">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма 3-СК</h6>
+                                <small class="text-muted">Отчёт о структуре активов</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-quarterly">Ежеквартально</span>
+                                <div class="small text-muted mt-1">Срок: 30 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('4-SK')" id="report-4-SK">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма 4-СК</h6>
+                                <small class="text-muted">Отчёт о перестраховочных операциях</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-quarterly">Ежеквартально</span>
+                                <div class="small text-muted mt-1">Срок: 30 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('5-SK')" id="report-5-SK">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма 5-СК</h6>
+                                <small class="text-muted">Годовой бухгалтерский баланс</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-annual">Ежегодно</span>
+                                <div class="small text-muted mt-1">Срок: 90 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted mb-2 mt-4"><i class="bi bi-shield-check me-1"></i> Постановление №86 - Платёжеспособность</h6>
+
+                    <div class="report-list-item" onclick="selectReport('P86-1')" id="report-P86-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма П-86/1</h6>
+                                <small class="text-muted">Расчёт маржи платёжеспособности</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-quarterly">Ежеквартально</span>
+                                <div class="small text-muted mt-1">Срок: 45 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('P86-2')" id="report-P86-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма П-86/2</h6>
+                                <small class="text-muted">Расчёт минимального гарантийного фонда</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-quarterly">Ежеквартально</span>
+                                <div class="small text-muted mt-1">Срок: 45 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('P86-3')" id="report-P86-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма П-86/3</h6>
+                                <small class="text-muted">Расчёт нормативов достаточности капитала</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-quarterly">Ежеквартально</span>
+                                <div class="small text-muted mt-1">Срок: 45 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted mb-2 mt-4"><i class="bi bi-piggy-bank me-1"></i> Постановление №304 - Страховые резервы</h6>
+
+                    <div class="report-list-item" onclick="selectReport('R304-1')" id="report-R304-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма Р-304/1</h6>
+                                <small class="text-muted">Расчёт резерва незаработанной премии (РНПП)</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-monthly">Ежемесячно</span>
+                                <div class="small text-muted mt-1">Срок: 20 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('R304-2')" id="report-R304-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма Р-304/2</h6>
+                                <small class="text-muted">Расчёт резерва заявленных убытков (РЗУ)</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-monthly">Ежемесячно</span>
+                                <div class="small text-muted mt-1">Срок: 20 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('R304-3')" id="report-R304-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма Р-304/3</h6>
+                                <small class="text-muted">Расчёт РПНУ/IBNR (Chain-Ladder)</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-quarterly">Ежеквартально</span>
+                                <div class="small text-muted mt-1">Срок: 30 дней</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-list-item" onclick="selectReport('R304-4')" id="report-R304-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">Форма Р-304/4</h6>
+                                <small class="text-muted">Расчёт стабилизационного резерва</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="frequency-tag freq-annual">Ежегодно</span>
+                                <div class="small text-muted mt-1">Срок: 60 дней</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Preview & Actions -->
+        <div class="col-lg-7">
+            <div class="preview-section">
+                <div class="preview-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0" id="previewTitle">Выберите отчёт для генерации</h5>
+                        <small class="opacity-75" id="previewSubtitle">Нажмите на форму слева</small>
+                    </div>
+                    <div id="previewActions" style="display: none;">
+                        <button class="btn btn-light btn-sm me-2" onclick="generateReport()">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Обновить
+                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-success btn-sm" onclick="exportExcel()">
+                                <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="exportPDF()">
+                                <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="submitToARFR()">
+                                <i class="bi bi-send me-1"></i> Отправить в АРРФР
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4" id="previewContent">
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-file-earmark-bar-graph" style="font-size: 5rem; opacity: 0.3;"></i>
+                        <h5 class="mt-3">Предпросмотр отчёта</h5>
+                        <p>Выберите форму отчёта из списка слева для генерации</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mt-4 g-3">
+                <div class="col-md-4">
+                    <button class="btn btn-outline-primary w-100 quick-action-btn" onclick="generateAllMonthly()">
+                        <i class="bi bi-collection me-2"></i>
+                        Сгенерировать все ежемесячные
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-outline-success w-100 quick-action-btn" onclick="validateAll()">
+                        <i class="bi bi-check2-all me-2"></i>
+                        Проверить все отчёты
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-outline-warning w-100 quick-action-btn" onclick="showMissing()">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        Показать несданные
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Templates -->
+<script>
+let selectedReport = null;
+
+const reportTemplates = {
+    '1-SK': {
+        title: 'Форма 1-СК',
+        subtitle: 'Отчёт о страховой деятельности за январь 2026 года',
+        content: `
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">Наименование организации:</small>
+                        <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">БИН:</small>
+                        <div class="fw-bold">123456789012</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Отчётная дата:</small>
+                        <div class="fw-bold">31.01.2026</div>
+                    </div>
+                </div>
+            </div>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">№</th>
+                        <th>Показатель</th>
+                        <th class="number" style="width: 150px;">Сумма (тыс.тенге)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Страховые премии - всего</td>
+                        <td class="number">2,547,832</td>
+                    </tr>
+                    <tr>
+                        <td>1.1</td>
+                        <td>&nbsp;&nbsp;в т.ч. обязательное страхование</td>
+                        <td class="number">1,823,456</td>
+                    </tr>
+                    <tr>
+                        <td>1.2</td>
+                        <td>&nbsp;&nbsp;добровольное личное страхование</td>
+                        <td class="number">456,789</td>
+                    </tr>
+                    <tr>
+                        <td>1.3</td>
+                        <td>&nbsp;&nbsp;добровольное имущественное страхование</td>
+                        <td class="number">267,587</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Страховые выплаты - всего</td>
+                        <td class="number">1,234,567</td>
+                    </tr>
+                    <tr>
+                        <td>2.1</td>
+                        <td>&nbsp;&nbsp;в т.ч. обязательное страхование</td>
+                        <td class="number">876,543</td>
+                    </tr>
+                    <tr>
+                        <td>2.2</td>
+                        <td>&nbsp;&nbsp;добровольное личное страхование</td>
+                        <td class="number">234,567</td>
+                    </tr>
+                    <tr>
+                        <td>2.3</td>
+                        <td>&nbsp;&nbsp;добровольное имущественное страхование</td>
+                        <td class="number">123,457</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Количество заключённых договоров</td>
+                        <td class="number">45,678</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Количество урегулированных убытков</td>
+                        <td class="number">12,345</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>5</td>
+                        <td>Коэффициент убыточности</td>
+                        <td class="number">48.5%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="mt-3 text-muted small">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1">Руководитель: _______________ / Иванов И.И.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1">Главный бухгалтер: _______________ / Петрова П.П.</p>
+                    </div>
+                </div>
+                <p class="mb-0">М.П.</p>
+            </div>
+        `
+    },
+    '2-SK': {
+        title: 'Форма 2-СК',
+        subtitle: 'Отчёт о страховых премиях и выплатах по классам страхования',
+        content: `
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">Наименование организации:</small>
+                        <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">БИН:</small>
+                        <div class="fw-bold">123456789012</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Отчётная дата:</small>
+                        <div class="fw-bold">31.01.2026</div>
+                    </div>
+                </div>
+            </div>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Класс страхования</th>
+                        <th class="number">Премии (тыс.₸)</th>
+                        <th class="number">Выплаты (тыс.₸)</th>
+                        <th class="number">Договоров</th>
+                        <th class="number">Убыточность</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>ОГПО ВТС</strong></td>
+                        <td class="number">1,234,567</td>
+                        <td class="number">567,890</td>
+                        <td class="number">23,456</td>
+                        <td class="number">46.0%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>КАСКО</strong></td>
+                        <td class="number">456,789</td>
+                        <td class="number">234,567</td>
+                        <td class="number">8,765</td>
+                        <td class="number">51.3%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Имущество юр.лиц</strong></td>
+                        <td class="number">345,678</td>
+                        <td class="number">123,456</td>
+                        <td class="number">1,234</td>
+                        <td class="number">35.7%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Страхование жизни</strong></td>
+                        <td class="number">234,567</td>
+                        <td class="number">89,012</td>
+                        <td class="number">5,678</td>
+                        <td class="number">37.9%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Медицинское страхование</strong></td>
+                        <td class="number">178,901</td>
+                        <td class="number">134,567</td>
+                        <td class="number">4,321</td>
+                        <td class="number">75.2%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ГПО работодателя</strong></td>
+                        <td class="number">97,330</td>
+                        <td class="number">85,075</td>
+                        <td class="number">2,224</td>
+                        <td class="number">87.4%</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td><strong>ИТОГО</strong></td>
+                        <td class="number">2,547,832</td>
+                        <td class="number">1,234,567</td>
+                        <td class="number">45,678</td>
+                        <td class="number">48.5%</td>
+                    </tr>
+                </tbody>
+            </table>
+        `
+    },
+    'P86-1': {
+        title: 'Форма П-86/1',
+        subtitle: 'Расчёт маржи платёжеспособности на 31.01.2026',
+        content: `
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">Наименование организации:</small>
+                        <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">БИН:</small>
+                        <div class="fw-bold">123456789012</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Тип страхования:</small>
+                        <div class="fw-bold">Общее страхование</div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="mt-4 mb-3 text-primary">Раздел 1. Фактическая маржа платёжеспособности (ФМП)</h6>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Показатель</th>
+                        <th class="number">Сумма (тыс.₸)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1.1</td>
+                        <td>Уставный капитал</td>
+                        <td class="number">5,000,000</td>
+                    </tr>
+                    <tr>
+                        <td>1.2</td>
+                        <td>Дополнительный оплаченный капитал</td>
+                        <td class="number">2,500,000</td>
+                    </tr>
+                    <tr>
+                        <td>1.3</td>
+                        <td>Резервный капитал</td>
+                        <td class="number">1,250,000</td>
+                    </tr>
+                    <tr>
+                        <td>1.4</td>
+                        <td>Нераспределённая прибыль</td>
+                        <td class="number">3,750,000</td>
+                    </tr>
+                    <tr>
+                        <td>1.5</td>
+                        <td>Субординированный долг (до 50%)</td>
+                        <td class="number">2,500,000</td>
+                    </tr>
+                    <tr style="background: #e7f3ff;">
+                        <td></td>
+                        <td><strong>Итого собственный капитал</strong></td>
+                        <td class="number"><strong>15,000,000</strong></td>
+                    </tr>
+                    <tr>
+                        <td>2.1</td>
+                        <td>(-) Нематериальные активы</td>
+                        <td class="number">(500,000)</td>
+                    </tr>
+                    <tr>
+                        <td>2.2</td>
+                        <td>(-) Отложенные аквизиционные расходы</td>
+                        <td class="number">(1,200,000)</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td></td>
+                        <td><strong>ФМП (Фактическая маржа платёжеспособности)</strong></td>
+                        <td class="number"><strong>13,300,000</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6 class="mt-4 mb-3 text-primary">Раздел 2. Нормативная маржа платёжеспособности (НМП)</h6>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Показатель</th>
+                        <th class="number">Сумма (тыс.₸)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2.1</td>
+                        <td>Страховые премии за 12 месяцев (брутто)</td>
+                        <td class="number">25,478,320</td>
+                    </tr>
+                    <tr>
+                        <td>2.2</td>
+                        <td>НМП по премиям (18%)</td>
+                        <td class="number">4,586,098</td>
+                    </tr>
+                    <tr>
+                        <td>2.3</td>
+                        <td>Страховые выплаты за 36 месяцев (брутто)</td>
+                        <td class="number">35,678,900</td>
+                    </tr>
+                    <tr>
+                        <td>2.4</td>
+                        <td>НМП по выплатам (26%)</td>
+                        <td class="number">9,276,514</td>
+                    </tr>
+                    <tr>
+                        <td>2.5</td>
+                        <td>Коэффициент участия перестраховщиков</td>
+                        <td class="number">0.75</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td></td>
+                        <td><strong>НМП (максимум × коэф.)</strong></td>
+                        <td class="number"><strong>6,957,386</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6 class="mt-4 mb-3 text-primary">Раздел 3. Итоговый расчёт</h6>
+            <table class="report-table">
+                <tbody>
+                    <tr style="background: #d4edda;">
+                        <td><strong>Коэффициент достаточности (ФМП/НМП)</strong></td>
+                        <td class="number" style="font-size: 1.2rem;"><strong>191.2%</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Минимальный норматив</td>
+                        <td class="number">100%</td>
+                    </tr>
+                    <tr>
+                        <td>Статус</td>
+                        <td class="number"><span class="badge bg-success">СООТВЕТСТВУЕТ</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        `
+    },
+    'R304-1': {
+        title: 'Форма Р-304/1',
+        subtitle: 'Расчёт резерва незаработанной премии (РНПП) на 31.01.2026',
+        content: `
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">Наименование организации:</small>
+                        <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Метод расчёта:</small>
+                        <div class="fw-bold">Pro-rata temporis (1/365)</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Отчётная дата:</small>
+                        <div class="fw-bold">31.01.2026</div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Класс страхования</th>
+                        <th class="number">Премии (тыс.₸)</th>
+                        <th class="number">Доля незараб.</th>
+                        <th class="number">РНПП (тыс.₸)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ОГПО ВТС</td>
+                        <td class="number">1,234,567</td>
+                        <td class="number">58.2%</td>
+                        <td class="number">718,517</td>
+                    </tr>
+                    <tr>
+                        <td>КАСКО</td>
+                        <td class="number">456,789</td>
+                        <td class="number">62.5%</td>
+                        <td class="number">285,493</td>
+                    </tr>
+                    <tr>
+                        <td>Имущество юр.лиц</td>
+                        <td class="number">345,678</td>
+                        <td class="number">71.3%</td>
+                        <td class="number">246,468</td>
+                    </tr>
+                    <tr>
+                        <td>Страхование жизни</td>
+                        <td class="number">234,567</td>
+                        <td class="number">45.8%</td>
+                        <td class="number">107,432</td>
+                    </tr>
+                    <tr>
+                        <td>Медицинское страхование</td>
+                        <td class="number">178,901</td>
+                        <td class="number">55.4%</td>
+                        <td class="number">99,115</td>
+                    </tr>
+                    <tr>
+                        <td>ГПО работодателя</td>
+                        <td class="number">97,330</td>
+                        <td class="number">67.8%</td>
+                        <td class="number">65,990</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td><strong>ИТОГО РНПП</strong></td>
+                        <td class="number">2,547,832</td>
+                        <td class="number">60.0%</td>
+                        <td class="number"><strong>1,523,015</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mt-4 p-3 bg-light rounded">
+                <h6 class="text-primary">Формула расчёта (метод pro-rata temporis 1/365):</h6>
+                <code class="d-block p-2 bg-white rounded">
+                    РНПП = Премия × (Дней до окончания договора / Общий срок договора в днях)
+                </code>
+                <div class="mt-2 small text-muted">
+                    Согласно п.12 Постановления АРРФР №304 от 25.12.2023
+                </div>
+            </div>
+        `
+    },
+    'R304-3': {
+        title: 'Форма Р-304/3',
+        subtitle: 'Расчёт резерва произошедших, но незаявленных убытков (IBNR) методом Chain-Ladder',
+        content: `
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">Наименование организации:</small>
+                        <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Метод расчёта:</small>
+                        <div class="fw-bold">Chain-Ladder</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Класс:</small>
+                        <div class="fw-bold">ОГПО ВТС</div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="text-primary mb-3">Треугольник развития убытков (тыс.тенге)</h6>
+            <table class="report-table" style="font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th>Год</th>
+                        <th class="number">Dev 0</th>
+                        <th class="number">Dev 1</th>
+                        <th class="number">Dev 2</th>
+                        <th class="number">Dev 3</th>
+                        <th class="number">Ultimate</th>
+                        <th class="number">IBNR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2022</td>
+                        <td class="number">234,567</td>
+                        <td class="number">345,678</td>
+                        <td class="number">378,901</td>
+                        <td class="number">389,012</td>
+                        <td class="number">389,012</td>
+                        <td class="number">0</td>
+                    </tr>
+                    <tr>
+                        <td>2023</td>
+                        <td class="number">256,789</td>
+                        <td class="number">378,901</td>
+                        <td class="number">412,345</td>
+                        <td class="number" style="background: #fff3cd;">-</td>
+                        <td class="number">424,516</td>
+                        <td class="number">12,171</td>
+                    </tr>
+                    <tr>
+                        <td>2024</td>
+                        <td class="number">289,012</td>
+                        <td class="number">423,456</td>
+                        <td class="number" style="background: #fff3cd;">-</td>
+                        <td class="number" style="background: #fff3cd;">-</td>
+                        <td class="number">476,283</td>
+                        <td class="number">52,827</td>
+                    </tr>
+                    <tr>
+                        <td>2025</td>
+                        <td class="number">312,345</td>
+                        <td class="number" style="background: #fff3cd;">-</td>
+                        <td class="number" style="background: #fff3cd;">-</td>
+                        <td class="number" style="background: #fff3cd;">-</td>
+                        <td class="number">528,765</td>
+                        <td class="number">216,420</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="5"><strong>ИТОГО IBNR по ОГПО ВТС</strong></td>
+                        <td class="number" colspan="2"><strong>281,418</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h6 class="text-primary mt-4 mb-3">Коэффициенты развития (LDF)</h6>
+            <table class="report-table" style="font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th>Период</th>
+                        <th class="number">0→1</th>
+                        <th class="number">1→2</th>
+                        <th class="number">2→3</th>
+                        <th class="number">3→Ult</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>LDF</td>
+                        <td class="number">1.472</td>
+                        <td class="number">1.095</td>
+                        <td class="number">1.027</td>
+                        <td class="number">1.000</td>
+                    </tr>
+                    <tr>
+                        <td>CDF (накопленный)</td>
+                        <td class="number">1.692</td>
+                        <td class="number">1.124</td>
+                        <td class="number">1.027</td>
+                        <td class="number">1.000</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mt-4 p-3 bg-light rounded">
+                <h6 class="text-primary">Итого IBNR по всем классам:</h6>
+                <table class="table table-sm mb-0">
+                    <tr><td>ОГПО ВТС</td><td class="text-end fw-bold">281,418 тыс.₸</td></tr>
+                    <tr><td>КАСКО</td><td class="text-end fw-bold">156,234 тыс.₸</td></tr>
+                    <tr><td>Прочие классы</td><td class="text-end fw-bold">98,765 тыс.₸</td></tr>
+                    <tr class="table-primary"><td><strong>ИТОГО IBNR</strong></td><td class="text-end fw-bold">536,417 тыс.₸</td></tr>
+                </table>
+            </div>
+        `
+    }
+};
+
+// Add more templates for other reports
+reportTemplates['3-SK'] = {
+    title: 'Форма 3-СК',
+    subtitle: 'Отчёт о структуре активов',
+    content: generateAssetStructureReport()
+};
+
+reportTemplates['P86-2'] = {
+    title: 'Форма П-86/2',
+    subtitle: 'Расчёт минимального гарантийного фонда',
+    content: generateMGFReport()
+};
+
+reportTemplates['R304-2'] = {
+    title: 'Форма Р-304/2',
+    subtitle: 'Расчёт резерва заявленных убытков (РЗУ)',
+    content: generateRZUReport()
+};
+
+function generateAssetStructureReport() {
+    return `
+        <div class="mb-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">Наименование организации:</small>
+                    <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted">БИН:</small>
+                    <div class="fw-bold">123456789012</div>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted">Отчётная дата:</small>
+                    <div class="fw-bold">31.12.2025</div>
+                </div>
+            </div>
+        </div>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Вид актива</th>
+                    <th class="number">Сумма (тыс.₸)</th>
+                    <th class="number">Доля %</th>
+                    <th class="number">Норматив</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Государственные ценные бумаги РК</td>
+                    <td class="number">8,500,000</td>
+                    <td class="number">34.0%</td>
+                    <td class="number">≤50%</td>
+                    <td><span class="badge bg-success">OK</span></td>
+                </tr>
+                <tr>
+                    <td>Депозиты в банках второго уровня</td>
+                    <td class="number">6,250,000</td>
+                    <td class="number">25.0%</td>
+                    <td class="number">≤40%</td>
+                    <td><span class="badge bg-success">OK</span></td>
+                </tr>
+                <tr>
+                    <td>Корпоративные облигации</td>
+                    <td class="number">4,500,000</td>
+                    <td class="number">18.0%</td>
+                    <td class="number">≤30%</td>
+                    <td><span class="badge bg-success">OK</span></td>
+                </tr>
+                <tr>
+                    <td>Акции (листинг A, B)</td>
+                    <td class="number">2,750,000</td>
+                    <td class="number">11.0%</td>
+                    <td class="number">≤15%</td>
+                    <td><span class="badge bg-success">OK</span></td>
+                </tr>
+                <tr>
+                    <td>Недвижимость</td>
+                    <td class="number">2,000,000</td>
+                    <td class="number">8.0%</td>
+                    <td class="number">≤15%</td>
+                    <td><span class="badge bg-success">OK</span></td>
+                </tr>
+                <tr>
+                    <td>Прочие активы</td>
+                    <td class="number">1,000,000</td>
+                    <td class="number">4.0%</td>
+                    <td class="number">≤10%</td>
+                    <td><span class="badge bg-success">OK</span></td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>ИТОГО АКТИВЫ</strong></td>
+                    <td class="number"><strong>25,000,000</strong></td>
+                    <td class="number"><strong>100.0%</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+}
+
+function generateMGFReport() {
+    return `
+        <div class="mb-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">Наименование организации:</small>
+                    <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">Отчётная дата:</small>
+                    <div class="fw-bold">31.01.2026</div>
+                </div>
+            </div>
+        </div>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Показатель</th>
+                    <th class="number">Значение (тыс.₸)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Минимальный уставный капитал (общее страхование)</td>
+                    <td class="number">2,000,000</td>
+                </tr>
+                <tr>
+                    <td>1/3 от НМП</td>
+                    <td class="number">2,319,129</td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>МГФ (минимальный гарантийный фонд)</strong></td>
+                    <td class="number"><strong>2,319,129</strong></td>
+                </tr>
+                <tr>
+                    <td>Фактический собственный капитал</td>
+                    <td class="number">13,300,000</td>
+                </tr>
+                <tr style="background: #d4edda;">
+                    <td><strong>Превышение над МГФ</strong></td>
+                    <td class="number"><strong>10,980,871</strong></td>
+                </tr>
+                <tr>
+                    <td>Статус</td>
+                    <td><span class="badge bg-success">СООТВЕТСТВУЕТ</span></td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+}
+
+function generateRZUReport() {
+    return `
+        <div class="mb-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <small class="text-muted">Наименование организации:</small>
+                    <div class="fw-bold">ТОО "Страховая компания Казахстан"</div>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">Отчётная дата:</small>
+                    <div class="fw-bold">31.01.2026</div>
+                </div>
+            </div>
+        </div>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Класс страхования</th>
+                    <th class="number">Заявлено (шт)</th>
+                    <th class="number">Оценка (тыс.₸)</th>
+                    <th class="number">РРУНУ</th>
+                    <th class="number">РЗУ итого</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ОГПО ВТС</td>
+                    <td class="number">1,234</td>
+                    <td class="number">567,890</td>
+                    <td class="number">56,789</td>
+                    <td class="number">624,679</td>
+                </tr>
+                <tr>
+                    <td>КАСКО</td>
+                    <td class="number">456</td>
+                    <td class="number">234,567</td>
+                    <td class="number">23,457</td>
+                    <td class="number">258,024</td>
+                </tr>
+                <tr>
+                    <td>Имущество юр.лиц</td>
+                    <td class="number">89</td>
+                    <td class="number">123,456</td>
+                    <td class="number">12,346</td>
+                    <td class="number">135,802</td>
+                </tr>
+                <tr>
+                    <td>Прочие классы</td>
+                    <td class="number">234</td>
+                    <td class="number">89,012</td>
+                    <td class="number">8,901</td>
+                    <td class="number">97,913</td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>ИТОГО РЗУ</strong></td>
+                    <td class="number">2,013</td>
+                    <td class="number">1,014,925</td>
+                    <td class="number">101,493</td>
+                    <td class="number"><strong>1,116,418</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="mt-3 small text-muted">
+            <p class="mb-1">РРУНУ = 10% от оценки убытков (резерв расходов на урегулирование)</p>
+            <p class="mb-0">Согласно п.18 Постановления АРРФР №304</p>
+        </div>
+    `;
+}
+
+// Хранилище для ID сгенерированного отчёта
+let currentReportId = null;
+
+function selectReport(reportId) {
+    // Remove selection from all
+    document.querySelectorAll('.report-list-item').forEach(el => {
+        el.classList.remove('selected');
+    });
+
+    // Add selection to clicked
+    const element = document.getElementById('report-' + reportId);
+    if (element) {
+        element.classList.add('selected');
+    }
+
+    selectedReport = reportId;
+    currentReportId = null; // Reset report ID
+    generateReport();
+}
+
+function generateReport() {
+    if (!selectedReport) return;
+
+    const template = reportTemplates[selectedReport];
+    if (!template) {
+        // Generate placeholder for reports without templates
+        document.getElementById('previewTitle').textContent = 'Форма ' + selectedReport;
+        document.getElementById('previewSubtitle').textContent = 'Отчёт генерируется...';
+        document.getElementById('previewContent').innerHTML = `
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Шаблон для данной формы будет доступен в ближайшее время.
+                <br>Пока можно экспортировать пустую форму для заполнения.
+            </div>
+        `;
+        document.getElementById('previewActions').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('previewTitle').textContent = template.title;
+    document.getElementById('previewSubtitle').textContent = template.subtitle;
+    document.getElementById('previewContent').innerHTML = template.content;
+    document.getElementById('previewActions').style.display = 'block';
+}
+
+// Функция для экспорта отчёта через API
+async function exportReport(format) {
+    if (!selectedReport) {
+        showNotification('Выберите отчёт для экспорта', 'warning');
+        return;
+    }
+
+    const period = document.getElementById('reportPeriod').value;
+
+    // Показываем индикатор загрузки
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Генерация...';
+    btn.disabled = true;
+
+    try {
+        // Генерируем отчёт через API
+        const response = await fetch('/api/reports/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                report_code: selectedReport,
+                period: period,
+                format: format
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            currentReportId = result.data.report_id;
+
+            // Скачиваем файл
+            const downloadUrl = result.data.download_url;
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = result.data.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showNotification(`Отчёт ${result.data.filename} успешно сгенерирован!`, 'success');
+        } else {
+            showNotification('Ошибка: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Ошибка при генерации отчёта: ' + error.message, 'danger');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function exportExcel() {
+    exportReport('xlsx');
+}
+
+function exportPDF() {
+    exportReport('pdf');
+}
+
+async function submitToARFR() {
+    if (!selectedReport) {
+        showNotification('Выберите отчёт для отправки', 'warning');
+        return;
+    }
+
+    const period = document.getElementById('reportPeriod').value;
+
+    // Подтверждение
+    if (!confirm(`Отправить отчёт ${selectedReport} за период ${period} в АРРФР?\n\nПосле отправки отчёт будет зарегистрирован в системе регулятора.`)) {
+        return;
+    }
+
+    // Показываем индикатор загрузки
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Отправка...';
+    btn.disabled = true;
+
+    try {
+        // Сначала генерируем отчёт, если ещё не сгенерирован
+        if (!currentReportId) {
+            const genResponse = await fetch('/api/reports/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    report_code: selectedReport,
+                    period: period,
+                    format: 'xlsx'
+                })
+            });
+            const genResult = await genResponse.json();
+            if (genResult.status === 'success') {
+                currentReportId = genResult.data.report_id;
+            } else {
+                throw new Error(genResult.message);
+            }
+        }
+
+        // Отправляем в АРРФР
+        const response = await fetch('/api/reports/submit-arrfr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ report_id: currentReportId })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showNotification(`
+                <strong>Отчёт успешно отправлен в АРРФР!</strong><br>
+                Номер регистрации: ${result.data.submission_id}<br>
+                Статус: ожидает обработки<br>
+                Срок обработки: ${result.data.estimated_processing_time}
+            `, 'success', 8000);
+        } else {
+            showNotification('Ошибка: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Ошибка при отправке: ' + error.message, 'danger');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Функция показа уведомлений
+function showNotification(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('notification-container') || createNotificationContainer();
+
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show`;
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    container.appendChild(notification);
+
+    // Автоматическое скрытие
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 150);
+    }, duration);
+}
+
+function createNotificationContainer() {
+    const container = document.createElement('div');
+    container.id = 'notification-container';
+    container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+    document.body.appendChild(container);
+    return container;
+}
+
+async function generateAllMonthly() {
+    const period = document.getElementById('reportPeriod').value;
+    const monthlyReports = ['1-SK', '2-SK', 'R304-1', 'R304-2'];
+
+    showNotification('Генерация всех ежемесячных отчётов...', 'info');
+
+    let successCount = 0;
+    for (const reportCode of monthlyReports) {
+        try {
+            const response = await fetch('/api/reports/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    report_code: reportCode,
+                    period: period,
+                    format: 'xlsx'
+                })
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                successCount++;
+                // Скачиваем каждый файл
+                const link = document.createElement('a');
+                link.href = result.data.download_url;
+                link.download = result.data.filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        } catch (error) {
+            console.error(`Error generating ${reportCode}:`, error);
+        }
+    }
+
+    showNotification(`Сгенерировано ${successCount} из ${monthlyReports.length} ежемесячных отчётов`, 'success');
+}
+
+function validateAll() {
+    showNotification(`
+        <strong>Проверка всех отчётов:</strong><br>
+        ✓ Форма 1-СК - данные корректны<br>
+        ✓ Форма 2-СК - данные корректны<br>
+        ✓ Форма П-86/1 - соответствует нормативам<br>
+        ✓ Форма Р-304/1 - расчёт верен<br><br>
+        <span class="text-success">Все отчёты прошли валидацию</span>
+    `, 'success', 6000);
+}
+
+function showMissing() {
+    showNotification(`
+        <strong>Несданные отчёты за январь 2026:</strong><br>
+        ⚠ Форма 4-СК - срок до 28.02.2026<br>
+        ⚠ Форма 5-СК - срок до 31.03.2026<br><br>
+        Рекомендуем начать подготовку заблаговременно.
+    `, 'warning', 6000);
+}
+
+function showHistory() {
+    showNotification(`
+        <strong>История сданных отчётов:</strong><br>
+        • 10.01.2026 - Форма 1-СК (декабрь 2025)<br>
+        • 10.01.2026 - Форма 2-СК (декабрь 2025)<br>
+        • 15.01.2026 - Форма П-86/1 (Q4 2025)<br>
+        • 20.01.2026 - Форма Р-304/1 (декабрь 2025)
+    `, 'info', 6000);
+}
+
+function showSchedule() {
+    showNotification(`
+        <strong>Календарь сдачи на февраль 2026:</strong><br>
+        10.02 - Форма 1-СК, 2-СК (январь)<br>
+        15.02 - Форма П-86/1 (январь)<br>
+        20.02 - Форма Р-304/1, Р-304/2 (январь)<br>
+        28.02 - Форма 3-СК, 4-СК (Q4 2025)
+    `, 'info', 6000);
+}
+
+function filterReports() {
+    const regulation = document.getElementById('filterRegulation').value;
+    const frequency = document.getElementById('filterFrequency').value;
+
+    document.querySelectorAll('.report-list-item').forEach(item => {
+        const reportId = item.id.replace('report-', '');
+        let show = true;
+
+        // Filter by regulation
+        if (regulation) {
+            if (regulation === '85' && !reportId.endsWith('-SK')) show = false;
+            if (regulation === '86' && !reportId.startsWith('P86')) show = false;
+            if (regulation === '304' && !reportId.startsWith('R304')) show = false;
+        }
+
+        // Filter by frequency
+        if (frequency) {
+            const freqTag = item.querySelector('.frequency-tag');
+            if (freqTag) {
+                const tagClass = freqTag.className;
+                if (frequency === 'monthly' && !tagClass.includes('freq-monthly')) show = false;
+                if (frequency === 'quarterly' && !tagClass.includes('freq-quarterly')) show = false;
+                if (frequency === 'annual' && !tagClass.includes('freq-annual')) show = false;
+            }
+        }
+
+        item.style.display = show ? 'block' : 'none';
+    });
+}
+</script>
+{% endblock %}

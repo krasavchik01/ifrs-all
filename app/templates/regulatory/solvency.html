@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Платёжеспособность (П.№86) | Alliot{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Заголовок -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.regulatory_dashboard') }}">Регуляторная отчётность</a></li>
+                    <li class="breadcrumb-item active">Постановление №86</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-shield-check me-2 text-success"></i>
+                Расчёт платёжеспособности
+            </h1>
+            <p class="text-muted">
+                Постановление АРРФР №86 "Об утверждении нормативных значений и методики расчётов
+                пруденциальных нормативов страховой организации"
+            </p>
+        </div>
+    </div>
+
+    <!-- Результаты расчёта -->
+    <div class="row mb-4">
+        <!-- ФМП -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {% if result.fmp_calculated >= result.nmp_calculated %}border-success{% else %}border-danger{% endif %}">
+                <div class="card-header {% if result.fmp_calculated >= result.nmp_calculated %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h5 class="mb-0">ФМП - Фактическая маржа</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-center mb-3">
+                        {{ "{:,.0f}".format(result.fmp_calculated) }} ₸
+                    </h2>
+
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Собственный капитал</td>
+                            <td class="text-end">{{ "{:,.0f}".format(result.equity_capital) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Субординированный долг</td>
+                            <td class="text-end text-success">+{{ "{:,.0f}".format(result.subordinated_debt) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Нематериальные активы</td>
+                            <td class="text-end text-danger">-{{ "{:,.0f}".format(result.intangible_assets) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Отложенные аквизиц. расходы</td>
+                            <td class="text-end text-danger">-{{ "{:,.0f}".format(result.deferred_acquisition_costs) }}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td>Итого ФМП</td>
+                            <td class="text-end">{{ "{:,.0f}".format(result.fmp_calculated) }}</td>
+                        </tr>
+                    </table>
+
+                    <div class="alert alert-secondary py-2 mb-0">
+                        <small>
+                            <strong>Формула:</strong><br>
+                            ФМП = СК + Субдолг (до 50%) - НМА - DAC
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- НМП -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">НМП - Нормативная маржа</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-center mb-3">
+                        {{ "{:,.0f}".format(result.nmp_calculated) }} ₸
+                    </h2>
+
+                    <table class="table table-sm">
+                        <tr>
+                            <td>НМП по премиям</td>
+                            <td class="text-end">{{ "{:,.0f}".format(result.nmp_by_premiums) }}</td>
+                        </tr>
+                        <tr>
+                            <td>НМП по убыткам</td>
+                            <td class="text-end">{{ "{:,.0f}".format(result.nmp_by_claims) }}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td>НМП (максимум)</td>
+                            <td class="text-end">{{ "{:,.0f}".format(result.nmp_calculated) }}</td>
+                        </tr>
+                    </table>
+
+                    <div class="alert alert-secondary py-2 mb-0">
+                        <small>
+                            <strong>Формула НМП по премиям:</strong><br>
+                            18% от первых 200 млн + 16% от превышения<br>
+                            × Коэффициент удержания (min 50%)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Коэффициент и МГФ -->
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 {% if result.is_compliant %}border-success{% else %}border-danger{% endif %}">
+                <div class="card-header {% if result.is_compliant %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h5 class="mb-0">Коэффициент платёжеспособности</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h1 class="display-3 {% if result.solvency_ratio >= 1 %}text-success{% else %}text-danger{% endif %}">
+                        {{ "{:.2f}".format(result.solvency_ratio) }}
+                    </h1>
+                    <p class="lead mb-3">
+                        {% if result.solvency_ratio >= 1 %}
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            Соответствует требованиям
+                        {% else %}
+                            <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                            НЕ соответствует требованиям
+                        {% endif %}
+                    </p>
+
+                    <hr>
+
+                    <h5>Минимальный гарантийный фонд (МГФ)</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Требуемый МГФ</td>
+                            <td class="text-end">{{ "{:,.0f}".format(result.mgf_required) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Фактический МГФ</td>
+                            <td class="text-end">{{ "{:,.0f}".format(result.mgf_actual) }}</td>
+                        </tr>
+                    </table>
+
+                    {% if result.violations %}
+                    <div class="alert alert-danger py-2 mb-0">
+                        <strong>Нарушения:</strong>
+                        <ul class="mb-0 ps-3">
+                            {% for v in result.violations %}
+                            <li>{{ v }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Формы отчётности по П.№86 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        Формы отчётности по Постановлению №86
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Код</th>
+                                    <th>Название формы</th>
+                                    <th>Название (каз.)</th>
+                                    <th>Периодичность</th>
+                                    <th>Срок сдачи</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for form in forms %}
+                                <tr>
+                                    <td><span class="badge bg-success">{{ form.form_code }}</span></td>
+                                    <td>{{ form.form_name }}</td>
+                                    <td><small class="text-muted">{{ form.form_name_kz }}</small></td>
+                                    <td>
+                                        {% if form.frequency.value == 'monthly' %}
+                                            <span class="badge bg-primary">Ежемесячно</span>
+                                        {% elif form.frequency.value == 'quarterly' %}
+                                            <span class="badge bg-info">Ежеквартально</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ form.frequency.value }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ form.deadline_days }} дней после отчётной даты</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Формула расчёта -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calculator me-2"></i>
+                        Методика расчёта по Постановлению №86
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Фактическая маржа платёжеспособности (ФМП)</h6>
+                            <div class="bg-light p-3 rounded mb-3">
+                                <code>
+                                    ФМП = Собственный капитал<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ Субординированный долг (не более 50% от СК)<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Нематериальные активы<br>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Отложенные аквизиционные расходы
+                                </code>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Нормативная маржа платёжеспособности (НМП)</h6>
+                            <div class="bg-light p-3 rounded mb-3">
+                                <code>
+                                    НМП = max(НМП по премиям, НМП по убыткам)<br><br>
+                                    НМП по премиям:<br>
+                                    &nbsp;&nbsp;18% × первые 200 млн<br>
+                                    &nbsp;&nbsp;+ 16% × превышение<br>
+                                    &nbsp;&nbsp;× Коэффициент удержания (min 50%)
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Требование:</strong> Коэффициент платёжеспособности = ФМП / НМП должен быть ≥ 1.0
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

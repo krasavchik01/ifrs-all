@@ -151,7 +151,7 @@ class UnifiedCalculationService:
         csm_adj: Optional[Decimal] = None,
         subordinated: Decimal = Decimal('3000000000'),
         illiquid: Decimal = Decimal('500000000'),
-        has_osago: bool = False,
+        has_ogpo_vts: bool = False,
         k_coef: Decimal = Decimal('0.70'),
     ) -> UnifiedCalculationResult:
         """
@@ -290,7 +290,7 @@ class UnifiedCalculationService:
                 gross_premiums=gross_premiums,
                 incurred_claims=incurred_claims,
                 k_coefficient=k_coef,
-                has_osago=has_osago
+                has_ogpo_vts=has_ogpo_vts
             )
 
             # FMP

@@ -133,7 +133,7 @@ FORMS_REGULATION_85 = [
         regulation_number="85",
         frequency=ReportFrequency.MONTHLY,
         deadline_days=15,
-        description="ОСАГО, ОГПО владельцев опасных объектов"
+        description="ОГПО ВТС, ОГПО владельцев опасных объектов"
     ),
     RegulatoryReportForm(
         form_code="10-СК",

@@ -150,7 +150,7 @@ class InsuranceContract(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     insurer_id = db.Column(db.Integer, db.ForeignKey('insurers.id'), nullable=False)
     contract_number = db.Column(db.String(50))
-    product_type = db.Column(db.String(100))  # life, non_life, osago, kazko, etc.
+    product_type = db.Column(db.String(100))  # life, non_life, ogpo_vts, kazko, etc.
 
     # Группировка
     portfolio_name = db.Column(db.String(100))

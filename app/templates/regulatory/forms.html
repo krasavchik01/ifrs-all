@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Все формы отчётности | Alliot{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Заголовок -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('main.regulatory_dashboard') }}">Регуляторная отчётность</a></li>
+                    <li class="breadcrumb-item active">Все формы</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-collection me-2"></i>
+                Каталог форм регуляторной отчётности
+            </h1>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Постановление</label>
+                            <select name="regulation" class="form-select">
+                                <option value="">Все постановления</option>
+                                <option value="85" {% if selected_regulation == '85' %}selected{% endif %}>П.№85 - Формы отчётности</option>
+                                <option value="86" {% if selected_regulation == '86' %}selected{% endif %}>П.№86 - Платёжеспособность</option>
+                                <option value="304" {% if selected_regulation == '304' %}selected{% endif %}>П.№304 - Страховые резервы</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Периодичность</label>
+                            <select name="frequency" class="form-select">
+                                <option value="">Все</option>
+                                <option value="monthly" {% if selected_frequency == 'monthly' %}selected{% endif %}>Ежемесячно</option>
+                                <option value="quarterly" {% if selected_frequency == 'quarterly' %}selected{% endif %}>Ежеквартально</option>
+                                <option value="annual" {% if selected_frequency == 'annual' %}selected{% endif %}>Ежегодно</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="bi bi-search me-1"></i>Фильтровать
+                            </button>
+                            <a href="{{ url_for('main.regulatory_forms') }}" class="btn btn-outline-secondary">
+                                Сбросить
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица форм -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        Найдено форм: {{ forms|length }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Код</th>
+                                    <th>Название</th>
+                                    <th>Постановление</th>
+                                    <th>Периодичность</th>
+                                    <th>Срок</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for form in forms %}
+                                <tr>
+                                    <td>
+                                        {% if form.regulation_number == '85' %}
+                                            <span class="badge bg-primary">{{ form.form_code }}</span>
+                                        {% elif form.regulation_number == '86' %}
+                                            <span class="badge bg-success">{{ form.form_code }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">{{ form.form_code }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ form.form_name }}</strong><br>
+                                        <small class="text-muted">{{ form.form_name_kz }}</small>
+                                    </td>
+                                    <td>П.№{{ form.regulation_number }}</td>
+                                    <td>
+                                        {% if form.frequency.value == 'monthly' %}
+                                            <span class="badge bg-info">Ежемесячно</span>
+                                        {% elif form.frequency.value == 'quarterly' %}
+                                            <span class="badge bg-secondary">Ежеквартально</span>
+                                        {% elif form.frequency.value == 'annual' %}
+                                            <span class="badge bg-dark">Ежегодно</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ form.frequency.value }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ form.deadline_days }} дней</td>
+                                    <td>
+                                        {% if form.is_mandatory %}
+                                            <span class="badge bg-danger">Обязательная</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Опциональная</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

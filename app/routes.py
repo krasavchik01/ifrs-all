@@ -333,7 +333,7 @@ def main_calculation():
             subordinated = Decimal(request.form.get('subordinated', '3000000000'))
             illiquid = Decimal(request.form.get('illiquid', '500000000'))
             k_coef = Decimal(request.form.get('k_coef', '0.70'))
-            has_osago = request.form.get('osago') == 'on'
+            has_ogpo_vts = request.form.get('ogpo_vts') == 'on'
 
             # Выполняем главный расчет
             calc_result = unified_calculation_service.calculate_everything(
@@ -352,7 +352,7 @@ def main_calculation():
                 equity=equity,
                 subordinated=subordinated,
                 illiquid=illiquid,
-                has_osago=has_osago,
+                has_ogpo_vts=has_ogpo_vts,
                 k_coef=k_coef,
             )
 
@@ -526,7 +526,7 @@ def arfr_market():
         'yoy_growth': '+12.5%',
         'life_share': '35%',
         'nonlife_share': '65%',
-        'osago_premiums': '180 млрд ₸',
+        'ogpo_vts_premiums': '180 млрд ₸',
         'top_5_share': '68%',
     }
 
@@ -2769,7 +2769,7 @@ def api_sync_system(system_id):
         'esbd': {
             'name': 'ЕСБД',
             'data_types': [
-                {'name': 'Полисы ОСАГО', 'count': 4250},
+                {'name': 'Полисы ОГПО ВТС', 'count': 4250},
                 {'name': 'Полисы КАСКО', 'count': 1850},
                 {'name': 'Страховые случаи', 'count': 892}
             ],

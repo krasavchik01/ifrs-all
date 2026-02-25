@@ -425,7 +425,7 @@ class CalculationService:
         csm_adjustment: Decimal = None,
         subordinated_debt: Decimal = Decimal('0'),
         illiquid_assets: Decimal = Decimal('0'),
-        has_osago: bool = False,
+        has_ogpo_vts: bool = False,
         k_coefficient: Decimal = Decimal('0.70')
     ) -> CompleteSolvencyResult:
         """
@@ -453,7 +453,7 @@ class CalculationService:
             gross_premiums=gross_premiums,
             incurred_claims=incurred_claims,
             k_coefficient=k_coefficient,
-            has_osago=has_osago
+            has_ogpo_vts=has_ogpo_vts
         )
 
         # Расчет FMP

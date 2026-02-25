@@ -1414,10 +1414,43 @@
 
     <div class="formula-display mt-3">
         <code>
-Solvency Ratio = (Own Funds / SCR) × 100%<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (20.1 млрд / 12.8 млрд) × 100%<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="text-success">157.0%</span><br><br>
-Status: <span class="text-success">✓ COMPLIANT</span> (Required minimum: 150%)
+<strong>Solvency II Ratio (Постановление АРФР №304 от 26.12.2016)</strong><br><br>
+
+<span class="text-info">Минимальная Маржа Платежеспособности (ММП):</span><br>
+ММП = max(ММП<sub>премии</sub>, ММП<sub>убытки</sub>) + Корректировка<sub>ОГПО ВТС</sub><br><br>
+
+ММП<sub>премии</sub> = Премии × k × 0.18<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 80 млрд × 0.70 × 0.18<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 10.08 млрд<br><br>
+
+ММП<sub>убытки</sub> = Понесенные убытки × k × 0.26<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 52 млрд × 0.70 × 0.26<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 9.46 млрд<br><br>
+
+где: k = коэффициент удержания (retention ratio) = 0.70<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Корректировка<sub>ОГПО ВТС</sub> = ₸ 2.72 млрд (для компаний с ОГПО ВТС)<br><br>
+
+<span class="text-warning">SCR (Solvency Capital Requirement) по стандартной формуле:</span><br>
+SCR = √(BSCR² + Adj²) + Op<br>
+&nbsp;&nbsp;&nbsp;&nbsp;= √((₸ 11.2 млрд)² + (₸ 0.4 млрд)²) + ₸ 1.2 млрд<br>
+&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 12.8 млрд<br><br>
+
+где: BSCR = Basic SCR = √(Σ Corr<sub>i,j</sub> × SCR<sub>i</sub> × SCR<sub>j</sub>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adj = корректировка на отложенные налоги<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Op = операционный риск = max(0.30 × BSCR, 0.03 × Премии, ₸ 1.2 млрд)<br><br>
+
+<span class="text-success">Фактическая Маржа Платежеспособности (ФМП):</span><br>
+ФМП = Tier 1 + Tier 2 + Tier 3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 15.2 млрд + ₸ 3.4 млрд + ₸ 1.5 млрд<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 20.1 млрд<br><br>
+
+<strong>Итоговый расчет (АРФР Норматив N<sub>мп</sub>):</strong><br>
+N<sub>мп</sub> = ФМП / max(ММП, SCR) × 100%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 20.1 млрд / ₸ 12.8 млрд × 100%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="text-success">157.0%</span><br><br>
+
+<span class="text-success">✓ СООТВЕТСТВУЕТ</span> (Минимум: 100%, Рекомендуется: ≥ 150%)<br>
+Регуляторные требования: Постановление АРФР №304, Solvency II Directive 2009/138/EC
         </code>
     </div>
 
@@ -1512,15 +1545,47 @@ Status: <span class="text-success">✓ COMPLIANT</span> (Required minimum: 150%)
 
     <div class="formula-display mt-3">
         <code>
-ECL Calculation (Stage 1 - 12-month ECL):<br>
-ECL = EAD × PD × LGD × DF<br><br>
-Example: FI-2024-001 (Govt Bonds)<br>
-&nbsp;&nbsp;EAD = ₸ 15,240,000,000<br>
-&nbsp;&nbsp;PD (12m) = 0.02% = 0.0002<br>
-&nbsp;&nbsp;LGD = 45% = 0.45<br>
-&nbsp;&nbsp;DF = 1.0 (no time discount for 12m)<br><br>
-&nbsp;&nbsp;ECL = 15,240,000,000 × 0.0002 × 0.45 × 1.0<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="text-danger">₸ 1,371,600</span>
+<strong>МСФО 9 - Расчет ожидаемых кредитных убытков (ECL)</strong><br>
+<span class="text-muted">Постановление АРФР №269 от 29.12.2017, IFRS 9 (п. 5.5)</span><br><br>
+
+<span class="text-info">Общая формула ECL (3-стадийная модель):</span><br>
+ECL = Σ<sub>t=1</sub><sup>T</sup> [PD<sub>t</sub> × LGD<sub>t</sub> × EAD<sub>t</sub> × DF<sub>t</sub>]<br><br>
+
+где:<br>
+&nbsp;&nbsp;PD<sub>t</sub> = Probability of Default в период t (вероятность дефолта)<br>
+&nbsp;&nbsp;LGD<sub>t</sub> = Loss Given Default (потери при дефолте)<br>
+&nbsp;&nbsp;EAD<sub>t</sub> = Exposure at Default (подверженность дефолту)<br>
+&nbsp;&nbsp;DF<sub>t</sub> = Discount Factor = e<sup>-EIR×t</sup> (дисконтный фактор)<br>
+&nbsp;&nbsp;T = Срок жизни актива (Stage 1: 12 мес, Stage 2/3: до погашения)<br><br>
+
+<span class="text-warning">Определение стадии (SICR - Significant Increase in Credit Risk):</span><br>
+• Stage 1: PD<sub>current</sub> / PD<sub>origination</sub> ≤ 2.0 → 12-месячный ECL<br>
+• Stage 2: PD<sub>current</sub> / PD<sub>origination</sub> > 2.0 или DPD 30-89 дней → пожизненный ECL<br>
+• Stage 3: Дефолт или DPD ≥ 90 дней → пожизненный ECL с учетом дефолта<br><br>
+
+<span class="text-success">Макроэкономическая корректировка (forward-looking):</span><br>
+PD<sub>adjusted</sub> = PD<sub>base</sub> × [w₁×M<sub>base</sub> + w₂×M<sub>adverse</sub> + w₃×M<sub>severe</sub>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= PD<sub>base</sub> × [0.55×1.35 + 0.35×1.80 + 0.10×2.40]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= PD<sub>base</sub> × 1.613<br><br>
+
+<strong>Пример: FI-2024-001 (Государственные облигации РК)</strong><br>
+Исходные данные:<br>
+&nbsp;&nbsp;EAD<sub>0</sub> = ₸ 15,240,000,000 (Gross Carrying Amount)<br>
+&nbsp;&nbsp;PD<sub>origination</sub> = 0.01% (т.к. суверенные облигации)<br>
+&nbsp;&nbsp;PD<sub>current</sub> = 0.02% → Увеличение: 2x<br>
+&nbsp;&nbsp;LGD = 45% (учет восстановления через гарантии)<br>
+&nbsp;&nbsp;EIR = 18.0% (Базовая ставка НБК на дек 2025)<br>
+&nbsp;&nbsp;Срок: 12 месяцев (Stage 1)<br><br>
+
+Расчет:<br>
+&nbsp;&nbsp;PD<sub>adj</sub> = 0.0002 × 1.613 = 0.0003226<br>
+&nbsp;&nbsp;DF<sub>12m</sub> = e<sup>-0.18×1</sup> = 0.8353<br>
+&nbsp;&nbsp;EAD<sub>12m</sub> = ₸ 15,240,000,000 × 0.8353 = ₸ 12,730,072,000<br><br>
+
+&nbsp;&nbsp;<strong>ECL<sub>12m</sub></strong> = ₸ 12,730,072,000 × 0.0003226 × 0.45<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="text-danger">₸ 1,847,530</span><br><br>
+
+<span class="text-muted">Ссылки: IFRS 9 B5.5.1-B5.5.55, АРФР Методические рекомендации 2024</span>
         </code>
     </div>
 
@@ -1682,17 +1747,86 @@ Example: FI-2024-001 (Govt Bonds)<br>
 
     <div class="formula-display mt-3">
         <code>
-IFRS 17 BBA Model:<br>
-Reserves = PV(FCF) + RA + CSM<br><br>
-Where:<br>
-&nbsp;&nbsp;PV(FCF) = Σ (Claims + Expenses - Premiums) × Discount Factor<br>
-&nbsp;&nbsp;RA = Risk Adjustment (CoC method at 6%)<br>
-&nbsp;&nbsp;CSM = Contractual Service Margin (unearned profit)<br><br>
-Example: Life Insurance Portfolio<br>
-&nbsp;&nbsp;PV(FCF) = ₸ 65.5 млрд<br>
-&nbsp;&nbsp;RA = ₸ 4.0 млрд<br>
-&nbsp;&nbsp;CSM = ₸ 20.5 млрд<br>
-&nbsp;&nbsp;Total = <span class="text-primary">₸ 90.0 млрд</span>
+<strong>МСФО 17 - Оценка обязательств по страховым договорам</strong><br>
+<span class="text-muted">IFRS 17 (п. 29-36), Постановление АРФР №376 от 31.12.2019</span><br><br>
+
+<span class="text-info">Общая формула GMM (General Measurement Model):</span><br>
+LIC<sub>t</sub> = BEL<sub>t</sub> + RA<sub>t</sub> + CSM<sub>t</sub><br><br>
+
+где:<br>
+&nbsp;&nbsp;LIC = Liability for Insurance Contracts (обязательство по страховым договорам)<br>
+&nbsp;&nbsp;BEL = Best Estimate Liability (оценка по наилучшей оценке)<br>
+&nbsp;&nbsp;RA = Risk Adjustment (корректировка на риск)<br>
+&nbsp;&nbsp;CSM = Contractual Service Margin (договорная маржа обслуживания)<br><br>
+
+<span class="text-warning">1. Расчет BEL (Best Estimate of Liabilities):</span><br>
+BEL = Σ<sub>t=1</sub><sup>n</sup> [(CF<sub>outflow,t</sub> - CF<sub>inflow,t</sub>) × DF<sub>t</sub>]<br><br>
+
+CF<sub>outflow</sub> = Выплаты<sub>по убыткам</sub> + Расходы<sub>ведение дела</sub> + Комиссия<sub>агентам</sub><br>
+CF<sub>inflow</sub> = Премии<sub>будущие</sub> + Возврат<sub>перестрахование</sub><br><br>
+
+DF<sub>t</sub> = 1 / (1 + r<sub>t</sub>)<sup>t</sup><br>
+&nbsp;&nbsp;&nbsp;&nbsp;где r<sub>t</sub> = Безрисковая ставка (Kazakhstan Gov Bonds) + Illiquidity Premium<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 14.5% + 1.2% = 15.7% (на декабрь 2025)<br><br>
+
+<span class="text-success">2. Расчет RA (Risk Adjustment) методом CoC:</span><br>
+RA = CoC × Σ<sub>t=1</sub><sup>n</sup> [PV(SCR<sub>t</sub>)]<br><br>
+
+где:<br>
+&nbsp;&nbsp;CoC = Cost of Capital = 6.0% (IFRS 17.B87, стандартная ставка АРФР)<br>
+&nbsp;&nbsp;SCR<sub>t</sub> = Solvency Capital Requirement в периоде t<br>
+&nbsp;&nbsp;PV(SCR<sub>t</sub>) = SCR<sub>t</sub> × DF<sub>t</sub><br><br>
+
+Альтернативно (CTE метод):<br>
+RA = CTE<sub>75%</sub> - BEL<br>
+&nbsp;&nbsp;&nbsp;&nbsp;где CTE<sub>75%</sub> = Conditional Tail Expectation на 75-м перцентиле<br><br>
+
+<span class="text-primary">3. Расчет CSM (Contractual Service Margin):</span><br>
+CSM<sub>0</sub> = max(-(BEL<sub>0</sub> + RA<sub>0</sub> - CF<sub>0</sub>), 0)<br><br>
+
+Если CSM<sub>0</sub> < 0 → Onerous contract (убыточный договор)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;→ Убыток признается немедленно в P&L<br><br>
+
+<strong>Roll-forward CSM (IFRS 17.44):</strong><br>
+CSM<sub>t+1</sub> = CSM<sub>t</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ Interest accretion (CSM<sub>t</sub> × r<sub>lock-in</sub>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ Changes in fulfillment CF (future service)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- CSM recognized in P&L (coverage units released)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;± Foreign exchange impact<br><br>
+
+<strong>Выбор модели оценки (IFRS 17.53-59):</strong><br>
+• <span class="text-info">GMM (General)</span>: Долгосрочное страхование жизни с дискреционным участием<br>
+• <span class="text-success">VFA (Variable Fee Approach)</span>: Договоры с участием в прибыли (unit-linked)<br>
+• <span class="text-warning">PAA (Premium Allocation Approach)</span>: Краткосрочные (<12 мес) или immaterial<br><br>
+
+<strong>Пример: Портфель Life Insurance (GMM модель)</strong><br>
+Исходные данные:<br>
+&nbsp;&nbsp;Количество договоров: 1,847 (долгосрочное страхование жизни)<br>
+&nbsp;&nbsp;Средний срок: 18.5 лет<br>
+&nbsp;&nbsp;Безрисковая ставка: r = 15.7% (казахстанские суверенные облигации)<br>
+&nbsp;&nbsp;CoC для RA: 6.0%<br><br>
+
+Расчет BEL (дисконтирование 10 лет):<br>
+&nbsp;&nbsp;PV(Claims) = Σ₁₀ (₸ 7.2 млрд / (1.157)<sup>t</sup>) = ₸ 36.4 млрд<br>
+&nbsp;&nbsp;PV(Expenses) = Σ₁₀ (₸ 3.8 млрд / (1.157)<sup>t</sup>) = ₸ 19.2 млрд<br>
+&nbsp;&nbsp;PV(Future Premiums) = Σ₁₀ (₸ 2.1 млрд / (1.157)<sup>t</sup>) = ₸ 10.1 млрд<br>
+&nbsp;&nbsp;<strong>BEL</strong> = ₸ 36.4 + ₸ 19.2 - ₸ 10.1 = <strong>₸ 65.5 млрд</strong><br><br>
+
+Расчет RA (Cost of Capital метод):<br>
+&nbsp;&nbsp;PV(SCR) = Σ₁₀ (₸ 11.4 млрд / (1.157)<sup>t</sup>) = ₸ 66.7 млрд<br>
+&nbsp;&nbsp;<strong>RA</strong> = 0.06 × ₸ 66.7 млрд = <strong>₸ 4.0 млрд</strong><br><br>
+
+Расчет CSM (на момент признания):<br>
+&nbsp;&nbsp;Initial premium inflow = ₸ 90.0 млрд<br>
+&nbsp;&nbsp;BEL<sub>0</sub> + RA<sub>0</sub> = ₸ 65.5 + ₸ 4.0 = ₸ 69.5 млрд<br>
+&nbsp;&nbsp;<strong>CSM<sub>0</sub></strong> = ₸ 90.0 - ₸ 69.5 = <strong>₸ 20.5 млрд</strong> ✓ Profitable<br><br>
+
+<strong>Итоговое обязательство (LIC):</strong><br>
+LIC = BEL + RA + CSM<br>
+&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 65.5 млрд + ₸ 4.0 млрд + ₸ 20.5 млрд<br>
+&nbsp;&nbsp;&nbsp;&nbsp;= <span class="text-primary">₸ 90.0 млрд</span><br><br>
+
+<span class="text-muted">Регуляторные требования: IFRS 17 (п. 29-132), Постановление АРФР №376</span>
         </code>
     </div>
 

@@ -40,7 +40,7 @@ class MMPResult:
     mmp_by_premiums: Decimal
     mmp_by_claims: Decimal
     k_coefficient: Decimal
-    osago_adjustment: Decimal
+    ogpo_vts_adjustment: Decimal
     formula_display: str
     justification: str
 
@@ -290,7 +290,7 @@ class SolvencyCalculator:
         gross_premiums: Decimal,
         incurred_claims: Decimal,
         k_coefficient: Decimal = None,
-        has_osago: bool = False,
+        has_ogpo_vts: bool = False,
         annuity_reserves: Decimal = None,
         math_reserves: Decimal = None
     ) -> MMPResult:
@@ -298,13 +298,13 @@ class SolvencyCalculator:
         Полный расчет MMP
 
         Per АРФР §304:
-        MMP = max(MMP_P, MMP_I) + Life_addon + OSAGO_adjustment
+        MMP = max(MMP_P, MMP_I) + Life_addon + OGPO_VTS_adjustment
 
         Args:
             gross_premiums: Валовые премии
             incurred_claims: Понесенные убытки
             k_coefficient: Поправочный коэффициент
-            has_osago: Наличие ОСАГО портфеля
+            has_ogpo_vts: Наличие ОГПО ВТС портфеля
             annuity_reserves: Резервы аннуитетов (для Life)
             math_reserves: Математические резервы (для Life)
 
@@ -329,13 +329,13 @@ class SolvencyCalculator:
         if annuity_reserves and math_reserves:
             life_addon, life_formula = self.calculate_mmp_life(annuity_reserves, math_reserves)
 
-        # OSAGO adjustment (+50%)
-        osago_adjustment = Decimal('0')
-        if has_osago:
-            osago_adjustment = mmp_base * Decimal('0.50')
+        # OGPO_VTS adjustment (+50%)
+        ogpo_vts_adjustment = Decimal('0')
+        if has_ogpo_vts:
+            ogpo_vts_adjustment = mmp_base * Decimal('0.50')
 
         # Итоговый MMP
-        total_mmp = mmp_base + life_addon + osago_adjustment
+        total_mmp = mmp_base + life_addon + ogpo_vts_adjustment
 
         # MGF проверка
         mgf, _ = self.calculate_mgf()
@@ -356,14 +356,14 @@ class SolvencyCalculator:
         if life_formula:
             formula_display += f"\n{life_formula}\n"
 
-        if has_osago:
+        if has_ogpo_vts:
             formula_display += (
-                f"\nОСАГО надбавка (+50%): {format_currency(osago_adjustment)}\n"
+                f"\nОГПО ВТС надбавка (+50%): {format_currency(ogpo_vts_adjustment)}\n"
             )
 
         formula_display += (
             f"\nИтого MMP = {format_currency(mmp_base)} + {format_currency(life_addon)} + "
-            f"{format_currency(osago_adjustment)} = {format_currency(total_mmp)}\n"
+            f"{format_currency(ogpo_vts_adjustment)} = {format_currency(total_mmp)}\n"
             f"\nПроверка MGF: {format_currency(mgf)}\n"
             f"{'MMP ≥ MGF ✓' if total_mmp >= mgf else 'MMP < MGF - применяется MGF'}\n"
             f"{'='*60}\n"
@@ -372,7 +372,7 @@ class SolvencyCalculator:
         justification = (
             f"MMP рассчитан в соответствии с АРФР Постановление №304 от 26.12.2016 "
             f"с изменениями 2023-2025. Поправочный коэффициент K = {float(k_coefficient)}. "
-            f"{'Применена ОСАГО надбавка +50%. ' if has_osago else ''}"
+            f"{'Применена ОГПО ВТС надбавка +50%. ' if has_ogpo_vts else ''}"
             f"Итоговый MMP = {format_currency(total_mmp)}."
         )
 
@@ -381,7 +381,7 @@ class SolvencyCalculator:
             mmp_by_premiums=mmp_p,
             mmp_by_claims=mmp_i,
             k_coefficient=k_coefficient,
-            osago_adjustment=osago_adjustment,
+            ogpo_vts_adjustment=ogpo_vts_adjustment,
             formula_display=formula_display,
             justification=justification
         )
@@ -1113,7 +1113,7 @@ def demo_solvency_calculation():
     mmp_result = calc.calculate_mmp(
         gross_premiums=Decimal('35000000000'),  # 35 млрд
         incurred_claims=Decimal('18000000000'),  # 18 млрд
-        has_osago=True
+        has_ogpo_vts=True
     )
 
     print(mmp_result.formula_display)

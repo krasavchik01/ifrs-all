@@ -1199,17 +1199,17 @@ class IFRS17Calculator:
         return groups
 
     # =========================================================================
-    # ОСАГО КОРРЕКТИРОВКИ
+    # ОГПО ВТС КОРРЕКТИРОВКИ
     # Per АРФР требования
     # =========================================================================
 
-    def apply_osago_adjustment(
+    def apply_ogpo_vts_adjustment(
         self,
         bel: Decimal,
-        product_type: str = 'osago'
+        product_type: str = 'ogpo_vts'
     ) -> Tuple[Decimal, str]:
         """
-        Применение ОСАГО корректировки
+        Применение ОГПО ВТС корректировки
 
         Per АРФР: +50% для обязательного страхования
 
@@ -1220,12 +1220,12 @@ class IFRS17Calculator:
         Returns:
             (adjusted_bel, formula)
         """
-        if product_type.lower() in ['osago', 'казко']:
-            adjustment = self.config['OSAGO_ADJUSTMENT']
+        if product_type.lower() in ['ogpo_vts', 'казко']:
+            adjustment = self.config['OGPO_VTS_ADJUSTMENT']
             adjusted = bel * adjustment
 
             formula = (
-                f"ОСАГО корректировка:\n"
+                f"ОГПО ВТС корректировка:\n"
                 f"BEL × {float(adjustment)} = {format_currency(bel)} × "
                 f"{float(adjustment)} = {format_currency(adjusted)}"
             )

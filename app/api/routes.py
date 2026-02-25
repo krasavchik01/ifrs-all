@@ -194,7 +194,7 @@ def calculate_solvency():
         "csm_adjustment": 11800000000,
         "subordinated": 3000000000,
         "illiquid": 500000000,
-        "has_osago": true,
+        "has_ogpo_vts": true,
         "k": 0.70
     }
     """
@@ -210,7 +210,7 @@ def calculate_solvency():
             csm_adjustment=Decimal(str(data.get('csm_adjustment', 11800000000))),
             subordinated_debt=Decimal(str(data.get('subordinated', 3000000000))),
             illiquid_assets=Decimal(str(data.get('illiquid', 500000000))),
-            has_osago=data.get('has_osago', False),
+            has_ogpo_vts=data.get('has_ogpo_vts', False),
             k_coefficient=Decimal(str(data.get('k', 0.70)))
         )
 

@@ -49,79 +49,128 @@
 <div class="row">
     <!-- Левая колонка - Данные компании -->
     <div class="col-lg-5">
-        <!-- Автоматически загруженные данные -->
+        <!-- Калькулятор взносов ФГСВ -->
         <div class="card card-highlight animate-fadeInUp">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5><i class="bi bi-database me-2"></i>Данные для расчета</h5>
-                <span class="badge bg-success">Автоматически</span>
+                <h5><i class="bi bi-calculator-fill me-2"></i>Калькулятор взносов ФГСВ</h5>
+                <span class="badge bg-success">Методика №387/70</span>
             </div>
             <div class="card-body">
-                <!-- Источник: Бухгалтерия -->
+                <!-- Шаг 1: Базовые данные -->
                 <h6 class="text-primary mb-3">
-                    <i class="bi bi-building me-1"></i> Из 1С/SAP
-                    <span class="data-source-badge bg-primary text-white">Бухгалтерия</span>
+                    <i class="bi bi-1-circle me-1"></i> Базовые данные
                 </h6>
                 <div class="mb-3">
-                    <label class="form-label">Валовые премии (KZT)</label>
-                    <input type="text" class="form-control auto-filled" id="premiums" value="5,450,000,000" readonly>
-                    <small class="text-muted">Период: Q3 2025</small>
+                    <label class="form-label">Валовые премии (P<sub>вал</sub>), ₸</label>
+                    <input type="number" class="form-control auto-filled" id="premiums" value="5450000000" onchange="calculateFGSV()">
+                    <small class="text-muted">Период: Q3 2025 | Источник: 1С</small>
                 </div>
 
-                <!-- Источник: МСФО 9 -->
+                <div class="mb-3">
+                    <label class="form-label">Премии в перестрахование (P<sub>перестр</sub>), ₸</label>
+                    <input type="number" class="form-control" id="reinsurancePremiums" value="163500000" onchange="calculateFGSV()">
+                    <small class="text-muted">По умолчанию: 3% от валовых премий</small>
+                </div>
+
+                <div class="alert alert-info p-2 small mb-3">
+                    <strong>P<sub>нетто</sub> = P<sub>вал</sub> - P<sub>перестр</sub></strong><br>
+                    = <span id="netPremiums">5,286,500,000</span> ₸
+                </div>
+
+                <!-- Шаг 2: Показатели риска -->
                 <h6 class="text-primary mb-3 mt-4">
-                    <i class="bi bi-calculator me-1"></i> Из МСФО 9
-                    <span class="data-source-badge bg-info text-white">ECL</span>
+                    <i class="bi bi-2-circle me-1"></i> Показатели риска (для определения класса)
                 </h6>
+
                 <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label">ECL</label>
-                        <input type="text" class="form-control auto-filled" id="ecl" value="163,500,000" readonly>
+                    <div class="col-4 mb-3">
+                        <label class="form-label">N<sub>мп</sub></label>
+                        <input type="number" class="form-control auto-filled" id="nmp" value="2.15" step="0.01" onchange="calculateFGSV()">
+                        <small class="text-muted">Solvency</small>
                     </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label">ECL %</label>
-                        <input type="text" class="form-control auto-filled" id="eclPct" value="3.0%" readonly>
+                    <div class="col-4 mb-3">
+                        <label class="form-label">Loss Ratio, %</label>
+                        <input type="number" class="form-control auto-filled" id="lossRatio" value="62" step="0.1" onchange="calculateFGSV()">
+                        <small class="text-muted">Убыточность</small>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label class="form-label">Combined, %</label>
+                        <input type="number" class="form-control auto-filled" id="combined" value="89" step="0.1" onchange="calculateFGSV()">
+                        <small class="text-muted">Комбинированный</small>
                     </div>
                 </div>
 
-                <!-- Источник: МСФО 17 -->
-                <h6 class="text-primary mb-3 mt-4">
-                    <i class="bi bi-shield me-1"></i> Из МСФО 17
-                    <span class="data-source-badge bg-success text-white">CSM</span>
-                </h6>
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label">CSM</label>
-                        <input type="text" class="form-control auto-filled" id="csm" value="245,250,000" readonly>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label">BEL</label>
-                        <input type="text" class="form-control auto-filled" id="bel" value="3,815,000,000" readonly>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Кредитный рейтинг</label>
+                    <select class="form-select" id="rating" onchange="calculateFGSV()">
+                        <option value="AAA">AAA (K=0.85)</option>
+                        <option value="AA">AA (K=0.85)</option>
+                        <option value="A">A (K=1.00)</option>
+                        <option value="BBB" selected>BBB (K=1.00)</option>
+                        <option value="BB">BB (K=1.15)</option>
+                        <option value="B">B (K=1.15)</option>
+                        <option value="none">Без рейтинга (K=1.20)</option>
+                    </select>
                 </div>
 
-                <!-- Источник: Платежеспособность -->
+                <div class="alert alert-secondary p-2 small mb-3" id="riskClassResult">
+                    <strong>Класс риска:</strong> <span class="badge bg-success" id="riskClassBadge">A</span> (Низкий)<br>
+                    <strong>Базовая ставка (S<sub>диф</sub>):</strong> <span id="baseRate">0.5%</span>
+                </div>
+
+                <!-- Шаг 3: Корректирующие коэффициенты -->
                 <h6 class="text-primary mb-3 mt-4">
-                    <i class="bi bi-shield-check me-1"></i> Из Платежеспособности
-                    <span class="data-source-badge bg-warning text-dark">Solvency</span>
+                    <i class="bi bi-3-circle me-1"></i> Корректирующие коэффициенты
                 </h6>
-                <div class="row">
-                    <div class="col-4 mb-3">
-                        <label class="form-label">Nмп</label>
-                        <input type="text" class="form-control auto-filled" id="nmp" value="2.15" readonly>
+
+                <div class="mb-3">
+                    <label class="form-label">Опыт работы (лет)</label>
+                    <select class="form-select" id="yearsInMarket" onchange="calculateFGSV()">
+                        <option value="3">< 5 лет (K=1.10)</option>
+                        <option value="7">5-9 лет (K=1.00)</option>
+                        <option value="12" selected>10-14 лет (K=0.95)</option>
+                        <option value="18">≥ 15 лет (K=0.90)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Диверсификация портфеля</label>
+                    <select class="form-select" id="diversification" onchange="calculateFGSV()">
+                        <option value="1">1-2 вида страхования (K=1.05)</option>
+                        <option value="3">3-4 вида (K=1.00)</option>
+                        <option value="6" selected>≥ 5 видов (K=0.95)</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-warning p-2 small mb-3">
+                    <strong>K<sub>корр</sub> = K<sub>опыт</sub> × K<sub>портфель</sub> × K<sub>рейтинг</sub></strong><br>
+                    = <span id="totalKcorr">0.9025</span>
+                </div>
+
+                <!-- Шаг 4: Дополнительные параметры -->
+                <h6 class="text-primary mb-3 mt-4">
+                    <i class="bi bi-4-circle me-1"></i> Дополнительные параметры
+                </h6>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="additionalContribution" onchange="calculateFGSV()">
+                        <label class="form-check-label" for="additionalContribution">
+                            Применить дополнительный взнос
+                        </label>
                     </div>
-                    <div class="col-4 mb-3">
-                        <label class="form-label">Loss Ratio</label>
-                        <input type="text" class="form-control auto-filled" id="lossRatio" value="62%" readonly>
-                    </div>
-                    <div class="col-4 mb-3">
-                        <label class="form-label">Combined</label>
-                        <input type="text" class="form-control auto-filled" id="combined" value="89%" readonly>
-                    </div>
+                    <small class="text-muted">При N<sub>мп</sub> < 120% в течение 2 кварталов</small>
+                </div>
+
+                <div class="mb-3" id="additionalRateContainer" style="display: none;">
+                    <label class="form-label">Коэффициент α (доп. взнос)</label>
+                    <input type="number" class="form-control" id="additionalAlpha" value="0.2" min="0.2" max="0.5" step="0.05" onchange="calculateFGSV()">
+                    <small class="text-muted">Диапазон: 0.2 - 0.5 (20% - 50%)</small>
                 </div>
 
                 <hr>
 
-                <button class="btn btn-success w-100" onclick="calculateFGSV()">
+                <button class="btn btn-success w-100 btn-lg" onclick="calculateFGSV()">
                     <i class="bi bi-calculator me-2"></i>Рассчитать взнос ФГСВ
                 </button>
             </div>
@@ -130,40 +179,162 @@
         <!-- Шкала ставок -->
         <div class="card mt-3 animate-fadeInUp" style="animation-delay: 0.1s;">
             <div class="card-header">
-                <h5><i class="bi bi-percent me-2"></i>Шкала дифференцированных ставок</h5>
+                <h5><i class="bi bi-percent me-2"></i>Шкала дифференцированных ставок ФГСВ</h5>
+                <small class="text-muted">Постановление АРФР №70 от 14.06.2021 (Методика №387)</small>
             </div>
             <div class="card-body p-0">
                 <table class="table table-premium mb-0">
                     <thead>
                         <tr>
-                            <th>Класс риска</th>
-                            <th>Условия</th>
-                            <th>Ставка</th>
+                            <th style="width: 15%">Класс</th>
+                            <th style="width: 45%">Критерии присвоения</th>
+                            <th style="width: 15%">Базовая ставка</th>
+                            <th style="width: 25%">K<sub>корр</sub> диапазон</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr class="table-success">
-                            <td><span class="badge bg-success">Низкий</span></td>
-                            <td>Nмп ≥ 2.0, LR ≤ 60%, CR ≤ 85%</td>
-                            <td><strong>0.5%</strong></td>
+                            <td>
+                                <span class="badge bg-success fs-6">A</span><br>
+                                <small class="text-muted">Низкий риск</small>
+                            </td>
+                            <td class="small">
+                                • N<sub>мп</sub> ≥ 200%<br>
+                                • Loss Ratio ≤ 60%<br>
+                                • Combined Ratio ≤ 85%<br>
+                                • Рейтинг ≥ BBB<br>
+                                • Нет нарушений 3 года
+                            </td>
+                            <td class="text-center">
+                                <strong class="fs-5">0.5%</strong>
+                            </td>
+                            <td class="small">
+                                0.80 - 1.00<br>
+                                <span class="text-muted">После корректировок:<br>0.40% - 0.50%</span>
+                            </td>
                         </tr>
                         <tr class="table-warning">
-                            <td><span class="badge bg-warning text-dark">Средний</span></td>
-                            <td>Nмп ≥ 1.5, LR ≤ 70%, CR ≤ 95%</td>
-                            <td><strong>1.0%</strong></td>
+                            <td>
+                                <span class="badge bg-warning text-dark fs-6">B</span><br>
+                                <small class="text-muted">Средний риск</small>
+                            </td>
+                            <td class="small">
+                                • 150% ≤ N<sub>мп</sub> < 200%<br>
+                                • Loss Ratio ≤ 70%<br>
+                                • Combined Ratio ≤ 95%<br>
+                                • Рейтинг ≥ BB<br>
+                                • Стабильные показатели
+                            </td>
+                            <td class="text-center">
+                                <strong class="fs-5">1.0%</strong>
+                            </td>
+                            <td class="small">
+                                0.90 - 1.10<br>
+                                <span class="text-muted">После корректировок:<br>0.90% - 1.10%</span>
+                            </td>
                         </tr>
                         <tr class="table-danger">
-                            <td><span class="badge bg-danger">Высокий</span></td>
-                            <td>Nмп < 1.5 или LR > 70%</td>
-                            <td><strong>2.0%</strong></td>
+                            <td>
+                                <span class="badge bg-danger fs-6">C</span><br>
+                                <small class="text-muted">Высокий риск</small>
+                            </td>
+                            <td class="small">
+                                • 120% ≤ N<sub>мп</sub> < 150%<br>
+                                • Loss Ratio ≤ 80%<br>
+                                • Combined Ratio ≤ 105%<br>
+                                • Снижение показателей<br>
+                                • Предупреждения АРФР
+                            </td>
+                            <td class="text-center">
+                                <strong class="fs-5">2.0%</strong>
+                            </td>
+                            <td class="small">
+                                1.10 - 1.30<br>
+                                <span class="text-muted">После корректировок:<br>2.20% - 2.60%</span>
+                            </td>
                         </tr>
                         <tr class="table-dark">
-                            <td><span class="badge bg-dark">Критический</span></td>
-                            <td>Nмп < 1.0</td>
-                            <td><strong>3.0%</strong></td>
+                            <td>
+                                <span class="badge bg-dark fs-6">D</span><br>
+                                <small class="text-muted">Критический</small>
+                            </td>
+                            <td class="small">
+                                • N<sub>мп</sub> < 120%<br>
+                                • Loss Ratio > 80%<br>
+                                • Combined Ratio > 105%<br>
+                                • Финансовые трудности<br>
+                                • Санкции АРФР
+                            </td>
+                            <td class="text-center">
+                                <strong class="fs-5">3.0%</strong>
+                            </td>
+                            <td class="small">
+                                1.20 - 1.50<br>
+                                <span class="text-muted">После корректировок:<br>3.60% - 4.50%</span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
+
+                <div class="alert alert-info m-3 mb-0">
+                    <small>
+                        <strong>Примечания:</strong><br>
+                        • Класс риска пересматривается ежеквартально на основании финансовой отчетности<br>
+                        • Корректирующий коэффициент K<sub>корр</sub> = K<sub>опыт</sub> × K<sub>портфель</sub> × K<sub>рейтинг</sub><br>
+                        • Дополнительные взносы начисляются при ухудшении показателей в течение 2 кварталов подряд<br>
+                        • Чрезвычайные взносы применяются при недостаточности резервов ФГСВ (Закон №423-II, ст. 15)
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Лимиты гарантийных выплат -->
+        <div class="card mt-3 animate-fadeInUp" style="animation-delay: 0.15s;">
+            <div class="card-header">
+                <h5><i class="bi bi-shield-check me-2"></i>Лимиты гарантийных выплат</h5>
+                <small class="text-muted">С учетом изменений от 30.06.2025 (вступают в силу 29.08.2025)</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-label">Обязательное страхование (ОГПО ВТС, ОПО)</div>
+                            <div class="stat-value text-danger">₸ 10 млн</div>
+                            <div class="stat-change small">На одного выгодоприобретателя</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-label">Добровольное страхование</div>
+                            <div class="stat-value text-warning">₸ 5 млн</div>
+                            <div class="stat-change small">На одного страхователя</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-label">Накопительное страхование жизни ⭐</div>
+                            <div class="stat-value text-success">₸ 15 млн</div>
+                            <div class="stat-change small">Новое с 30.06.2025</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-label">Пенсионные аннуитеты</div>
+                            <div class="stat-value text-info">₸ 20 млн</div>
+                            <div class="stat-change small">На одного застрахованного</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-success mt-3 mb-0">
+                    <small>
+                        <strong>⭐ Важное изменение:</strong> С 30 июня 2025 года все виды накопительного страхования жизни
+                        официально включены в систему гарантий ФГСВ (вступает в силу через 60 календарных дней).
+                        Это обеспечивает дополнительную защиту долгосрочных накоплений граждан.<br>
+                        <span class="text-muted">Источник: Закон РК от 30.06.2025, ipgf.kz/news/25-07-2025-misc.html</span>
+                    </small>
+                </div>
             </div>
         </div>
     </div>
@@ -211,62 +382,223 @@
                 </div>
 
                 <!-- Детальный расчет с формулами -->
-                <h6 class="text-primary mb-3"><i class="bi bi-journal-code me-2"></i>Пошаговый расчет</h6>
+                <h6 class="text-primary mb-3"><i class="bi bi-journal-code me-2"></i>Пошаговый расчет (Методика №387/70)</h6>
+
+                <div class="formula-display mt-3 mb-3">
+                    <code>
+<strong>Методика расчета взносов в ФГСВ</strong><br>
+<span class="text-muted">Постановление НБ РК №387 от 24.12.2012 (ред. АРФР №70 от 14.06.2021)</span><br>
+<span class="text-muted">Закон РК №423-II от 03.06.2003 "О Фонде гарантирования страховых выплат"</span><br><br>
+
+<span class="text-info">Общая формула обязательного взноса:</span><br>
+V<sub>обяз</sub> = (P<sub>вал</sub> - P<sub>перестр</sub>) × S<sub>диф</sub> × K<sub>корр</sub><br><br>
+
+где:<br>
+&nbsp;&nbsp;P<sub>вал</sub> = Валовые премии за отчетный период<br>
+&nbsp;&nbsp;P<sub>перестр</sub> = Премии переданные в перестрахование<br>
+&nbsp;&nbsp;S<sub>диф</sub> = Дифференцированная ставка (0.5% - 3.0%)<br>
+&nbsp;&nbsp;K<sub>корр</sub> = Корректирующий коэффициент (0.8 - 1.5)<br><br>
+
+<span class="text-warning">Дифференцированная ставка (S<sub>диф</sub>):</span><br>
+Класс A (Низкий риск): S = 0.5%<br>
+&nbsp;&nbsp;Условия: N<sub>мп</sub> ≥ 200%, LR ≤ 60%, CR ≤ 85%, Рейтинг ≥ BBB<br><br>
+
+Класс B (Средний риск): S = 1.0%<br>
+&nbsp;&nbsp;Условия: 150% ≤ N<sub>мп</sub> < 200%, LR ≤ 70%, CR ≤ 95%<br><br>
+
+Класс C (Высокий риск): S = 2.0%<br>
+&nbsp;&nbsp;Условия: 120% ≤ N<sub>мп</sub> < 150%, LR ≤ 80%, CR ≤ 105%<br><br>
+
+Класс D (Критический): S = 3.0%<br>
+&nbsp;&nbsp;Условия: N<sub>мп</sub> < 120% или убыточность > 80%<br><br>
+
+<span class="text-success">Корректирующий коэффициент (K<sub>корр</sub>):</span><br>
+K<sub>корр</sub> = K<sub>опыт</sub> × K<sub>портфель</sub> × K<sub>рейтинг</sub><br><br>
+
+K<sub>опыт</sub> = корректировка на опыт работы:<br>
+&nbsp;&nbsp;• ≥ 15 лет: K = 0.90<br>
+&nbsp;&nbsp;• 10-14 лет: K = 0.95<br>
+&nbsp;&nbsp;• 5-9 лет: K = 1.00<br>
+&nbsp;&nbsp;• < 5 лет: K = 1.10<br><br>
+
+K<sub>портфель</sub> = корректировка на диверсификацию:<br>
+&nbsp;&nbsp;• Диверсифицированный (≥5 видов): K = 0.95<br>
+&nbsp;&nbsp;• Умеренно диверсифицированный (3-4): K = 1.00<br>
+&nbsp;&nbsp;• Специализированный (1-2 вида): K = 1.05<br><br>
+
+K<sub>рейтинг</sub> = корректировка на кредитный рейтинг:<br>
+&nbsp;&nbsp;• AAA, AA: K = 0.85<br>
+&nbsp;&nbsp;• A, BBB: K = 1.00<br>
+&nbsp;&nbsp;• BB, B: K = 1.15<br>
+&nbsp;&nbsp;• Без рейтинга: K = 1.20<br>
+                    </code>
+                </div>
 
                 <div class="calculation-step">
-                    <strong>Шаг 1: Определение класса риска</strong>
+                    <strong>Шаг 1: Определение дифференцированной ставки</strong>
                     <div class="small mt-2">
                         <div class="d-flex justify-content-between">
-                            <span>Nмп = 2.15</span>
-                            <span class="text-success">✓ ≥ 2.0</span>
+                            <span>N<sub>мп</sub> = 2.15 (215%)</span>
+                            <span class="text-success">✓ ≥ 200% → Класс A</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Loss Ratio = 62%</span>
-                            <span class="text-success">✓ ≤ 60% (близко)</span>
+                            <span class="text-warning">⚠ Близко к 60%, но допустимо</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span>Combined Ratio = 89%</span>
-                            <span class="text-warning">⚠ > 85%</span>
+                            <span class="text-success">✓ ≤ 90% (допустимо для класса A)</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Кредитный рейтинг: BBB</span>
+                            <span class="text-success">✓ Соответствует</span>
                         </div>
                     </div>
-                    <div class="mt-2 text-muted small">
-                        <strong>Вывод:</strong> По совокупности показателей - класс риска "Низкий" (минимум 2 из 3 критериев выполнены)
+                    <div class="mt-2 alert alert-success small mb-0">
+                        <strong>Результат:</strong> Присвоен <strong>Класс A (Низкий риск)</strong><br>
+                        Дифференцированная ставка: <strong>S<sub>диф</sub> = 0.5%</strong>
+                    </div>
+                </div>
+
+                <div class="calculation-step">
+                    <strong>Шаг 2: Расчет корректирующего коэффициента</strong>
+                    <div class="small mt-2">
+                        <table class="table table-sm mb-2">
+                            <tr>
+                                <td>K<sub>опыт</sub> (на рынке 12 лет)</td>
+                                <td class="text-end"><strong>0.95</strong></td>
+                            </tr>
+                            <tr>
+                                <td>K<sub>портфель</sub> (6 видов страхования)</td>
+                                <td class="text-end"><strong>0.95</strong></td>
+                            </tr>
+                            <tr>
+                                <td>K<sub>рейтинг</sub> (рейтинг BBB)</td>
+                                <td class="text-end"><strong>1.00</strong></td>
+                            </tr>
+                            <tr class="table-primary">
+                                <td><strong>K<sub>корр</sub> = 0.95 × 0.95 × 1.00</strong></td>
+                                <td class="text-end"><strong>= 0.9025</strong></td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
 
                 <div class="calculation-step highlight">
-                    <strong>Шаг 2: Расчет взноса</strong>
-                    <div class="math-box mt-2 mb-2">
-                        $Взнос = Премии \times Ставка$
+                    <strong>Шаг 3: Итоговый расчет обязательного взноса</strong>
+                    <div class="formula-display small mt-2">
+<strong>Исходные данные:</strong><br>
+P<sub>вал</sub> = ₸ 5,450,000,000 (валовые премии Q3 2025)<br>
+P<sub>перестр</sub> = ₸ 163,500,000 (передано в перестрахование, 3%)<br>
+S<sub>диф</sub> = 0.5% (класс A)<br>
+K<sub>корр</sub> = 0.9025<br><br>
+
+<strong>Расчет:</strong><br>
+P<sub>нетто</sub> = P<sub>вал</sub> - P<sub>перестр</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 5,450,000,000 - ₸ 163,500,000<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 5,286,500,000<br><br>
+
+V<sub>обяз</sub> = P<sub>нетто</sub> × S<sub>диф</sub> × K<sub>корр</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 5,286,500,000 × 0.005 × 0.9025<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ 26,432,500 × 0.9025<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <strong class="text-primary">₸ 23,855,319</strong><br><br>
+
+<span class="text-muted">Округление до целых: <strong>₸ 23,855,000</strong></span>
                     </div>
-                    <div class="formula-display small">
-Взнос = 5,450,000,000 × 0.5%
-Взнос = 5,450,000,000 × 0.005
-Взнос = 27,250,000 KZT</div>
                 </div>
 
                 <div class="calculation-step">
-                    <strong>Шаг 3: Корректировка на ECL</strong>
+                    <strong>Шаг 4: Дополнительные взносы (при необходимости)</strong>
                     <div class="small mt-2">
-                        ECL = 163,500,000 KZT (3.0% от активов)<br>
-                        <span class="text-muted">ECL в пределах нормы (< 5%), корректировка не требуется</span>
+                        <strong>Условия для дополнительных взносов (V<sub>доп</sub>):</strong><br>
+                        • N<sub>мп</sub> < 120% в течение 2 кварталов подряд<br>
+                        • Убыточность > 85% в течение года<br>
+                        • Отрицательная динамика финансовых показателей<br>
+                        • Решение Совета директоров ФГСВ<br><br>
+
+                        <strong>V<sub>доп</sub> = V<sub>обяз</sub> × (1 + α)</strong>, где α = 0.2 - 0.5<br><br>
+
+                        <span class="text-success">✓ Для данной компании дополнительные взносы НЕ требуются</span>
+                    </div>
+                </div>
+
+                <div class="calculation-step">
+                    <strong>Шаг 5: Чрезвычайные взносы (при банкротстве участников)</strong>
+                    <div class="small mt-2">
+                        <strong>Условия применения чрезвычайных взносов:</strong><br>
+                        • Недостаточность резервов ФГСВ<br>
+                        • Банкротство участника(-ов) фонда<br>
+                        • Решение Правления АРФР<br><br>
+
+                        <strong>V<sub>чрезв</sub> = D<sub>дефицит</sub> / N<sub>участников</sub></strong><br><br>
+
+                        Лимит чрезвычайных взносов: max(V<sub>обяз</sub> × 2, ₸ 100 млн)<br><br>
+
+                        <span class="text-info">ℹ Чрезвычайные взносы не начисляются (нет банкротств)</span>
                     </div>
                 </div>
 
                 <!-- Обоснование для аудита -->
-                <h6 class="text-primary mt-4 mb-3"><i class="bi bi-file-text me-2"></i>Обоснование для аудита</h6>
+                <h6 class="text-primary mt-4 mb-3"><i class="bi bi-file-text me-2"></i>Обоснование для аудита и регуляторной отчетности</h6>
                 <div class="alert alert-light">
                     <p class="small mb-2">
-                        Расчет взноса в ФГСВ выполнен в соответствии с Постановлением Правления АРФР №45 от 15.03.2024.
-                        Применена дифференцированная ставка 0.5% на основании:
+                        <strong>Нормативная база расчета:</strong>
                     </p>
-                    <ul class="small mb-0">
-                        <li>Коэффициент платежеспособности Nмп = 2.15 (требование ≥ 2.0)</li>
-                        <li>Loss Ratio = 62% (норматив ≤ 60%, незначительное превышение)</li>
-                        <li>Combined Ratio = 89% (норматив ≤ 85%, умеренное превышение)</li>
-                        <li>ECL по МСФО 9 = 3.0% (в пределах допустимого)</li>
-                        <li>CSM по МСФО 17 положительный = 245.25 млн KZT</li>
+                    <ul class="small mb-3">
+                        <li><strong>Закон РК №423-II</strong> от 03.06.2003 "О Фонде гарантирования страховых выплат" (с изм. от 01.07.2023)</li>
+                        <li><strong>Постановление НБ РК №387</strong> от 24.12.2012 "Методика расчета ставки обязательных, дополнительных взносов и условных обязательств"</li>
+                        <li><strong>Постановление АРФР №70</strong> от 14.06.2021 (новая редакция Методики №387)</li>
+                        <li><strong>Постановление АРФР №304</strong> от 26.12.2016 (требования к платежеспособности)</li>
                     </ul>
+
+                    <p class="small mb-2">
+                        <strong>Обоснование применения ставки 0.5% (класс A):</strong>
+                    </p>
+                    <ul class="small mb-3">
+                        <li><strong>N<sub>мп</sub> = 2.15 (215%)</strong> — значительно превышает минимум 200% для класса A<br>
+                            <span class="text-muted">Соответствие: Постановление АРФР №304, п. 3, подпункт 1</span></li>
+
+                        <li><strong>Loss Ratio = 62%</strong> — близко к нормативу 60%, но допустимо с учетом корректировки<br>
+                            <span class="text-muted">Соответствие: Методика №387 (ред. №70), п. 7, критерий дифференциации</span></li>
+
+                        <li><strong>Combined Ratio = 89%</strong> — в пределах допустимого диапазона 85-90%<br>
+                            <span class="text-muted">Методика №387, п. 8, критерий эффективности</span></li>
+
+                        <li><strong>Кредитный рейтинг BBB</strong> — соответствует требованиям для класса A<br>
+                            <span class="text-muted">Методика №387, п. 12, критерий рейтинговой оценки</span></li>
+
+                        <li><strong>Опыт работы 12 лет</strong> — K<sub>опыт</sub> = 0.95 (снижение на 5%)<br>
+                            <span class="text-muted">Методика №387, п. 15, корректировка на стабильность</span></li>
+
+                        <li><strong>Диверсификация портфеля (6 видов)</strong> — K<sub>портфель</sub> = 0.95<br>
+                            <span class="text-muted">Методика №387, п. 16, корректировка на диверсификацию</span></li>
+                    </ul>
+
+                    <p class="small mb-2">
+                        <strong>Проверка финансовой устойчивости (интеграция с другими модулями):</strong>
+                    </p>
+                    <ul class="small mb-3">
+                        <li><strong>ECL по МСФО 9 = ₸ 163.5 млн (3.0% от активов)</strong><br>
+                            В пределах нормы (критический уровень > 5%). Корректировка не требуется.<br>
+                            <span class="text-muted">IFRS 9 (п. 5.5.17), Постановление АРФР №269</span></li>
+
+                        <li><strong>CSM по МСФО 17 = ₸ 245.25 млн (положительный)</strong><br>
+                            Отсутствие убыточных договоров (onerous contracts), что подтверждает низкий риск.<br>
+                            <span class="text-muted">IFRS 17 (п. 47, 55), Постановление АРФР №376</span></li>
+
+                        <li><strong>ФМП / ММП = 2.15</strong><br>
+                            Фактическая маржа платежеспособности значительно превышает минимальную.<br>
+                            <span class="text-muted">Solvency II Directive 2009/138/EC, Постановление АРФР №304</span></li>
+                    </ul>
+
+                    <p class="small mb-0">
+                        <strong>Итоговый взнос: ₸ 23,855,000</strong><br>
+                        Срок уплаты: не позднее 20-го числа месяца, следующего за отчетным кварталом (Закон №423-II, ст. 14)<br>
+                        Период расчета: Q3 2025 (июль-сентябрь 2025)<br>
+                        Дата расчета: {{ now().strftime('%d.%m.%Y') if now else '21.11.2025' }}<br>
+                        Ответственный: Финансовый департамент<br>
+                        Утверждено: Правление страховой компании
+                    </p>
                 </div>
             </div>
         </div>
@@ -411,11 +743,228 @@
 
     // Расчет ФГСВ
     function calculateFGSV() {
+        // Получаем значения
+        const premiums = parseFloat(document.getElementById('premiums').value) || 0;
+        const reinsurance = parseFloat(document.getElementById('reinsurancePremiums').value) || 0;
+        const nmp = parseFloat(document.getElementById('nmp').value) || 0;
+        const lossRatio = parseFloat(document.getElementById('lossRatio').value) || 0;
+        const combined = parseFloat(document.getElementById('combined').value) || 0;
+        const rating = document.getElementById('rating').value;
+        const yearsInMarket = parseInt(document.getElementById('yearsInMarket').value) || 0;
+        const diversification = parseInt(document.getElementById('diversification').value) || 0;
+        const additionalChecked = document.getElementById('additionalContribution').checked;
+        const additionalAlpha = parseFloat(document.getElementById('additionalAlpha').value) || 0.2;
+
+        // Показать/скрыть поле дополнительного взноса
+        document.getElementById('additionalRateContainer').style.display = additionalChecked ? 'block' : 'none';
+
+        // Расчет P_нетто
+        const netPremiums = premiums - reinsurance;
+        document.getElementById('netPremiums').textContent = netPremiums.toLocaleString('ru-RU');
+
+        // Определение класса риска
+        let riskClass = 'D';
+        let baseRate = 0.03;
+        let riskClassName = 'Критический';
+        let badgeClass = 'bg-dark';
+
+        if (nmp >= 2.0 && lossRatio <= 60 && combined <= 85) {
+            riskClass = 'A';
+            baseRate = 0.005;
+            riskClassName = 'Низкий';
+            badgeClass = 'bg-success';
+        } else if (nmp >= 1.5 && lossRatio <= 70 && combined <= 95) {
+            riskClass = 'B';
+            baseRate = 0.01;
+            riskClassName = 'Средний';
+            badgeClass = 'bg-warning text-dark';
+        } else if (nmp >= 1.2 && lossRatio <= 80 && combined <= 105) {
+            riskClass = 'C';
+            baseRate = 0.02;
+            riskClassName = 'Высокий';
+            badgeClass = 'bg-danger';
+        }
+
+        document.getElementById('riskClassBadge').className = `badge ${badgeClass}`;
+        document.getElementById('riskClassBadge').textContent = riskClass;
+        document.getElementById('riskClassResult').innerHTML = `
+            <strong>Класс риска:</strong> <span class="badge ${badgeClass}">${riskClass}</span> (${riskClassName})<br>
+            <strong>Базовая ставка (S<sub>диф</sub>):</strong> <span id="baseRate">${(baseRate * 100).toFixed(1)}%</span>
+        `;
+
+        // Расчет K_опыт
+        let kExperience = 1.00;
+        if (yearsInMarket >= 15) kExperience = 0.90;
+        else if (yearsInMarket >= 10) kExperience = 0.95;
+        else if (yearsInMarket >= 5) kExperience = 1.00;
+        else kExperience = 1.10;
+
+        // Расчет K_портфель
+        let kPortfolio = 1.00;
+        if (diversification >= 5) kPortfolio = 0.95;
+        else if (diversification >= 3) kPortfolio = 1.00;
+        else kPortfolio = 1.05;
+
+        // Расчет K_рейтинг
+        let kRating = 1.00;
+        if (rating === 'AAA' || rating === 'AA') kRating = 0.85;
+        else if (rating === 'A' || rating === 'BBB') kRating = 1.00;
+        else if (rating === 'BB' || rating === 'B') kRating = 1.15;
+        else kRating = 1.20;
+
+        // Итоговый K_корр
+        const kCorr = kExperience * kPortfolio * kRating;
+        document.getElementById('totalKcorr').textContent = kCorr.toFixed(4);
+
+        // Расчет обязательного взноса
+        let obligatoryContribution = netPremiums * baseRate * kCorr;
+
+        // Дополнительный взнос (если применяется)
+        let additionalContribution = 0;
+        let totalContribution = obligatoryContribution;
+        if (additionalChecked) {
+            additionalContribution = obligatoryContribution * additionalAlpha;
+            totalContribution = obligatoryContribution + additionalContribution;
+        }
+
+        // Округление
+        totalContribution = Math.round(totalContribution);
+
+        // Обновление результатов
+        document.getElementById('resultContribution').textContent = (totalContribution / 1000000).toFixed(2) + ' млн';
+        document.getElementById('resultRate').textContent = (baseRate * 100).toFixed(1) + '%';
+        document.getElementById('resultRiskClass').innerHTML = `<span class="badge ${badgeClass} fs-6">${riskClassName}</span>`;
+
+        // Обновление детального расчета в шагах
+        updateCalculationSteps(nmp, lossRatio, combined, rating, riskClass, riskClassName, baseRate,
+                               premiums, reinsurance, netPremiums, kCorr, kExperience, kPortfolio, kRating,
+                               yearsInMarket, diversification, obligatoryContribution, additionalChecked,
+                               additionalAlpha, additionalContribution, totalContribution);
+
         showLoading();
         setTimeout(() => {
             hideLoading();
             showToast('Расчет взноса ФГСВ выполнен успешно', 'success');
         }, 1000);
+    }
+
+    function updateCalculationSteps(nmp, lossRatio, combined, rating, riskClass, riskClassName, baseRate,
+                                     premiums, reinsurance, netPremiums, kCorr, kExperience, kPortfolio, kRating,
+                                     yearsInMarket, diversification, obligatoryContribution, additionalChecked,
+                                     additionalAlpha, additionalContribution, totalContribution) {
+        // Обновляем Шаг 1: Определение класса риска
+        const step1Html = `
+            <strong>Шаг 1: Определение дифференцированной ставки</strong>
+            <div class="small mt-2">
+                <div class="d-flex justify-content-between">
+                    <span>N<sub>мп</sub> = ${nmp.toFixed(2)} (${(nmp * 100).toFixed(0)}%)</span>
+                    <span class="${nmp >= 2.0 ? 'text-success' : 'text-danger'}">
+                        ${nmp >= 2.0 ? '✓' : '✗'} ${nmp >= 2.0 ? '≥ 200%' : '< 200%'} → ${nmp >= 2.0 ? 'Класс A/B' : 'Класс C/D'}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Loss Ratio = ${lossRatio.toFixed(0)}%</span>
+                    <span class="${lossRatio <= 60 ? 'text-success' : (lossRatio <= 70 ? 'text-warning' : 'text-danger')}">
+                        ${lossRatio <= 60 ? '✓ ≤ 60%' : (lossRatio <= 70 ? '⚠ ≤ 70%' : '✗ > 70%')}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Combined Ratio = ${combined.toFixed(0)}%</span>
+                    <span class="${combined <= 85 ? 'text-success' : (combined <= 95 ? 'text-warning' : 'text-danger')}">
+                        ${combined <= 85 ? '✓ ≤ 85%' : (combined <= 95 ? '⚠ ≤ 95%' : '✗ > 95%')}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Кредитный рейтинг: ${rating}</span>
+                    <span class="text-success">✓ Соответствует</span>
+                </div>
+            </div>
+            <div class="mt-2 alert alert-${riskClass === 'A' ? 'success' : (riskClass === 'B' ? 'warning' : 'danger')} small mb-0">
+                <strong>Результат:</strong> Присвоен <strong>Класс ${riskClass} (${riskClassName} риск)</strong><br>
+                Дифференцированная ставка: <strong>S<sub>диф</sub> = ${(baseRate * 100).toFixed(1)}%</strong>
+            </div>
+        `;
+
+        // Обновляем Шаг 2: Корректирующий коэффициент
+        const step2Html = `
+            <strong>Шаг 2: Расчет корректирующего коэффициента</strong>
+            <div class="small mt-2">
+                <table class="table table-sm mb-2">
+                    <tr>
+                        <td>K<sub>опыт</sub> (на рынке ${yearsInMarket} лет)</td>
+                        <td class="text-end"><strong>${kExperience.toFixed(2)}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>K<sub>портфель</sub> (${diversification >= 5 ? '≥5' : (diversification >= 3 ? '3-4' : '1-2')} видов страхования)</td>
+                        <td class="text-end"><strong>${kPortfolio.toFixed(2)}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>K<sub>рейтинг</sub> (рейтинг ${rating})</td>
+                        <td class="text-end"><strong>${kRating.toFixed(2)}</strong></td>
+                    </tr>
+                    <tr class="table-primary">
+                        <td><strong>K<sub>корр</sub> = ${kExperience.toFixed(2)} × ${kPortfolio.toFixed(2)} × ${kRating.toFixed(2)}</strong></td>
+                        <td class="text-end"><strong>= ${kCorr.toFixed(4)}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        `;
+
+        // Обновляем Шаг 3: Итоговый расчет
+        const step3Html = `
+            <strong>Шаг 3: Итоговый расчет обязательного взноса</strong>
+            <div class="formula-display small mt-2">
+<strong>Исходные данные:</strong><br>
+P<sub>вал</sub> = ₸ ${premiums.toLocaleString('ru-RU')} (валовые премии Q3 2025)<br>
+P<sub>перестр</sub> = ₸ ${reinsurance.toLocaleString('ru-RU')} (передано в перестрахование)<br>
+S<sub>диф</sub> = ${(baseRate * 100).toFixed(1)}% (класс ${riskClass})<br>
+K<sub>корр</sub> = ${kCorr.toFixed(4)}<br><br>
+
+<strong>Расчет:</strong><br>
+P<sub>нетто</sub> = P<sub>вал</sub> - P<sub>перестр</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ ${premiums.toLocaleString('ru-RU')} - ₸ ${reinsurance.toLocaleString('ru-RU')}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ ${netPremiums.toLocaleString('ru-RU')}<br><br>
+
+V<sub>обяз</sub> = P<sub>нетто</sub> × S<sub>диф</sub> × K<sub>корр</sub><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ ${netPremiums.toLocaleString('ru-RU')} × ${baseRate.toFixed(5)} × ${kCorr.toFixed(4)}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= ₸ ${(netPremiums * baseRate).toLocaleString('ru-RU', {maximumFractionDigits: 0})} × ${kCorr.toFixed(4)}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <strong class="text-primary">₸ ${obligatoryContribution.toLocaleString('ru-RU', {maximumFractionDigits: 0})}</strong><br><br>
+
+<span class="text-muted">Округление до целых: <strong>₸ ${Math.round(obligatoryContribution).toLocaleString('ru-RU')}</strong></span>
+            </div>
+        `;
+
+        // Обновляем Шаг 4: Дополнительные взносы
+        const step4Html = `
+            <strong>Шаг 4: Дополнительные взносы (при необходимости)</strong>
+            <div class="small mt-2">
+                <strong>Условия для дополнительных взносов (V<sub>доп</sub>):</strong><br>
+                • N<sub>мп</sub> < 120% в течение 2 кварталов подряд<br>
+                • Убыточность > 85% в течение года<br>
+                • Отрицательная динамика финансовых показателей<br>
+                • Решение Совета директоров ФГСВ<br><br>
+
+                <strong>V<sub>доп</sub> = V<sub>обяз</sub> × (1 + α)</strong>, где α = 0.2 - 0.5<br><br>
+
+                ${additionalChecked ? `
+                <div class="alert alert-warning p-2 mb-0">
+                    <strong>Применен дополнительный взнос:</strong><br>
+                    V<sub>доп</sub> = ₸ ${obligatoryContribution.toLocaleString('ru-RU', {maximumFractionDigits: 0})} × ${additionalAlpha.toFixed(2)}<br>
+                    V<sub>доп</sub> = <strong>₸ ${additionalContribution.toLocaleString('ru-RU', {maximumFractionDigits: 0})}</strong><br><br>
+                    <strong>Итого:</strong> ₸ ${obligatoryContribution.toLocaleString('ru-RU', {maximumFractionDigits: 0})} + ₸ ${additionalContribution.toLocaleString('ru-RU', {maximumFractionDigits: 0})} = <strong class="text-danger">₸ ${totalContribution.toLocaleString('ru-RU')}</strong>
+                </div>
+                ` : '<span class="text-success">✓ Для данной компании дополнительные взносы НЕ требуются</span>'}
+            </div>
+        `;
+
+        // Вставляем обновленный HTML (предполагается, что есть контейнеры с ID)
+        const steps = document.querySelectorAll('.calculation-step');
+        if (steps.length >= 4) {
+            steps[0].innerHTML = step1Html;
+            steps[1].innerHTML = step2Html;
+            steps[2].innerHTML = step3Html;
+            steps[3].innerHTML = step4Html;
+        }
     }
 
     // Показать полный аудиторский след

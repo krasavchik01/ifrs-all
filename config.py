@@ -209,8 +209,8 @@ IFRS17_CONFIG = {
         'number_of_contracts',
     ],
 
-    # OSAGO корректировки (АРФР)
-    'OSAGO_ADJUSTMENT': Decimal('1.50'),  # +50% MMP для ОСАГО
+    # OGPO_VTS корректировки (АРФР)
+    'OGPO_VTS_ADJUSTMENT': Decimal('1.50'),  # +50% MMP для ОГПО ВТС
 
     # Стабилизационный резерв (non-life)
     'STABILIZATION_RESERVE_MAX': Decimal('0.10'),  # ≤10%

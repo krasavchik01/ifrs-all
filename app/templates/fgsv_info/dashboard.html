@@ -19,59 +19,209 @@
         </div>
     </div>
 
-    <!-- Форма ввода параметров -->
+    <!-- Форма ввода параметров - ПОДРОБНАЯ ВЕРСИЯ -->
     <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-header bg-light border-bottom">
-            <h5 class="mb-0">Параметры для расчета взноса</h5>
+        <div class="card-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h5 class="mb-0"><i class="bi bi-calculator-fill me-2"></i>Детальный расчет взноса в ФГСВ</h5>
+            <small class="d-block mt-1">Методика №387 (2012) / Постановление АРФР №70 (2021) / Закон РК №423-II</small>
         </div>
         <div class="card-body">
             <form id="fgsvCalculationForm" method="POST">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="premiums" class="form-label">
-                            <i class="bi bi-cash-stack me-2"></i>Валовые премии за год
-                        </label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" id="premiums" name="premiums"
-                                   value="5000000000" step="1000000" min="0">
-                            <span class="input-group-text">₸</span>
+
+                <!-- ШАГ 1: БАЗОВЫЕ ДАННЫЕ -->
+                <div class="mb-4">
+                    <h6 class="text-primary border-bottom pb-2">
+                        <i class="bi bi-1-circle-fill me-2"></i>Шаг 1: Базовые данные по премиям
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="premiums" class="form-label fw-bold">
+                                <i class="bi bi-cash-stack me-2 text-success"></i>Валовые премии (P<sub>вал</sub>)
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="premiums" name="premiums"
+                                       value="5450000000" step="1000000" min="0" onchange="calculateContribution()">
+                                <span class="input-group-text">₸</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Общая сумма премий за год</small>
                         </div>
-                        <small class="text-muted d-block mt-1">Общая сумма премий, полученных вашей компанией</small>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="solvency_ratio" class="form-label">
-                            <i class="bi bi-shield-check me-2"></i>Коэффициент платежеспособности (Nмп)
-                        </label>
-                        <input type="number" class="form-control" id="solvency_ratio" name="solvency_ratio"
-                               value="2.50" step="0.01" min="0" max="10">
-                        <small class="text-muted d-block mt-1">Соотношение собственного капитала к минимальному капиталу</small>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="loss_ratio" class="form-label">
-                            <i class="bi bi-graph-down me-2"></i>Коэффициент убыточности (Loss Ratio)
-                        </label>
-                        <input type="number" class="form-control" id="loss_ratio" name="loss_ratio"
-                               value="0.55" step="0.01" min="0" max="2">
-                        <small class="text-muted d-block mt-1">Отношение выплаченных убытков к премиям</small>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="combined_ratio" class="form-label">
-                            <i class="bi bi-calculator me-2"></i>Combined Ratio
-                        </label>
-                        <input type="number" class="form-control" id="combined_ratio" name="combined_ratio"
-                               value="0.85" step="0.01" min="0" max="3">
-                        <small class="text-muted d-block mt-1">Убыточность + коэффициент расходов</small>
+                        <div class="col-md-4">
+                            <label for="reinsurance_premiums" class="form-label fw-bold">
+                                <i class="bi bi-arrow-right-circle me-2 text-info"></i>Премии по перестрахованию (P<sub>перестр</sub>)
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="reinsurance_premiums" name="reinsurance_premiums"
+                                       value="450000000" step="1000000" min="0" onchange="calculateContribution()">
+                                <span class="input-group-text">₸</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">Переданные в перестрахование</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-primary">
+                                <i class="bi bi-check-circle-fill me-2"></i>Чистые премии (P<sub>чист</sub>)
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control bg-light" id="net_premiums_display" readonly value="5000000000">
+                                <span class="input-group-text">₸</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">P<sub>вал</sub> - P<sub>перестр</sub> = База для расчета</small>
+                        </div>
                     </div>
                 </div>
 
+                <!-- ШАГ 2: ПОКАЗАТЕЛИ РИСКА -->
+                <div class="mb-4">
+                    <h6 class="text-primary border-bottom pb-2">
+                        <i class="bi bi-2-circle-fill me-2"></i>Шаг 2: Показатели риска компании
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="solvency_ratio" class="form-label fw-bold">
+                                <i class="bi bi-shield-check me-2 text-success"></i>Коэфф. платежеспособности (N<sub>мп</sub>)
+                            </label>
+                            <input type="number" class="form-control" id="solvency_ratio" name="solvency_ratio"
+                                   value="2.15" step="0.01" min="0" max="10" onchange="calculateContribution()">
+                            <small class="text-muted d-block mt-1">Собственный капитал / Мин. капитал</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="loss_ratio" class="form-label fw-bold">
+                                <i class="bi bi-graph-down me-2 text-warning"></i>Коэфф. убыточности (Loss Ratio, %)
+                            </label>
+                            <input type="number" class="form-control" id="loss_ratio" name="loss_ratio"
+                                   value="55" step="1" min="0" max="200" onchange="calculateContribution()">
+                            <small class="text-muted d-block mt-1">Выплаты / Премии × 100%</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="combined_ratio" class="form-label fw-bold">
+                                <i class="bi bi-calculator me-2 text-danger"></i>Combined Ratio (%)
+                            </label>
+                            <input type="number" class="form-control" id="combined_ratio" name="combined_ratio"
+                                   value="82" step="1" min="0" max="300" onchange="calculateContribution()">
+                            <small class="text-muted d-block mt-1">Убыточность + Расходы</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="credit_rating" class="form-label fw-bold">
+                                <i class="bi bi-star-fill me-2 text-warning"></i>Кредитный рейтинг
+                            </label>
+                            <select class="form-select" id="credit_rating" name="credit_rating" onchange="calculateContribution()">
+                                <option value="AAA">AAA (K<sub>рейт</sub>=0.85)</option>
+                                <option value="AA">AA (K<sub>рейт</sub>=0.90)</option>
+                                <option value="A">A (K<sub>рейт</sub>=0.95)</option>
+                                <option value="BBB" selected>BBB (K<sub>рейт</sub>=1.00)</option>
+                                <option value="BB">BB (K<sub>рейт</sub>=1.05)</option>
+                                <option value="B">B (K<sub>рейт</sub>=1.10)</option>
+                                <option value="CCC">CCC или ниже (K<sub>рейт</sub>=1.15)</option>
+                                <option value="NONE">Нет рейтинга (K<sub>рейт</sub>=1.20)</option>
+                            </select>
+                            <small class="text-muted d-block mt-1">От международных рейтинговых агентств</small>
+                        </div>
+                    </div>
+
+                    <!-- Автоматическая классификация риска -->
+                    <div class="alert alert-info mt-3 mb-0" id="riskClassificationPreview">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Предварительная классификация:</strong> <span id="preliminaryClass">-</span>
+                    </div>
+                </div>
+
+                <!-- ШАГ 3: КОРРЕКТИРУЮЩИЕ КОЭФФИЦИЕНТЫ -->
+                <div class="mb-4">
+                    <h6 class="text-primary border-bottom pb-2">
+                        <i class="bi bi-3-circle-fill me-2"></i>Шаг 3: Корректирующие коэффициенты
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="years_in_market" class="form-label fw-bold">
+                                <i class="bi bi-clock-history me-2 text-primary"></i>Стаж работы на рынке (K<sub>опыт</sub>)
+                            </label>
+                            <select class="form-select" id="years_in_market" name="years_in_market" onchange="calculateContribution()">
+                                <option value="0">Менее 5 лет (K=1.10)</option>
+                                <option value="5">5-9 лет (K=1.00)</option>
+                                <option value="10" selected>10-14 лет (K=0.95)</option>
+                                <option value="15">15-19 лет (K=0.90)</option>
+                                <option value="20">20+ лет (K=0.85)</option>
+                            </select>
+                            <small class="text-muted d-block mt-1">Опыт снижает риск</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="portfolio_diversification" class="form-label fw-bold">
+                                <i class="bi bi-diagram-3-fill me-2 text-success"></i>Диверсификация портфеля (K<sub>портфель</sub>)
+                            </label>
+                            <select class="form-select" id="portfolio_diversification" name="portfolio_diversification" onchange="calculateContribution()">
+                                <option value="1">1-2 вида страхования (K=1.10)</option>
+                                <option value="3">3-4 вида (K=1.00)</option>
+                                <option value="5" selected>5-7 видов (K=0.95)</option>
+                                <option value="8">8-10 видов (K=0.90)</option>
+                                <option value="11">11+ видов (K=0.85)</option>
+                            </select>
+                            <small class="text-muted d-block mt-1">Диверсификация снижает риск</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-primary">
+                                <i class="bi bi-calculator-fill me-2"></i>Общий корректирующий коэфф. (K<sub>корр</sub>)
+                            </label>
+                            <input type="text" class="form-control bg-light fw-bold" id="total_correction_display" readonly value="0.903">
+                            <small class="text-muted d-block mt-1">K<sub>опыт</sub> × K<sub>портфель</sub> × K<sub>рейт</sub></small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ШАГ 4: ДОПОЛНИТЕЛЬНЫЕ ВЗНОСЫ -->
+                <div class="mb-4">
+                    <h6 class="text-primary border-bottom pb-2">
+                        <i class="bi bi-4-circle-fill me-2"></i>Шаг 4: Дополнительные и чрезвычайные взносы
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="additional_contribution_required" onchange="calculateContribution()">
+                                        <label class="form-check-label fw-bold" for="additional_contribution_required">
+                                            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Требуется дополнительный взнос (V<sub>доп</sub>)
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mb-2">Применяется, если N<sub>мп</sub> < 120% в течение 2 кварталов подряд</small>
+                                    <div id="additionalContributionParams" style="display: none;">
+                                        <label for="alpha_coefficient" class="form-label">Коэфф. дополнительного взноса (α)</label>
+                                        <input type="number" class="form-control" id="alpha_coefficient" value="0.15" step="0.01" min="0" max="1" onchange="calculateContribution()">
+                                        <small class="text-muted d-block mt-1">V<sub>доп</sub> = α × P<sub>чист</sub> × S<sub>диф</sub></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-danger">
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="emergency_contribution_required" onchange="calculateContribution()">
+                                        <label class="form-check-label fw-bold" for="emergency_contribution_required">
+                                            <i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Требуется чрезвычайный взнос (V<sub>чрезв</sub>)
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mb-2">Применяется при банкротстве члена ФГСВ</small>
+                                    <div id="emergencyContributionParams" style="display: none;">
+                                        <label for="emergency_amount" class="form-label">Сумма чрезвычайного взноса</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="emergency_amount" value="50000000" step="1000000" min="0" onchange="calculateContribution()">
+                                            <span class="input-group-text">₸</span>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">Определяется решением ФГСВ</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- КНОПКИ ДЕЙСТВИЙ -->
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
                     <button type="button" class="btn btn-primary btn-lg" onclick="calculateContribution()">
-                        <i class="bi bi-calculator"></i> Рассчитать взнос
+                        <i class="bi bi-calculator-fill me-2"></i>Рассчитать взнос
                     </button>
-                    <button type="reset" class="btn btn-outline-secondary btn-lg">Очистить</button>
+                    <button type="reset" class="btn btn-outline-secondary btn-lg" onclick="resetForm()">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>Очистить
+                    </button>
                 </div>
             </form>
         </div>
@@ -121,30 +271,58 @@
 
                         <hr class="my-4">
 
+                        <!-- ПОДРОБНАЯ РАЗБИВКА РАСЧЕТА -->
+                        <div class="card border-primary mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Детальная разбивка расчета</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="calculationSteps">
+                                    <!-- Будет заполнено JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ФОРМУЛА И ОБОСНОВАНИЕ -->
                         <div class="row">
                             <div class="col-md-8">
-                                <h6 class="text-primary mb-3">Расчетная формула</h6>
-                                <div class="bg-light p-3 rounded" id="formulaBox">
-                                    <code id="formulaText">-</code>
+                                <h6 class="text-primary mb-3">
+                                    <i class="bi bi-calculator me-2"></i>Расчетная формула
+                                </h6>
+                                <div class="bg-light p-3 rounded border" id="formulaBox">
+                                    <code id="formulaText" style="font-size: 14px;">-</code>
                                 </div>
-                                <p class="text-muted small mt-3" id="justification">-</p>
+                                <div class="alert alert-info mt-3 mb-0" id="justificationBox">
+                                    <strong>Обоснование:</strong>
+                                    <p class="mb-0 mt-2" id="justification">-</p>
+                                </div>
                             </div>
                             <div class="col-md-4">
-                                <h6 class="text-primary mb-3">Информация</h6>
-                                <ul class="list-unstyled small">
-                                    <li class="mb-2">
-                                        <i class="bi bi-info-circle text-info me-2"></i>
-                                        <span id="infoLine1">-</span>
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-info-circle text-info me-2"></i>
-                                        <span id="infoLine2">-</span>
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-info-circle text-info me-2"></i>
-                                        <span id="infoLine3">-</span>
-                                    </li>
-                                </ul>
+                                <h6 class="text-primary mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>Регуляторная информация
+                                </h6>
+                                <div class="card border-info">
+                                    <div class="card-body">
+                                        <ul class="list-unstyled small mb-0">
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle text-success me-2"></i>
+                                                <span id="infoLine1">-</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle text-success me-2"></i>
+                                                <span id="infoLine2">-</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle text-success me-2"></i>
+                                                <span id="infoLine3">-</span>
+                                            </li>
+                                            <li class="mb-0">
+                                                <i class="bi bi-check-circle text-success me-2"></i>
+                                                <span id="infoLine4">-</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -195,6 +373,107 @@
 </div>
 
 <script>
+    // Автоматическое обновление полей при изменении
+    document.addEventListener('DOMContentLoaded', function() {
+        // Отслеживание чекбоксов для показа/скрытия параметров
+        document.getElementById('additional_contribution_required').addEventListener('change', function() {
+            document.getElementById('additionalContributionParams').style.display = this.checked ? 'block' : 'none';
+        });
+
+        document.getElementById('emergency_contribution_required').addEventListener('change', function() {
+            document.getElementById('emergencyContributionParams').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Автоматический расчет чистых премий
+        function updateNetPremiums() {
+            const premiums = parseFloat(document.getElementById('premiums').value) || 0;
+            const reinsurance = parseFloat(document.getElementById('reinsurance_premiums').value) || 0;
+            const netPremiums = premiums - reinsurance;
+            document.getElementById('net_premiums_display').value = netPremiums.toLocaleString('ru-RU');
+        }
+
+        // Автоматический расчет корректирующего коэффициента
+        function updateCorrectionCoefficient() {
+            const years = parseInt(document.getElementById('years_in_market').value);
+            const portfolio = parseInt(document.getElementById('portfolio_diversification').value);
+            const rating = document.getElementById('credit_rating').value;
+
+            // K_опыт
+            let kExperience = 1.00;
+            if (years >= 20) kExperience = 0.85;
+            else if (years >= 15) kExperience = 0.90;
+            else if (years >= 10) kExperience = 0.95;
+            else if (years >= 5) kExperience = 1.00;
+            else kExperience = 1.10;
+
+            // K_портфель
+            let kPortfolio = 1.00;
+            if (portfolio >= 11) kPortfolio = 0.85;
+            else if (portfolio >= 8) kPortfolio = 0.90;
+            else if (portfolio >= 5) kPortfolio = 0.95;
+            else if (portfolio >= 3) kPortfolio = 1.00;
+            else kPortfolio = 1.10;
+
+            // K_рейтинг
+            const kRating = {
+                'AAA': 0.85, 'AA': 0.90, 'A': 0.95, 'BBB': 1.00,
+                'BB': 1.05, 'B': 1.10, 'CCC': 1.15, 'NONE': 1.20
+            }[rating] || 1.00;
+
+            const totalK = kExperience * kPortfolio * kRating;
+            document.getElementById('total_correction_display').value = totalK.toFixed(4);
+        }
+
+        // Предварительная классификация риска
+        function updatePreliminaryClassification() {
+            const nmp = parseFloat(document.getElementById('solvency_ratio').value) || 0;
+            const lossRatio = parseFloat(document.getElementById('loss_ratio').value) || 0;
+            const combinedRatio = parseFloat(document.getElementById('combined_ratio').value) || 0;
+
+            let riskClass = '';
+            let baseRate = 0;
+            let classColor = '';
+
+            if (nmp >= 2.0 && lossRatio <= 60 && combinedRatio <= 85) {
+                riskClass = 'Класс A (Минимальный риск)';
+                baseRate = 0.5;
+                classColor = 'success';
+            } else if (nmp >= 1.5 && lossRatio <= 70 && combinedRatio <= 95) {
+                riskClass = 'Класс B (Низкий риск)';
+                baseRate = 1.0;
+                classColor = 'info';
+            } else if (nmp >= 1.2 && lossRatio <= 80 && combinedRatio <= 105) {
+                riskClass = 'Класс C (Средний риск)';
+                baseRate = 2.0;
+                classColor = 'warning';
+            } else {
+                riskClass = 'Класс D (Высокий риск)';
+                baseRate = 3.0;
+                classColor = 'danger';
+            }
+
+            const previewElement = document.getElementById('preliminaryClass');
+            previewElement.innerHTML = `<span class="badge bg-${classColor}">${riskClass}</span> — Базовая ставка: ${baseRate}%`;
+        }
+
+        // Привязываем обновления к полям
+        document.getElementById('premiums').addEventListener('input', updateNetPremiums);
+        document.getElementById('reinsurance_premiums').addEventListener('input', updateNetPremiums);
+
+        document.getElementById('years_in_market').addEventListener('change', updateCorrectionCoefficient);
+        document.getElementById('portfolio_diversification').addEventListener('change', updateCorrectionCoefficient);
+        document.getElementById('credit_rating').addEventListener('change', updateCorrectionCoefficient);
+
+        document.getElementById('solvency_ratio').addEventListener('input', updatePreliminaryClassification);
+        document.getElementById('loss_ratio').addEventListener('input', updatePreliminaryClassification);
+        document.getElementById('combined_ratio').addEventListener('input', updatePreliminaryClassification);
+
+        // Инициализация при загрузке
+        updateNetPremiums();
+        updateCorrectionCoefficient();
+        updatePreliminaryClassification();
+    });
+
     // Функции для уведомлений
     function showNotification(message, type = 'success') {
         // Создаем элемент для уведомления
@@ -276,26 +555,94 @@
     }
 
     function displayResults(result, audit) {
-        // Форматирование суммы взноса
-        const contribution = result.contribution;
-        const rate = result.rate;
-        const riskClass = result.risk_class;
+        // Получаем все введенные данные
+        const premiums = parseFloat(document.getElementById('premiums').value);
+        const reinsurance = parseFloat(document.getElementById('reinsurance_premiums').value);
+        const netPremiums = premiums - reinsurance;
+        const nmp = parseFloat(document.getElementById('solvency_ratio').value);
+        const lossRatio = parseFloat(document.getElementById('loss_ratio').value);
+        const combinedRatio = parseFloat(document.getElementById('combined_ratio').value);
 
+        // Корректирующие коэффициенты
+        const years = parseInt(document.getElementById('years_in_market').value);
+        const portfolio = parseInt(document.getElementById('portfolio_diversification').value);
+        const rating = document.getElementById('credit_rating').value;
+
+        // Расчет коэффициентов
+        let kExperience = 1.00;
+        if (years >= 20) kExperience = 0.85;
+        else if (years >= 15) kExperience = 0.90;
+        else if (years >= 10) kExperience = 0.95;
+        else if (years >= 5) kExperience = 1.00;
+        else kExperience = 1.10;
+
+        let kPortfolio = 1.00;
+        if (portfolio >= 11) kPortfolio = 0.85;
+        else if (portfolio >= 8) kPortfolio = 0.90;
+        else if (portfolio >= 5) kPortfolio = 0.95;
+        else if (portfolio >= 3) kPortfolio = 1.00;
+        else kPortfolio = 1.10;
+
+        const kRating = {
+            'AAA': 0.85, 'AA': 0.90, 'A': 0.95, 'BBB': 1.00,
+            'BB': 1.05, 'B': 1.10, 'CCC': 1.15, 'NONE': 1.20
+        }[rating] || 1.00;
+
+        const kCorr = kExperience * kPortfolio * kRating;
+
+        // Классификация риска и базовая ставка
+        let riskClassText = '';
+        let baseRate = 0;
+        if (nmp >= 2.0 && lossRatio <= 60 && combinedRatio <= 85) {
+            riskClassText = 'Класс A';
+            baseRate = 0.005;
+        } else if (nmp >= 1.5 && lossRatio <= 70 && combinedRatio <= 95) {
+            riskClassText = 'Класс B';
+            baseRate = 0.010;
+        } else if (nmp >= 1.2 && lossRatio <= 80 && combinedRatio <= 105) {
+            riskClassText = 'Класс C';
+            baseRate = 0.020;
+        } else {
+            riskClassText = 'Класс D';
+            baseRate = 0.030;
+        }
+
+        const effectiveRate = baseRate * kCorr;
+        const obligatoryContribution = netPremiums * effectiveRate;
+
+        // Дополнительные взносы
+        const additionalRequired = document.getElementById('additional_contribution_required').checked;
+        const emergencyRequired = document.getElementById('emergency_contribution_required').checked;
+
+        let additionalContribution = 0;
+        let emergencyContribution = 0;
+
+        if (additionalRequired) {
+            const alpha = parseFloat(document.getElementById('alpha_coefficient').value);
+            additionalContribution = alpha * netPremiums * baseRate;
+        }
+
+        if (emergencyRequired) {
+            emergencyContribution = parseFloat(document.getElementById('emergency_amount').value);
+        }
+
+        const totalContribution = obligatoryContribution + additionalContribution + emergencyContribution;
+
+        // ОТОБРАЖЕНИЕ РЕЗУЛЬТАТОВ
         document.getElementById('contributionAmount').textContent =
-            (contribution / 1000000000).toFixed(2) + ' млрд ₸';
+            (totalContribution / 1000000000).toFixed(3) + ' млрд ₸';
 
         document.getElementById('ratePercent').textContent =
-            (rate * 100).toFixed(3) + '%';
+            (effectiveRate * 100).toFixed(4) + '%';
 
-        document.getElementById('riskClass').textContent =
-            formatRiskClass(riskClass);
+        document.getElementById('riskClass').innerHTML =
+            `<span class="badge bg-${riskClassText === 'Класс A' ? 'success' : riskClassText === 'Класс B' ? 'info' : riskClassText === 'Класс C' ? 'warning' : 'danger'}">${riskClassText}</span>`;
 
         // Статус платежеспособности
-        const nmr = parseFloat(document.getElementById('solvency_ratio').value);
-        if (nmr >= 1.2) {
+        if (nmp >= 1.2) {
             document.getElementById('statusBadge').innerHTML =
                 '<span class="badge bg-success">Соответствие</span>';
-        } else if (nmr >= 1.0) {
+        } else if (nmp >= 1.0) {
             document.getElementById('statusBadge').innerHTML =
                 '<span class="badge bg-warning">Внимание</span>';
         } else {
@@ -303,21 +650,163 @@
                 '<span class="badge bg-danger">Риск</span>';
         }
 
+        // ДЕТАЛЬНАЯ РАЗБИВКА РАСЧЕТА
+        const stepsHTML = `
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="40%">Параметр</th>
+                            <th width="25%">Значение</th>
+                            <th width="30%">Расчет</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-primary">
+                            <td colspan="4"><strong>ЭТАП 1: Базовые данные</strong></td>
+                        </tr>
+                        <tr>
+                            <td>1.1</td>
+                            <td>Валовые премии (P<sub>вал</sub>)</td>
+                            <td>${(premiums / 1000000000).toFixed(3)} млрд ₸</td>
+                            <td>Исходные данные</td>
+                        </tr>
+                        <tr>
+                            <td>1.2</td>
+                            <td>Премии по перестрахованию (P<sub>перестр</sub>)</td>
+                            <td>${(reinsurance / 1000000000).toFixed(3)} млрд ₸</td>
+                            <td>Исходные данные</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td>1.3</td>
+                            <td><strong>Чистые премии (P<sub>чист</sub>)</strong></td>
+                            <td><strong>${(netPremiums / 1000000000).toFixed(3)} млрд ₸</strong></td>
+                            <td>P<sub>вал</sub> - P<sub>перестр</sub></td>
+                        </tr>
+
+                        <tr class="table-primary">
+                            <td colspan="4"><strong>ЭТАП 2: Классификация риска</strong></td>
+                        </tr>
+                        <tr>
+                            <td>2.1</td>
+                            <td>Коэфф. платежеспособности (N<sub>мп</sub>)</td>
+                            <td>${nmp.toFixed(2)}</td>
+                            <td>Собственный капитал / Мин. капитал</td>
+                        </tr>
+                        <tr>
+                            <td>2.2</td>
+                            <td>Loss Ratio</td>
+                            <td>${lossRatio.toFixed(1)}%</td>
+                            <td>Выплаты / Премии</td>
+                        </tr>
+                        <tr>
+                            <td>2.3</td>
+                            <td>Combined Ratio</td>
+                            <td>${combinedRatio.toFixed(1)}%</td>
+                            <td>Убыточность + Расходы</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>2.4</td>
+                            <td><strong>Класс риска</strong></td>
+                            <td><strong>${riskClassText}</strong></td>
+                            <td>На основе критериев риска</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>2.5</td>
+                            <td><strong>Базовая ставка (S<sub>диф</sub>)</strong></td>
+                            <td><strong>${(baseRate * 100).toFixed(2)}%</strong></td>
+                            <td>Дифференцированная ставка для ${riskClassText}</td>
+                        </tr>
+
+                        <tr class="table-primary">
+                            <td colspan="4"><strong>ЭТАП 3: Корректирующие коэффициенты</strong></td>
+                        </tr>
+                        <tr>
+                            <td>3.1</td>
+                            <td>K<sub>опыт</sub> (стаж ${years >= 20 ? '20+' : years >= 15 ? '15-19' : years >= 10 ? '10-14' : years >= 5 ? '5-9' : '<5'} лет)</td>
+                            <td>${kExperience.toFixed(2)}</td>
+                            <td>Корректировка за опыт</td>
+                        </tr>
+                        <tr>
+                            <td>3.2</td>
+                            <td>K<sub>портфель</sub> (диверсификация ${portfolio >= 11 ? '11+' : portfolio >= 8 ? '8-10' : portfolio >= 5 ? '5-7' : portfolio >= 3 ? '3-4' : '1-2'} видов)</td>
+                            <td>${kPortfolio.toFixed(2)}</td>
+                            <td>Корректировка за диверсификацию</td>
+                        </tr>
+                        <tr>
+                            <td>3.3</td>
+                            <td>K<sub>рейтинг</sub> (рейтинг ${rating})</td>
+                            <td>${kRating.toFixed(2)}</td>
+                            <td>Корректировка за кредитный рейтинг</td>
+                        </tr>
+                        <tr class="table-info">
+                            <td>3.4</td>
+                            <td><strong>K<sub>корр</sub> (общий коэффициент)</strong></td>
+                            <td><strong>${kCorr.toFixed(4)}</strong></td>
+                            <td>K<sub>опыт</sub> × K<sub>портфель</sub> × K<sub>рейтинг</sub></td>
+                        </tr>
+                        <tr class="table-info">
+                            <td>3.5</td>
+                            <td><strong>Эффективная ставка</strong></td>
+                            <td><strong>${(effectiveRate * 100).toFixed(4)}%</strong></td>
+                            <td>S<sub>диф</sub> × K<sub>корр</sub> = ${(baseRate * 100).toFixed(2)}% × ${kCorr.toFixed(4)}</td>
+                        </tr>
+
+                        <tr class="table-primary">
+                            <td colspan="4"><strong>ЭТАП 4: Расчет обязательного взноса</strong></td>
+                        </tr>
+                        <tr class="table-success">
+                            <td>4.1</td>
+                            <td><strong>Обязательный взнос (V<sub>обяз</sub>)</strong></td>
+                            <td><strong>${(obligatoryContribution / 1000000000).toFixed(3)} млрд ₸</strong></td>
+                            <td>P<sub>чист</sub> × Эффективная ставка</td>
+                        </tr>
+                        ${additionalRequired ? `
+                        <tr class="table-warning">
+                            <td>4.2</td>
+                            <td><strong>Дополнительный взнос (V<sub>доп</sub>)</strong></td>
+                            <td><strong>${(additionalContribution / 1000000000).toFixed(3)} млрд ₸</strong></td>
+                            <td>α=${parseFloat(document.getElementById('alpha_coefficient').value).toFixed(2)} × P<sub>чист</sub> × S<sub>диф</sub></td>
+                        </tr>
+                        ` : ''}
+                        ${emergencyRequired ? `
+                        <tr class="table-danger">
+                            <td>4.3</td>
+                            <td><strong>Чрезвычайный взнос (V<sub>чрезв</sub>)</strong></td>
+                            <td><strong>${(emergencyContribution / 1000000000).toFixed(3)} млрд ₸</strong></td>
+                            <td>Определено решением ФГСВ</td>
+                        </tr>
+                        ` : ''}
+                        <tr class="table-success bg-success text-white">
+                            <td colspan="2"><strong>ИТОГО К ОПЛАТЕ</strong></td>
+                            <td colspan="2"><strong style="font-size: 1.2em;">${(totalContribution / 1000000000).toFixed(3)} млрд ₸</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+        document.getElementById('calculationSteps').innerHTML = stepsHTML;
+
         // Формула расчета
-        document.getElementById('formulaText').textContent =
-            `Взнос = ${(parseFloat(document.getElementById('premiums').value) / 1000000000).toFixed(2)} млрд ₸ × ${(rate * 100).toFixed(3)}% = ${(contribution / 1000000000).toFixed(2)} млрд ₸`;
+        document.getElementById('formulaText').innerHTML =
+            `V<sub>обяз</sub> = P<sub>чист</sub> × S<sub>диф</sub> × K<sub>корр</sub><br>
+            V<sub>обяз</sub> = ${(netPremiums / 1000000000).toFixed(3)} млрд ₸ × ${(baseRate * 100).toFixed(2)}% × ${kCorr.toFixed(4)} = ${(obligatoryContribution / 1000000000).toFixed(3)} млрд ₸
+            ${additionalRequired || emergencyRequired ? `<br><br>V<sub>итого</sub> = V<sub>обяз</sub>${additionalRequired ? ' + V<sub>доп</sub>' : ''}${emergencyRequired ? ' + V<sub>чрезв</sub>' : ''} = ${(totalContribution / 1000000000).toFixed(3)} млрд ₸` : ''}`;
 
         // Обоснование
         document.getElementById('justification').textContent =
-            audit.justification || 'Взнос рассчитан на основе Методики расчета ставок взносов ФГСВ';
+            `Расчет выполнен в соответствии с Постановлением Правительства РК №387 от 2012 года (с изменениями по Постановлению АРФР №70 от 2021 года) и Законом РК №423-II "О фонде гарантирования страховых выплат". Ваша компания классифицирована как "${riskClassText}" с базовой ставкой ${(baseRate * 100).toFixed(2)}%. Применены корректирующие коэффициенты на основе опыта работы, диверсификации портфеля и кредитного рейтинга.`;
 
         // Информация
         document.getElementById('infoLine1').textContent =
-            'Расчет основан на текущих параметрах вашей компании';
+            'Методика №387 (2012) / АРФР №70 (2021)';
         document.getElementById('infoLine2').textContent =
-            'Взнос подлежит оплате в установленные сроки';
+            'Закон РК №423-II "О фонде гарантирования страховых выплат"';
         document.getElementById('infoLine3').textContent =
-            'Размер взноса может быть пересмотрен в конце года';
+            'Взнос подлежит оплате ежеквартально';
+        document.getElementById('infoLine4').textContent =
+            'Размер взноса пересматривается ежегодно';
 
         // Показываем результаты
         document.getElementById('resultsSection').style.display = 'block';
@@ -350,6 +839,32 @@
             // window.location.href = '/payment/fgsv-contribution';
             showNotification('В полной версии доступна система платежей', 'info');
         }, 1500);
+    }
+
+    function resetForm() {
+        // Сброс всех полей к значениям по умолчанию
+        document.getElementById('premiums').value = 5450000000;
+        document.getElementById('reinsurance_premiums').value = 450000000;
+        document.getElementById('solvency_ratio').value = 2.15;
+        document.getElementById('loss_ratio').value = 55;
+        document.getElementById('combined_ratio').value = 82;
+        document.getElementById('credit_rating').value = 'BBB';
+        document.getElementById('years_in_market').value = 10;
+        document.getElementById('portfolio_diversification').value = 5;
+        document.getElementById('additional_contribution_required').checked = false;
+        document.getElementById('emergency_contribution_required').checked = false;
+        document.getElementById('additionalContributionParams').style.display = 'none';
+        document.getElementById('emergencyContributionParams').style.display = 'none';
+
+        // Обновить расчеты
+        document.getElementById('net_premiums_display').value = '5000000000';
+        document.getElementById('total_correction_display').value = '0.9025';
+        document.getElementById('preliminaryClass').innerHTML = '<span class="badge bg-success">Класс A (Минимальный риск)</span> — Базовая ставка: 0.5%';
+
+        // Скрыть результаты
+        document.getElementById('resultsSection').style.display = 'none';
+
+        showNotification('Форма сброшена к значениям по умолчанию', 'info');
     }
 </script>
 
